@@ -23,6 +23,16 @@ import {
 } from '../orders.store'
 import OrderReceiptSheet from '../../../shared/components/receipt/OrderReceiptSheet'
 import OrderReceiptPreview from '../../../shared/components/receipt/OrderReceiptPreview'
+import {
+  selectInventoryIngredients,
+  selectInventoryRecipes,
+} from '../../inventory/inventory.selectors'
+import { applyInventoryDeductions } from '../../inventory/inventory.store'
+import {
+  buildInventoryDeductionNote,
+  buildInventoryShortageMessage,
+  validateInventoryForOrder,
+} from '../../inventory/inventory.logic'
 
 type ConfirmState = {
   isOpen: boolean
@@ -36,6 +46,8 @@ function OrdersPage() {
   const dispatch = useAppDispatch()
   const orders = useAppSelector(selectOrders)
   const user = useAppSelector(selectAuthUser)
+  const ingredients = useAppSelector(selectInventoryIngredients)
+  const recipes = useAppSelector(selectInventoryRecipes)
   const [tab, setTab] = useState<CashierTab>('unpaid')
   const [query, setQuery] = useState('')
   const [selectedId, setSelectedId] = useState<string | null>(null)
@@ -137,8 +149,38 @@ function OrdersPage() {
       )
       return
     }
+
+    const validation = validateInventoryForOrder(selectedOrder, recipes, ingredients)
+    if (!validation.ok) {
+      dispatch(
+        pushToast({
+          title: 'Inventory shortage',
+          description:
+            buildInventoryShortageMessage(validation.shortages) ||
+            'Inventory is insufficient to fulfill this order.',
+          variant: 'error',
+        }),
+      )
+      return
+    }
+
+    const inventoryNote =
+      validation.deductions.length > 0
+        ? buildInventoryDeductionNote(ingredients, validation.deductions, selectedOrder.order_no)
+        : undefined
+
+    if (validation.deductions.length > 0) {
+      dispatch(
+        applyInventoryDeductions({
+          orderId: selectedOrder.id,
+          orderNo: selectedOrder.order_no,
+          deductions: validation.deductions,
+        }),
+      )
+    }
+
     setIsProcessing(true)
-    dispatch(capturePaymentAndSend({ id: selectedOrder.id }))
+    dispatch(capturePaymentAndSend({ id: selectedOrder.id, inventoryNote }))
     dispatch(
       pushToast({
         title: 'Payment recorded',

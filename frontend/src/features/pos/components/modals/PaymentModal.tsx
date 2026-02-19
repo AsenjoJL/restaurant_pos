@@ -12,6 +12,16 @@ import { selectOrders } from '../../../orders/orders.selectors'
 import { capturePaymentAndPrepare } from '../../../orders/orders.store'
 import { clearDraft, closePaymentModal } from '../../pos.store'
 import { selectActivePaymentOrderId, selectPosUi, selectTotals } from '../../pos.selectors'
+import {
+  selectInventoryIngredients,
+  selectInventoryRecipes,
+} from '../../../inventory/inventory.selectors'
+import { applyInventoryDeductions } from '../../../inventory/inventory.store'
+import {
+  buildInventoryDeductionNote,
+  buildInventoryShortageMessage,
+  validateInventoryForOrder,
+} from '../../../inventory/inventory.logic'
 
 function PaymentModal() {
   const dispatch = useAppDispatch()
@@ -19,6 +29,8 @@ function PaymentModal() {
   const totals = useAppSelector(selectTotals)
   const activeOrderId = useAppSelector(selectActivePaymentOrderId)
   const orders = useAppSelector(selectOrders)
+  const ingredients = useAppSelector(selectInventoryIngredients)
+  const recipes = useAppSelector(selectInventoryRecipes)
 
   const order = useMemo(
     () => orders.find((item) => item.id === activeOrderId) ?? null,
@@ -75,8 +87,38 @@ function PaymentModal() {
       )
       return
     }
+
+    const validation = validateInventoryForOrder(order, recipes, ingredients)
+    if (!validation.ok) {
+      dispatch(
+        pushToast({
+          title: 'Inventory shortage',
+          description:
+            buildInventoryShortageMessage(validation.shortages) ||
+            'Inventory is insufficient to fulfill this order.',
+          variant: 'error',
+        }),
+      )
+      return
+    }
+
+    const inventoryNote =
+      validation.deductions.length > 0
+        ? buildInventoryDeductionNote(ingredients, validation.deductions, order.order_no)
+        : undefined
+
+    if (validation.deductions.length > 0) {
+      dispatch(
+        applyInventoryDeductions({
+          orderId: order.id,
+          orderNo: order.order_no,
+          deductions: validation.deductions,
+        }),
+      )
+    }
+
     setIsProcessing(true)
-    dispatch(capturePaymentAndPrepare({ id: order.id }))
+    dispatch(capturePaymentAndPrepare({ id: order.id, inventoryNote }))
     dispatch(
       pushToast({
         title: 'Payment recorded',

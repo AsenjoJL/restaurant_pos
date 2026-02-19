@@ -4,6 +4,7 @@ import posReducer from '../../features/pos/pos.store'
 import uiReducer from '../../shared/store/ui.store'
 import ordersReducer, { ORDERS_STORAGE_KEY, setOrders } from '../../features/orders/orders.store'
 import adminReducer from '../../features/admin/admin.store'
+import inventoryReducer from '../../features/inventory/inventory.store'
 
 export const store = configureStore({
   reducer: {
@@ -12,6 +13,7 @@ export const store = configureStore({
     orders: ordersReducer,
     ui: uiReducer,
     admin: adminReducer,
+    inventory: inventoryReducer,
   },
 })
 

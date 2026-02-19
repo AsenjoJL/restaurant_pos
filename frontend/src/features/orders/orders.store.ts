@@ -64,22 +64,34 @@ const ordersSlice = createSlice({
       }
       state.list.unshift(action.payload)
     },
-    capturePaymentAndSend: (state, action: { payload: { id: string } }) => {
+    capturePaymentAndSend: (
+      state,
+      action: { payload: { id: string; inventoryNote?: string } },
+    ) => {
       const order = state.list.find((item) => item.id === action.payload.id)
       if (!order || order.status !== 'PENDING_PAYMENT') {
         return
       }
       setStatus(order, 'PAID')
       addAuditEntry(order, 'PAYMENT', 'Payment captured at counter.')
+      if (action.payload.inventoryNote) {
+        addAuditEntry(order, 'STATUS', action.payload.inventoryNote)
+      }
       setStatus(order, 'SENT_TO_KITCHEN', 'Auto-sent to kitchen after payment.')
     },
-    capturePaymentAndPrepare: (state, action: { payload: { id: string } }) => {
+    capturePaymentAndPrepare: (
+      state,
+      action: { payload: { id: string; inventoryNote?: string } },
+    ) => {
       const order = state.list.find((item) => item.id === action.payload.id)
       if (!order || order.status !== 'PENDING_PAYMENT') {
         return
       }
       setStatus(order, 'PAID')
       addAuditEntry(order, 'PAYMENT', 'Payment captured at counter.')
+      if (action.payload.inventoryNote) {
+        addAuditEntry(order, 'STATUS', action.payload.inventoryNote)
+      }
       setStatus(order, 'PREPARING', 'Auto-started prep after payment.')
     },
     markPaid: (state, action: { payload: { id: string; note?: string } }) => {

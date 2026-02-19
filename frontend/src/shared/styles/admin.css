@@ -4,6 +4,45 @@
   gap: 16px;
 }
 
+.admin-analytics-grid {
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+}
+
+.admin-chart-card {
+  display: grid;
+  gap: 12px;
+}
+
+.admin-chart-metric {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  font-weight: 700;
+}
+
+.admin-chart-metric strong {
+  font-size: 1.4rem;
+}
+
+.admin-sparkline {
+  width: 100%;
+  height: 90px;
+}
+
+.admin-sparkline polyline {
+  fill: none;
+  stroke: var(--accent);
+  stroke-width: 3;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.admin-chart-foot {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.85rem;
+}
+
 .admin-card {
   padding: 16px;
   display: grid;
@@ -956,4 +995,84 @@
   font-weight: 700;
   letter-spacing: 0.05em;
   text-transform: uppercase;
+}
+
+/* ============================================
+   INVENTORY + RECIPE PAGES
+   ============================================ */
+.admin-table-row.inventory {
+  grid-template-columns: 1.2fr 0.8fr 0.5fr 0.7fr 0.7fr 0.6fr auto;
+}
+
+.inventory-meta {
+  display: grid;
+  gap: 4px;
+}
+
+.inventory-unit {
+  font-weight: 600;
+}
+
+.inventory-stock {
+  font-weight: 700;
+  font-family: var(--font-mono);
+}
+
+.inventory-stock--low {
+  color: #b42318;
+}
+
+.inventory-badge {
+  padding: 6px 10px;
+  border-radius: 999px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  border: 1px solid transparent;
+  width: fit-content;
+}
+
+.inventory-badge--low {
+  background: #fee2e2;
+  color: #991b1b;
+  border-color: #fecaca;
+}
+
+.inventory-badge--ok {
+  background: #d1fae5;
+  color: #065f46;
+  border-color: #6ee7b7;
+}
+
+.recipe-card {
+  display: grid;
+  gap: var(--space-lg);
+}
+
+.recipe-builder {
+  display: grid;
+  gap: var(--space-lg);
+}
+
+.recipe-lines {
+  display: grid;
+  gap: var(--space-md);
+}
+
+.recipe-line {
+  display: grid;
+  grid-template-columns: minmax(0, 1.4fr) minmax(0, 0.6fr) auto;
+  gap: var(--space-md);
+  align-items: end;
+}
+
+@media (max-width: 900px) {
+  .admin-table-row.inventory {
+    grid-template-columns: 1fr;
+  }
+
+  .recipe-line {
+    grid-template-columns: 1fr;
+  }
 }

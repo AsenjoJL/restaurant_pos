@@ -11,6 +11,8 @@ import AdminProductsPage from '../../features/admin/pages/AdminProductsPage'
 import AdminCategoriesPage from '../../features/admin/pages/AdminCategoriesPage'
 import AdminUsersPage from '../../features/admin/pages/AdminUsersPage'
 import AdminSettingsPage from '../../features/admin/pages/AdminSettingsPage'
+import AdminInventoryPage from '../../features/inventory/pages/AdminInventoryPage'
+import AdminRecipesPage from '../../features/inventory/pages/AdminRecipesPage'
 import KioskShell from '../../features/kiosk/components/KioskShell'
 import KioskWelcomePage from '../../features/kiosk/pages/KioskWelcomePage'
 import KioskOrderTypePage from '../../features/kiosk/pages/KioskOrderTypePage'
@@ -79,6 +81,8 @@ function AppRouter() {
           <Route path="dashboard" element={<AdminDashboardPage />} />
           <Route path="products" element={<AdminProductsPage />} />
           <Route path="categories" element={<AdminCategoriesPage />} />
+          <Route path="inventory" element={<AdminInventoryPage />} />
+          <Route path="recipes" element={<AdminRecipesPage />} />
           <Route path="users" element={<AdminUsersPage />} />
           <Route path="settings" element={<AdminSettingsPage />} />
         </Route>
