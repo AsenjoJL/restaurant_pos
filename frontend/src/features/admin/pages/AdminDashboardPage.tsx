@@ -74,9 +74,10 @@ function AdminDashboardPage() {
       (a, b) => new Date(a.placed_at).getTime() - new Date(b.placed_at).getTime(),
     )
     const revenue = paidOrders.reduce((sum, order) => sum + order.total, 0)
+    const netSales = revenue
     const avgTicket = paidOrders.length > 0 ? revenue / paidOrders.length : 0
     const profitMargin = 0.6
-    const profit = revenue * profitMargin
+    const profit = netSales * profitMargin
     const pendingPayment = orders.filter((order) => order.status === 'PENDING_PAYMENT').length
     const readyForPickup = orders.filter((order) => order.status === 'READY_FOR_PICKUP').length
     const completed = orders.filter((order) => order.status === 'COMPLETED').length
@@ -107,6 +108,7 @@ function AdminDashboardPage() {
       totalOrders: orders.length,
       paidOrders: paidOrders.length,
       revenue,
+      netSales,
       avgTicket,
       profit,
       profitMargin,
@@ -133,13 +135,13 @@ function AdminDashboardPage() {
       <div className="admin-stats">
         <AdminStatCard label="Categories" value={String(stats.categories)} icon="category" />
         <AdminStatCard
-          label="Products"
+          label="Menu Items"
           value={String(stats.products)}
           helper="Total items"
           icon="inventory_2"
         />
         <AdminStatCard
-          label="Active Products"
+          label="Active Menu Items"
           value={String(stats.activeProducts)}
           helper="Visible on POS"
           icon="visibility"
@@ -160,10 +162,16 @@ function AdminDashboardPage() {
         />
         <AdminStatCard label="Paid Orders" value={String(analytics.paidOrders)} icon="payments" />
         <AdminStatCard
-          label="Revenue"
+          label="Gross Sales"
           value={formatCurrency(analytics.revenue)}
           helper="Captured payments"
           icon="monitoring"
+        />
+        <AdminStatCard
+          label="Net Sales"
+          value={formatCurrency(analytics.netSales)}
+          helper="Captured revenue"
+          icon="trending_up"
         />
         <AdminStatCard
           label="Avg Ticket"
@@ -218,7 +226,7 @@ function AdminDashboardPage() {
 
         <div className="panel admin-card">
           <div className="admin-card-header">
-            <h3>Most Products Sold</h3>
+            <h3>Most Menu Items Sold</h3>
             <span className="muted">{analytics.topItems.length} items</span>
           </div>
           <ul className="admin-list">
@@ -261,7 +269,7 @@ function AdminDashboardPage() {
 
       <div className="admin-quick-links">
         <AdminQuickLinkCard
-          title="Manage Products"
+          title="Manage Menu Items"
           description="Add items, set prices, and enable availability."
           to="/admin/products"
           icon="inventory"

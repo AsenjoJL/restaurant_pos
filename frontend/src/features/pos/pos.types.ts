@@ -22,6 +22,29 @@ export type SelectedModifier = {
   priceDelta: number
 }
 
+export type ProductType = 'ITEM' | 'BUNDLE'
+
+export type BundleGroup = {
+  id: string
+  label: string
+  minSelect: number
+  maxSelect: number
+  allowedProductIds: string[]
+}
+
+export type BundleDefinition = {
+  groups: BundleGroup[]
+}
+
+export type BundleSelection = {
+  groupId: string
+  groupLabel: string
+  productId: string
+  name: string
+  price: number
+  quantity: number
+}
+
 export type OrderType = 'dine-in' | 'takeout'
 
 export type OrderStatus =
@@ -48,6 +71,8 @@ export type MenuProduct = {
   image?: string
   availability?: 'AVAILABLE' | 'LIMITED' | 'SOLD_OUT'
   modifierGroups?: ModifierGroup[]
+  type?: ProductType
+  bundle?: BundleDefinition
 }
 
 export type CartItem = {
@@ -56,6 +81,7 @@ export type CartItem = {
   note?: string
   selectedModifiers: SelectedModifier[]
   finalUnitPrice: number
+  bundleSelections?: BundleSelection[]
 }
 
 export type DraftOrder = {
@@ -71,4 +97,4 @@ export type DraftOrder = {
   status: OrderStatus
 }
 
-export type ConfirmIntent = 'void-item' | 'clear-cart' | 'cancel-order' | 'refund'
+export type ConfirmIntent = 'void-item' | 'clear-cart' | 'cancel-order'

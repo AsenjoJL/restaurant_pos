@@ -3,6 +3,7 @@ import CategorySidebar from '../components/CategorySidebar'
 import ProductGrid from '../components/ProductGrid'
 import CartPanel from '../components/CartPanel'
 import ModifierModal from '../components/modals/ModifierModal'
+import BundleBuilderModal from '../components/modals/BundleBuilderModal'
 import PaymentModal from '../components/modals/PaymentModal'
 import ReceiptModal from '../components/modals/ReceiptModal'
 import ConfirmDialog from '../../../shared/components/ui/ConfirmDialog'
@@ -30,27 +31,22 @@ function PosPage() {
     'void-item': 'Void Item',
     'clear-cart': 'Clear Cart',
     'cancel-order': 'Cancel Order',
-    refund: 'Refund Payment',
   }
 
   const confirmDescriptionMap = {
     'void-item': 'Provide a reason for voiding this item.',
     'clear-cart': 'This will remove all items from the cart.',
     'cancel-order': 'Provide a reason for cancelling this order.',
-    refund: 'Provide a reason for the refund.',
   }
 
   const confirmLabelMap = {
     'void-item': 'Void Item',
     'clear-cart': 'Clear Cart',
     'cancel-order': 'Cancel Order',
-    refund: 'Process Refund',
   }
 
   const requireReason =
-    ui.confirm.intent === 'void-item' ||
-    ui.confirm.intent === 'cancel-order' ||
-    ui.confirm.intent === 'refund'
+    ui.confirm.intent === 'void-item' || ui.confirm.intent === 'cancel-order'
 
   const handleConfirm = () => {
     if (!ui.confirm.intent) {
@@ -78,6 +74,7 @@ function PosPage() {
       <ProductGrid />
       <CartPanel />
       <ModifierModal />
+      <BundleBuilderModal />
       <PaymentModal />
       <ReceiptModal />
       <ConfirmDialog

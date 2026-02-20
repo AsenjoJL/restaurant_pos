@@ -5,6 +5,7 @@ import type {
   DraftOrder,
   MenuProduct,
   OrderType,
+  BundleSelection,
   SelectedModifier,
 } from './pos.types'
 import { sanitizeNote } from './pos.utils'
@@ -25,6 +26,8 @@ type PosUiState = {
   activeOrderId: string | null
   isModifierOpen: boolean
   modifierTargetId: string | null
+  isBundleOpen: boolean
+  bundleTargetId: string | null
   isReceiptOpen: boolean
   confirm: ConfirmState
 }
@@ -60,6 +63,20 @@ const draftSlice = createSlice({
         note: '',
         selectedModifiers: [],
         finalUnitPrice: action.payload.price,
+      }
+      state.items.push(newItem)
+    },
+    addBundleItem: (
+      state,
+      action: PayloadAction<{ product: MenuProduct; selections: BundleSelection[] }>,
+    ) => {
+      const newItem: CartItem = {
+        product: action.payload.product,
+        quantity: 1,
+        note: '',
+        selectedModifiers: [],
+        finalUnitPrice: action.payload.product.price,
+        bundleSelections: action.payload.selections,
       }
       state.items.push(newItem)
     },
@@ -148,6 +165,8 @@ const initialUiState: PosUiState = {
   activeOrderId: null,
   isModifierOpen: false,
   modifierTargetId: null,
+  isBundleOpen: false,
+  bundleTargetId: null,
   isReceiptOpen: false,
   confirm: {
     isOpen: false,
@@ -183,6 +202,14 @@ const uiSlice = createSlice({
       state.isModifierOpen = false
       state.modifierTargetId = null
     },
+    openBundleModal: (state, action: PayloadAction<string>) => {
+      state.isBundleOpen = true
+      state.bundleTargetId = action.payload
+    },
+    closeBundleModal: (state) => {
+      state.isBundleOpen = false
+      state.bundleTargetId = null
+    },
     openReceiptModal: (state) => {
       state.isReceiptOpen = true
     },
@@ -212,6 +239,7 @@ const uiSlice = createSlice({
 
 export const {
   addItem,
+  addBundleItem,
   setItemQuantity,
   removeItem,
   setItemNote,
@@ -233,6 +261,8 @@ export const {
   closePaymentModal,
   openModifierModal,
   closeModifierModal,
+  openBundleModal,
+  closeBundleModal,
   openReceiptModal,
   closeReceiptModal,
   openConfirm,

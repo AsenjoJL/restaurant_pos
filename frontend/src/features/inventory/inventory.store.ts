@@ -130,6 +130,29 @@ const inventorySlice = createSlice({
         })
       })
     },
+    applyInventoryReturns: (state, action: PayloadAction<DeductionPayload>) => {
+      const orderLabel = action.payload.orderNo
+        ? `Order ${action.payload.orderNo} refund`
+        : 'Order refund'
+      action.payload.deductions.forEach((deduction) => {
+        const target = state.ingredients.find(
+          (item) => item.id === deduction.ingredientId,
+        )
+        if (!target) {
+          return
+        }
+        target.onHand = target.onHand + deduction.qty
+        state.adjustments.unshift({
+          id: nanoid(),
+          ingredientId: deduction.ingredientId,
+          type: 'IN',
+          qty: deduction.qty,
+          reason: orderLabel,
+          at: new Date().toISOString(),
+          orderId: action.payload.orderId,
+        })
+      })
+    },
   },
 })
 
@@ -140,6 +163,7 @@ export const {
   saveRecipe,
   removeRecipe,
   applyInventoryDeductions,
+  applyInventoryReturns,
 } = inventorySlice.actions
 
 export default inventorySlice.reducer

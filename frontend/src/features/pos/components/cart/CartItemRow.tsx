@@ -18,7 +18,8 @@ function CartItemRow({
   onOpenModifiers,
   onNoteChange,
 }: CartItemRowProps) {
-  const hasModifiers = Boolean(item.product.modifierGroups?.length)
+  const isBundle = item.product.type === 'BUNDLE'
+  const hasModifiers = !isBundle && Boolean(item.product.modifierGroups?.length)
   const unitPrice = item.finalUnitPrice ?? item.product.price
 
   return (
@@ -27,6 +28,15 @@ function CartItemRow({
         <div>
           <h4>{item.product.name}</h4>
           <p className="muted">{formatCurrency(unitPrice)} each</p>
+          {isBundle && item.bundleSelections?.length ? (
+            <div className="bundle-summary">
+              {item.bundleSelections.map((selection) => (
+                <span key={`${selection.groupId}-${selection.productId}`}>
+                  {selection.groupLabel}: {selection.name}
+                </span>
+              ))}
+            </div>
+          ) : null}
           {item.selectedModifiers.length > 0 ? (
             <p className="muted modifier-list">
               Mods: {item.selectedModifiers.map((mod) => mod.name).join(', ')}

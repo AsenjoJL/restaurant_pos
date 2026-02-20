@@ -95,6 +95,12 @@ export const buildStaffOrder = ({
       quantity: item.quantity,
       modifiers: item.selectedModifiers.map((mod) => mod.name),
       note: item.note,
+      bundle_items: item.bundleSelections?.map((selection) => ({
+        id: selection.productId,
+        name: selection.name,
+        price: selection.price,
+        quantity: selection.quantity,
+      })),
     })),
     note: draft.notes.trim().length > 0 ? draft.notes.trim() : undefined,
     subtotal: totals.subtotal,

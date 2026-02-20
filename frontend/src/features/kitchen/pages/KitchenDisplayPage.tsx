@@ -7,12 +7,19 @@ import {
   getKitchenStatusLabel,
   isKitchenStatus,
 } from '../../../shared/lib/orders'
-import { selectOrders } from '../../orders/orders.selectors'
-import { markReady, startPreparing } from '../../orders/orders.store'
+import { selectOrders, selectReplacementTickets } from '../../orders/orders.selectors'
+import {
+  markReady,
+  startPreparing,
+  startReplacementTicket,
+  markReplacementReady,
+} from '../../orders/orders.store'
+import type { OrderStatus } from '../../../shared/types/order'
 
 function KitchenDisplayPage() {
   const dispatch = useAppDispatch()
   const orders = useAppSelector(selectOrders)
+  const replacementTickets = useAppSelector(selectReplacementTickets)
 
   const kitchenOrders = useMemo(
     () => orders.filter((order) => isKitchenStatus(order.status)),
@@ -45,6 +52,29 @@ function KitchenDisplayPage() {
                 {formatEnumLabel(order.source)}
               </span>
             </div>
+            <div className="kds-items">
+              {order.items.map((item) => (
+                <div key={`${order.id}-${item.id}`} className="kds-item-row">
+                  <div>
+                    <strong>{item.name}</strong>
+                    <span className="muted">Qty {item.quantity}</span>
+                    {item.bundle_items?.length ? (
+                      <div className="kds-bundle">
+                        {item.bundle_items.map((bundleItem) => (
+                          <span key={`${item.id}-${bundleItem.id}`}>
+                            {bundleItem.quantity}× {bundleItem.name}
+                          </span>
+                        ))}
+                      </div>
+                    ) : null}
+                    {item.modifiers?.length ? (
+                      <div className="muted">{item.modifiers.join(', ')}</div>
+                    ) : null}
+                    {item.note ? <div className="muted">Note: {item.note}</div> : null}
+                  </div>
+                </div>
+              ))}
+            </div>
             <div className="kds-actions">
               <button
                 type="button"
@@ -65,7 +95,57 @@ function KitchenDisplayPage() {
             </div>
           </div>
         ))}
-        {kitchenOrders.length === 0 ? (
+        {replacementTickets.map((ticket) => (
+          <div key={ticket.id} className="kds-card panel kds-replacement">
+            <div className="kds-header">
+              <div>
+                <h3>{ticket.orderNo}</h3>
+                <p className="muted">REMAKE / REPLACEMENT</p>
+              </div>
+              <Badge
+                variant={ticket.status as OrderStatus}
+                icon="refresh"
+              >
+                {getKitchenStatusLabel(ticket.status as OrderStatus)}
+              </Badge>
+            </div>
+            <div className="kds-meta">
+              <span>
+                {ticket.items.reduce((sum, item) => sum + item.qty, 0)} items
+              </span>
+              <span className="chip">Replacement</span>
+            </div>
+            <div className="kds-items">
+              {ticket.items.map((item) => (
+                <div key={`${ticket.id}-${item.productId}`} className="kds-item-row">
+                  <div>
+                    <strong>{item.name}</strong>
+                    <span className="muted">Qty {item.qty}</span>
+                  </div>
+                </div>
+              ))}
+            </div>
+            <div className="kds-actions">
+              <button
+                type="button"
+                className="btn btn-outline"
+                onClick={() => dispatch(startReplacementTicket({ id: ticket.id }))}
+                disabled={ticket.status !== 'SENT_TO_KITCHEN'}
+              >
+                Start
+              </button>
+              <button
+                type="button"
+                className="btn btn-primary"
+                onClick={() => dispatch(markReplacementReady({ id: ticket.id }))}
+                disabled={ticket.status !== 'PREPARING'}
+              >
+                Ready
+              </button>
+            </div>
+          </div>
+        ))}
+        {kitchenOrders.length === 0 && replacementTickets.length === 0 ? (
           <div className="panel empty-state">
             <h3>No kitchen tickets yet</h3>
             <p className="muted">Paid orders will appear here once sent to the kitchen.</p>

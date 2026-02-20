@@ -214,7 +214,7 @@ function AdminProductsPage() {
     <div className="page admin-page">
       <div className="page-header">
         <div>
-          <h2>Products</h2>
+          <h2>Menu Items</h2>
           <p className="muted">Search, edit, and activate menu items.</p>
         </div>
         <Button variant="primary" onClick={openAddModal} icon="add">
@@ -223,7 +223,7 @@ function AdminProductsPage() {
       </div>
 
       <div className="admin-metrics">
-        <AdminStatCard label="Total Products" value={String(stats.total)} icon="inventory_2" />
+        <AdminStatCard label="Total Menu Items" value={String(stats.total)} icon="inventory_2" />
         <AdminStatCard label="Active" value={String(stats.active)} helper="Visible on POS" icon="visibility" />
         <AdminStatCard label="Hidden" value={String(stats.hidden)} helper="Not visible" icon="visibility_off" />
         <AdminStatCard label="Categories" value={String(stats.categories)} icon="category" />

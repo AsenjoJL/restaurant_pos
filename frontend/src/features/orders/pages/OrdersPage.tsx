@@ -12,27 +12,20 @@ import {
   isPaymentCaptured,
 } from '../../../shared/lib/orders'
 import { normalizeReference } from '../../../shared/lib/validators'
-import { pushToast } from '../../../shared/store/ui.store'
 import { selectOrders } from '../orders.selectors'
 import {
   cancelOrder,
   closeOrder,
-  capturePaymentAndSend,
   sendToKitchen,
   updateOrderNote,
 } from '../orders.store'
 import OrderReceiptSheet from '../../../shared/components/receipt/OrderReceiptSheet'
 import OrderReceiptPreview from '../../../shared/components/receipt/OrderReceiptPreview'
-import {
-  selectInventoryIngredients,
-  selectInventoryRecipes,
-} from '../../inventory/inventory.selectors'
-import { applyInventoryDeductions } from '../../inventory/inventory.store'
-import {
-  buildInventoryDeductionNote,
-  buildInventoryShortageMessage,
-  validateInventoryForOrder,
-} from '../../inventory/inventory.logic'
+import PaymentModal from '../../pos/components/modals/PaymentModal'
+import { openPaymentModal } from '../../pos/pos.store'
+import ReplacementRequestModal from '../components/ReplacementRequestModal'
+import type { ReplacementStatus } from '../../../shared/types/order'
+import CashAdjustmentModal from '../../cash/components/CashAdjustmentModal'
 
 type ConfirmState = {
   isOpen: boolean
@@ -46,19 +39,18 @@ function OrdersPage() {
   const dispatch = useAppDispatch()
   const orders = useAppSelector(selectOrders)
   const user = useAppSelector(selectAuthUser)
-  const ingredients = useAppSelector(selectInventoryIngredients)
-  const recipes = useAppSelector(selectInventoryRecipes)
   const [tab, setTab] = useState<CashierTab>('unpaid')
   const [query, setQuery] = useState('')
   const [selectedId, setSelectedId] = useState<string | null>(null)
   const [isProcessing, setIsProcessing] = useState(false)
   const [printOrderId, setPrintOrderId] = useState<string | null>(null)
+  const [replacementOrderId, setReplacementOrderId] = useState<string | null>(null)
+  const [isCashAdjustmentOpen, setIsCashAdjustmentOpen] = useState(false)
   const [confirm, setConfirm] = useState<ConfirmState>({
     isOpen: false,
     reason: '',
     targetId: null,
   })
-  const [amountReceivedMap, setAmountReceivedMap] = useState<Record<string, string>>({})
 
   const pendingCount = useMemo(
     () => orders.filter((order) => order.status === 'PENDING_PAYMENT').length,
@@ -111,23 +103,22 @@ function OrdersPage() {
     filteredOrders.find((order) => order.id === selectedOrderId) ?? null
 
   const printOrder = orders.find((order) => order.id === printOrderId) ?? null
+  const replacementOrder = orders.find((order) => order.id === replacementOrderId) ?? null
 
   const isCashier = user?.role === 'cashier'
   const canTakePayment = selectedOrder?.status === 'PENDING_PAYMENT'
   const canSendToKitchen = selectedOrder?.status === 'HOLD'
   const canCloseOrder = selectedOrder?.status === 'READY_FOR_PICKUP'
-  const canPrint = Boolean(selectedOrder && selectedOrder.status !== 'CANCELLED')
+  const isCompleted = selectedOrder?.status === 'COMPLETED'
+  const replacementStatus = selectedOrder?.replacementStatus ?? 'NONE'
+  const canPrint = Boolean(
+    selectedOrder &&
+      selectedOrder.status !== 'CANCELLED' &&
+      selectedOrder.status !== 'PENDING_PAYMENT',
+  )
 
   const printLabel =
     selectedOrder && isPaymentCaptured(selectedOrder) ? 'Print Receipt' : 'Print Invoice'
-
-  const amountValue = selectedOrderId ? (amountReceivedMap[selectedOrderId] ?? '') : ''
-  const amountNumber = Number(amountValue)
-  const hasAmount = amountValue.trim().length > 0
-  const isAmountValid = hasAmount && !Number.isNaN(amountNumber)
-  const change =
-    selectedOrder && isAmountValid ? amountNumber - selectedOrder.total : 0
-  const isInsufficient = selectedOrder ? !isAmountValid || change < 0 : true
 
   const triggerPrint = (orderId: string) => {
     setPrintOrderId(orderId)
@@ -136,60 +127,10 @@ function OrdersPage() {
   }
 
   const handleTakePayment = () => {
-    if (!selectedOrder || !canTakePayment || isProcessing || !isCashier) {
+    if (!selectedOrder || !canTakePayment || !isCashier) {
       return
     }
-    if (isInsufficient) {
-      dispatch(
-        pushToast({
-          title: 'Insufficient amount',
-          description: 'Amount received is less than total due.',
-          variant: 'error',
-        }),
-      )
-      return
-    }
-
-    const validation = validateInventoryForOrder(selectedOrder, recipes, ingredients)
-    if (!validation.ok) {
-      dispatch(
-        pushToast({
-          title: 'Inventory shortage',
-          description:
-            buildInventoryShortageMessage(validation.shortages) ||
-            'Inventory is insufficient to fulfill this order.',
-          variant: 'error',
-        }),
-      )
-      return
-    }
-
-    const inventoryNote =
-      validation.deductions.length > 0
-        ? buildInventoryDeductionNote(ingredients, validation.deductions, selectedOrder.order_no)
-        : undefined
-
-    if (validation.deductions.length > 0) {
-      dispatch(
-        applyInventoryDeductions({
-          orderId: selectedOrder.id,
-          orderNo: selectedOrder.order_no,
-          deductions: validation.deductions,
-        }),
-      )
-    }
-
-    setIsProcessing(true)
-    dispatch(capturePaymentAndSend({ id: selectedOrder.id, inventoryNote }))
-    dispatch(
-      pushToast({
-        title: 'Payment recorded',
-        description: `Order ${selectedOrder.order_no} sent to kitchen.`,
-        variant: 'success',
-      }),
-    )
-    triggerPrint(selectedOrder.id)
-    setTimeout(() => setIsProcessing(false), 300)
+    dispatch(openPaymentModal({ orderId: selectedOrder.id }))
   }
 
   const handleSendToKitchen = () => {
@@ -246,6 +187,27 @@ function OrdersPage() {
           ? 'Ready Orders'
           : 'Completed Orders'
 
+  const getReplacementLabel = (status: ReplacementStatus) => {
+    switch (status) {
+      case 'PENDING':
+        return 'Replacement Pending'
+      case 'APPROVED':
+        return 'Replacement Approved'
+      default:
+        return ''
+    }
+  }
+
+  const replacementActionLabel =
+    replacementStatus === 'PENDING'
+      ? 'Replacement Requested'
+      : replacementStatus === 'APPROVED'
+        ? 'Replacement Approved'
+        : 'Request Replacement'
+
+  const isReplacementLocked =
+    replacementStatus === 'PENDING' || replacementStatus === 'APPROVED'
+
   return (
     <div className="page">
       <div className="page-header">
@@ -259,6 +221,15 @@ function OrdersPage() {
             value={query}
             onChange={(event) => setQuery(normalizeReference(event.target.value))}
           />
+          {isCashier ? (
+            <Button
+              variant="outline"
+              onClick={() => setIsCashAdjustmentOpen(true)}
+              icon="report"
+            >
+              Report Wrong Change
+            </Button>
+          ) : null}
           <div className="segmented">
             <button
               type="button"
@@ -325,7 +296,14 @@ function OrdersPage() {
                         : formatEnumLabel(order.order_type)}
                     </p>
                   </div>
-                  <Badge variant={order.status}>{formatEnumLabel(order.status)}</Badge>
+                  <div className="cashier-detail-badges">
+                    <Badge variant={order.status}>{formatEnumLabel(order.status)}</Badge>
+                    {order.replacementStatus && order.replacementStatus !== 'NONE' ? (
+                      <span className="chip">
+                        {getReplacementLabel(order.replacementStatus)}
+                      </span>
+                    ) : null}
+                  </div>
                 </div>
                 <div className="cashier-card-meta">
                   <span className={`chip chip-${order.source.toLowerCase()}`}>
@@ -355,6 +333,9 @@ function OrdersPage() {
                   <Badge variant={selectedOrder.status}>
                     {formatEnumLabel(selectedOrder.status)}
                   </Badge>
+                  {replacementStatus !== 'NONE' ? (
+                    <span className="chip">{getReplacementLabel(replacementStatus)}</span>
+                  ) : null}
                   <span className={`chip chip-${selectedOrder.source.toLowerCase()}`}>
                     {formatEnumLabel(selectedOrder.source)}
                   </span>
@@ -369,6 +350,14 @@ function OrdersPage() {
                       <p className="muted">Qty {item.quantity}</p>
                       {item.modifiers?.length ? (
                         <p className="muted">{item.modifiers.join(', ')}</p>
+                      ) : null}
+                      {item.bundle_items?.length ? (
+                        <p className="muted">
+                          Includes:{' '}
+                          {item.bundle_items
+                            .map((bundleItem) => `${bundleItem.quantity}× ${bundleItem.name}`)
+                            .join(', ')}
+                        </p>
                       ) : null}
                       {item.note ? <p className="muted">Note: {item.note}</p> : null}
                     </div>
@@ -387,7 +376,7 @@ function OrdersPage() {
                   onChange={(event) =>
                     dispatch(updateOrderNote({ id: selectedOrder.id, note: event.target.value }))
                   }
-                  disabled={selectedOrder.status === 'CANCELLED'}
+                  disabled={selectedOrder.status === 'CANCELLED' || isCompleted}
                 />
               </label>
 
@@ -406,58 +395,16 @@ function OrdersPage() {
                 </div>
               </div>
 
-              {canTakePayment ? (
-                <div className="payment-panel">
-                  <div className="payment-row">
-                    <span className="payment-label">Order total</span>
-                    <strong>{formatCurrency(selectedOrder.total)}</strong>
-                  </div>
-
-                  <label className="input-field">
-                    <span className="input-label">Amount Received</span>
-                    <input
-                      className="input"
-                      type="number"
-                      min="0"
-                      step="0.01"
-                      placeholder="0.00"
-                      value={amountValue}
-                      onChange={(event) => {
-                        if (!selectedOrderId) return
-                        setAmountReceivedMap((prev) => ({
-                          ...prev,
-                          [selectedOrderId]: event.target.value,
-                        }))
-                      }}
-                      disabled={!canTakePayment}
-                    />
-                  </label>
-
-                  <div className="payment-row payment-change">
-                    <span>Change</span>
-                    <span>
-                      {isAmountValid && selectedOrder
-                        ? formatCurrency(Math.max(change, 0))
-                        : formatCurrency(0)}
-                    </span>
-                  </div>
-
-                  {hasAmount && change < 0 ? (
-                    <div className="payment-error">Insufficient amount</div>
-                  ) : null}
-                </div>
-              ) : null}
-
               <div className="cashier-actions">
-                {canTakePayment ? (
+                {isCompleted ? null : canTakePayment ? (
                   <Button
                     variant="primary"
                     size="lg"
-                    disabled={!isCashier || isProcessing || isInsufficient}
+                    disabled={!isCashier || isProcessing}
                     onClick={handleTakePayment}
                     icon="payments"
                   >
-                    Confirm Payment
+                    Take Payment
                   </Button>
                 ) : (
                   <Button
@@ -478,24 +425,36 @@ function OrdersPage() {
                 >
                   {printLabel}
                 </Button>
-                <Button
-                  variant="danger"
-                  disabled={
-                    selectedOrder.status === 'COMPLETED' ||
-                    selectedOrder.status === 'CANCELLED' ||
-                    isPaymentCaptured(selectedOrder)
-                  }
-                  onClick={() =>
-                    setConfirm({
-                      isOpen: true,
-                      reason: '',
-                      targetId: selectedOrder.id,
-                    })
-                  }
-                  icon="cancel"
-                >
-                  Cancel Order
-                </Button>
+                {isCompleted ? null : (
+                  <Button
+                    variant="danger"
+                    disabled={
+                      selectedOrder.status === 'COMPLETED' ||
+                      selectedOrder.status === 'CANCELLED' ||
+                      isPaymentCaptured(selectedOrder)
+                    }
+                    onClick={() =>
+                      setConfirm({
+                        isOpen: true,
+                        reason: '',
+                        targetId: selectedOrder.id,
+                      })
+                    }
+                    icon="cancel"
+                  >
+                    Cancel Order
+                  </Button>
+                )}
+                {isCompleted && isCashier ? (
+                  <Button
+                    variant="danger"
+                    onClick={() => setReplacementOrderId(selectedOrder.id)}
+                    icon="restaurant"
+                    disabled={isReplacementLocked}
+                  >
+                    {replacementActionLabel}
+                  </Button>
+                ) : null}
               </div>
 
               {selectedOrder && isPaymentCaptured(selectedOrder) ? (
@@ -531,6 +490,17 @@ function OrdersPage() {
           variant={isPaymentCaptured(printOrder) ? 'receipt' : 'invoice'}
         />
       ) : null}
+
+      <PaymentModal />
+      <ReplacementRequestModal
+        isOpen={Boolean(replacementOrderId)}
+        order={replacementOrder}
+        onClose={() => setReplacementOrderId(null)}
+      />
+      <CashAdjustmentModal
+        isOpen={isCashAdjustmentOpen}
+        onClose={() => setIsCashAdjustmentOpen(false)}
+      />
     </div>
   )
 }

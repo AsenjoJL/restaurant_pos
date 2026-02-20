@@ -206,7 +206,7 @@ function AdminCategoriesPage() {
         <AdminStatCard label="Total Categories" value={String(stats.total)} icon="category" />
         <AdminStatCard label="Active" value={String(stats.active)} helper="Visible" icon="visibility" />
         <AdminStatCard label="Hidden" value={String(stats.hidden)} helper="Not visible" icon="visibility_off" />
-        <AdminStatCard label="Products" value={String(stats.products)} icon="inventory_2" />
+        <AdminStatCard label="Menu Items" value={String(stats.products)} icon="inventory_2" />
       </div>
 
       <div className="panel admin-card">

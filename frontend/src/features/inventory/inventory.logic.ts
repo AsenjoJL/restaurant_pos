@@ -21,6 +21,21 @@ export const buildInventoryDeductions = (
   const requiredMap = new Map<string, number>()
 
   order.items.forEach((item) => {
+    if (item.bundle_items && item.bundle_items.length > 0) {
+      item.bundle_items.forEach((bundleItem) => {
+        const recipe = recipeMap.get(bundleItem.id)
+        if (!recipe) {
+          return
+        }
+        recipe.lines.forEach((line) => {
+          const requiredQty = line.qty * bundleItem.quantity * item.quantity
+          const current = requiredMap.get(line.ingredientId) ?? 0
+          requiredMap.set(line.ingredientId, current + requiredQty)
+        })
+      })
+      return
+    }
+
     const recipe = recipeMap.get(item.id)
     if (!recipe) {
       return
@@ -36,6 +51,25 @@ export const buildInventoryDeductions = (
     ingredientId,
     qty,
   }))
+}
+
+export const buildInventoryDeductionsForRefund = (
+  order: Order,
+  refundItems: { id: string; qty: number }[],
+  recipes: Recipe[],
+): InventoryDeduction[] => {
+  if (refundItems.length === 0) {
+    return []
+  }
+  const refundMap = new Map(refundItems.map((item) => [item.id, item.qty]))
+  const items = order.items
+    .filter((item) => refundMap.has(item.id))
+    .map((item) => ({
+      ...item,
+      quantity: refundMap.get(item.id) ?? 0,
+    }))
+
+  return buildInventoryDeductions({ ...order, items }, recipes)
 }
 
 export const validateInventoryForOrder = (

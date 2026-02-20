@@ -13,7 +13,16 @@ export const calculateOrderTotals = (
 }
 
 export const getItemCount = (items: OrderItem[]) =>
-  items.reduce((sum, item) => sum + item.quantity, 0)
+  items.reduce((sum, item) => {
+    if (item.bundle_items && item.bundle_items.length > 0) {
+      const bundleCount = item.bundle_items.reduce(
+        (bundleSum, bundleItem) => bundleSum + bundleItem.quantity,
+        0,
+      )
+      return sum + bundleCount * item.quantity
+    }
+    return sum + item.quantity
+  }, 0)
 
 export const formatEnumLabel = (value: string) =>
   value

@@ -34,10 +34,23 @@ function ReceiptModal() {
           {draft.items.map((item) => {
             const unitPrice = item.finalUnitPrice ?? item.product.price
             return (
-              <div key={item.product.id} className="receipt-row">
-                <span>{item.product.name}</span>
-                <span>
+              <div key={item.product.id} className="receipt-line">
+                <div>
+                  <span className="receipt-item-name">{item.product.name}</span>
+                  {item.bundleSelections?.length ? (
+                    <span className="receipt-item-meta">
+                      Includes:{' '}
+                      {item.bundleSelections
+                        .map((selection) => `${selection.quantity}× ${selection.name}`)
+                        .join(', ')}
+                    </span>
+                  ) : null}
+                </div>
+                <span className="receipt-item-qty">
                   {item.quantity} × {formatCurrency(unitPrice)}
+                </span>
+                <span className="receipt-item-total">
+                  {formatCurrency(unitPrice * item.quantity)}
                 </span>
               </div>
             )

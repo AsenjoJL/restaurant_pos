@@ -9,6 +9,8 @@ import AdminLayout from '../../features/admin/components/AdminLayout'
 import AdminDashboardPage from '../../features/admin/pages/AdminDashboardPage'
 import AdminProductsPage from '../../features/admin/pages/AdminProductsPage'
 import AdminCategoriesPage from '../../features/admin/pages/AdminCategoriesPage'
+import AdminCashAdjustmentsPage from '../../features/admin/pages/AdminCashAdjustmentsPage'
+import AdminReplacementsPage from '../../features/admin/pages/AdminReplacementsPage'
 import AdminUsersPage from '../../features/admin/pages/AdminUsersPage'
 import AdminSettingsPage from '../../features/admin/pages/AdminSettingsPage'
 import AdminInventoryPage from '../../features/inventory/pages/AdminInventoryPage'
@@ -81,6 +83,8 @@ function AppRouter() {
           <Route path="dashboard" element={<AdminDashboardPage />} />
           <Route path="products" element={<AdminProductsPage />} />
           <Route path="categories" element={<AdminCategoriesPage />} />
+          <Route path="replacements" element={<AdminReplacementsPage />} />
+          <Route path="cash-adjustments" element={<AdminCashAdjustmentsPage />} />
           <Route path="inventory" element={<AdminInventoryPage />} />
           <Route path="recipes" element={<AdminRecipesPage />} />
           <Route path="users" element={<AdminUsersPage />} />

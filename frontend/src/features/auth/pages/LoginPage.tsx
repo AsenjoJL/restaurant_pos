@@ -126,7 +126,6 @@ function LoginPage() {
             size="lg"
             isLoading={isSubmitting}
             type="submit"
-            icon="login"
           >
             Sign In
           </Button>

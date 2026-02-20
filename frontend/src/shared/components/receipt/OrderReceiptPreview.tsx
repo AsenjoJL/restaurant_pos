@@ -44,6 +44,14 @@ function OrderReceiptPreview({ order, variant }: OrderReceiptPreviewProps) {
               {item.modifiers?.length ? (
                 <span className="receipt-item-meta">{item.modifiers.join(', ')}</span>
               ) : null}
+              {item.bundle_items?.length ? (
+                <span className="receipt-item-meta">
+                  Includes:{' '}
+                  {item.bundle_items
+                    .map((bundleItem) => `${bundleItem.quantity}× ${bundleItem.name}`)
+                    .join(', ')}
+                </span>
+              ) : null}
               {item.note ? (
                 <span className="receipt-item-meta">Note: {item.note}</span>
               ) : null}
@@ -72,6 +80,43 @@ function OrderReceiptPreview({ order, variant }: OrderReceiptPreviewProps) {
           <span>{formatCurrency(order.total)}</span>
         </div>
       </div>
+
+      {variant === 'receipt' && order.payment_method ? (
+        <div className="receipt-payment">
+          <div className="receipt-row">
+            <span>Payment method</span>
+            <span>{formatEnumLabel(order.payment_method)}</span>
+          </div>
+          <div className="receipt-row">
+            <span>Amount paid</span>
+            <span>{formatCurrency(order.payment_amount ?? order.total)}</span>
+          </div>
+          {order.payment_method === 'CASH' && order.payment_change !== undefined ? (
+            <div className="receipt-row">
+              <span>Change</span>
+              <span>{formatCurrency(order.payment_change)}</span>
+            </div>
+          ) : null}
+          {order.payment_reference ? (
+            <div className="receipt-row">
+              <span>Reference</span>
+              <span>{order.payment_reference}</span>
+            </div>
+          ) : null}
+          {order.payment_payer ? (
+            <div className="receipt-row">
+              <span>Payer</span>
+              <span>{order.payment_payer}</span>
+            </div>
+          ) : null}
+          {order.processed_by ? (
+            <div className="receipt-row">
+              <span>Processed by</span>
+              <span>{order.processed_by.name}</span>
+            </div>
+          ) : null}
+        </div>
+      ) : null}
 
       {order.note ? (
         <div className="receipt-note">

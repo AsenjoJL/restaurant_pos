@@ -2,7 +2,7 @@ import { useMemo, useState } from 'react'
 import { categories, products } from '../../../mock/data'
 import { useAppDispatch, useAppSelector } from '../../../app/store/hooks'
 import { selectActiveCategory, selectSearchTerm } from '../pos.selectors'
-import { addItem } from '../pos.store'
+import { addItem, openBundleModal } from '../pos.store'
 import { formatCurrency } from '../../../shared/lib/format'
 import Button from '../../../shared/components/ui/Button'
 
@@ -76,6 +76,9 @@ function ProductGrid() {
                   </div>
                 )}
                 <span className="product-chip">{product.categoryId}</span>
+                {product.type === 'BUNDLE' ? (
+                  <span className="product-badge">Combo</span>
+                ) : null}
                 {product.availability && product.availability !== 'AVAILABLE' ? (
                   <span
                     className={`availability-badge availability-${product.availability.toLowerCase()}`}
@@ -93,11 +96,15 @@ function ProductGrid() {
                   <span className="price">{formatCurrency(product.price)}</span>
                   <Button
                     variant="ghost"
-                    onClick={() => dispatch(addItem(product))}
-                    icon="add"
+                    onClick={() =>
+                      product.type === 'BUNDLE'
+                        ? dispatch(openBundleModal(product.id))
+                        : dispatch(addItem(product))
+                    }
+                    icon={product.type === 'BUNDLE' ? 'playlist_add' : 'add'}
                     disabled={product.availability === 'SOLD_OUT'}
                   >
-                    Add
+                    {product.type === 'BUNDLE' ? 'Build Combo' : 'Add'}
                   </Button>
                 </div>
               </div>
