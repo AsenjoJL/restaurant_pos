@@ -3,6 +3,7 @@ import { useAppDispatch, useAppSelector } from '../../../app/store/hooks'
 import Button from '../../../shared/components/ui/Button'
 import Input from '../../../shared/components/ui/Input'
 import Modal from '../../../shared/components/ui/Modal'
+import { buildAuditUser, logAuditEvent } from '../../../shared/lib/audit'
 import { pushToast } from '../../../shared/store/ui.store'
 import { selectAuthUser } from '../../auth/auth.selectors'
 import { selectOrders, selectReplacementRequests } from '../../orders/orders.selectors'
@@ -76,6 +77,13 @@ function AdminReplacementsPage() {
         approvedBy: { id: user.id, name: user.name, role: user.role },
       }),
     )
+    logAuditEvent(dispatch, {
+      scope: 'REPLACEMENT',
+      action: 'APPROVED',
+      message: `Replacement approved for order ${activeOrder?.order_no ?? activeRequest.orderId}.`,
+      user: buildAuditUser(user),
+      entityId: activeRequest.orderId,
+    })
     dispatch(
       pushToast({
         title: 'Replacement approved',
@@ -109,6 +117,13 @@ function AdminReplacementsPage() {
         approvedBy: { id: user.id, name: user.name, role: user.role },
       }),
     )
+    logAuditEvent(dispatch, {
+      scope: 'REPLACEMENT',
+      action: 'REJECTED',
+      message: `Replacement rejected for order ${activeOrder?.order_no ?? activeRequest.orderId}.`,
+      user: buildAuditUser(user),
+      entityId: activeRequest.orderId,
+    })
     dispatch(
       pushToast({
         title: 'Replacement rejected',

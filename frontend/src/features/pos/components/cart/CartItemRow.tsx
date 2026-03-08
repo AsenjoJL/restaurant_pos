@@ -76,6 +76,7 @@ function CartItemRow({
             className="textarea"
             placeholder="Add item note"
             value={item.note ?? ''}
+            name={`itemNote-${item.product.id}`}
             onChange={(event) => onNoteChange(event.target.value)}
             maxLength={250}
           />

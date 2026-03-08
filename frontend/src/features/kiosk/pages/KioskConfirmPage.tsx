@@ -90,7 +90,7 @@ function KioskConfirmPage() {
         variant: 'success',
       }),
     )
-    navigate(`/kiosk/success/${result.orderNumber}`)
+    navigate(`/kiosk/print/${result.orderNumber}`)
   }
 
   return (
@@ -129,6 +129,7 @@ function KioskConfirmPage() {
             className="textarea"
             placeholder="Allergy notes or special requests"
             value={state.note}
+            name="kioskOrderNote"
             onChange={(event) => setNote(event.target.value)}
             maxLength={MAX_NOTE_LENGTH}
           />

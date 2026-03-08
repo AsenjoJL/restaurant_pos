@@ -9,7 +9,7 @@ import { pushToast } from '../../../../shared/store/ui.store'
 import OrderReceiptPreview from '../../../../shared/components/receipt/OrderReceiptPreview'
 import OrderReceiptSheet from '../../../../shared/components/receipt/OrderReceiptSheet'
 import { selectOrders } from '../../../orders/orders.selectors'
-import { capturePaymentAndPrepare } from '../../../orders/orders.store'
+import { capturePaymentAndSend } from '../../../orders/orders.store'
 import { clearDraft, closePaymentModal } from '../../pos.store'
 import { selectActivePaymentOrderId, selectPosUi, selectTotals } from '../../pos.selectors'
 import {
@@ -20,10 +20,13 @@ import { applyInventoryDeductions } from '../../../inventory/inventory.store'
 import {
   buildInventoryDeductionNote,
   buildInventoryShortageMessage,
+  calculateOrderCost,
   validateInventoryForOrder,
 } from '../../../inventory/inventory.logic'
+import { buildAuditUser, logAuditEvent } from '../../../../shared/lib/audit'
 import type { PaymentMethod } from '../../../../shared/types/order'
 import { selectAuthUser } from '../../../auth/auth.selectors'
+import { addSalesRecord } from '../../../sales/sales.store'
 
 function PaymentModal() {
   const dispatch = useAppDispatch()
@@ -34,6 +37,8 @@ function PaymentModal() {
   const user = useAppSelector(selectAuthUser)
   const ingredients = useAppSelector(selectInventoryIngredients)
   const recipes = useAppSelector(selectInventoryRecipes)
+
+  const canProcessPayment = user?.role === 'cashier' || user?.role === 'admin'
 
   const order = useMemo(
     () => orders.find((item) => item.id === activeOrderId) ?? null,
@@ -97,6 +102,16 @@ function PaymentModal() {
         pushToast({
           title: 'Missing order',
           description: 'No active order was found for payment.',
+          variant: 'error',
+        }),
+      )
+      return
+    }
+    if (!canProcessPayment) {
+      dispatch(
+        pushToast({
+          title: 'Not authorized',
+          description: 'Only cashiers or admins can confirm payments.',
           variant: 'error',
         }),
       )
@@ -167,12 +182,52 @@ function PaymentModal() {
     }
 
     setIsProcessing(true)
+    const paidAt = new Date().toISOString()
+    const cogs = calculateOrderCost(order, recipes, ingredients)
+    const grossProfit = order.total - cogs
+    const grossMargin = order.total > 0 ? grossProfit / order.total : 0
+    logAuditEvent(dispatch, {
+      scope: 'PAYMENT',
+      action: 'PAYMENT_CONFIRMED',
+      message: `Payment confirmed for order ${order.order_no}.`,
+      user: buildAuditUser(user),
+      entityId: order.id,
+      metadata: {
+        method: paymentPayload.method,
+        amount: paymentPayload.amount,
+      },
+    })
     dispatch(
-      capturePaymentAndPrepare({
+      capturePaymentAndSend({
         id: order.id,
         inventoryNote,
         payment: paymentPayload,
         processedBy: user ? { id: user.id, name: user.name, role: user.role } : undefined,
+      }),
+    )
+    dispatch(
+      addSalesRecord({
+        orderId: order.id,
+        orderNo: order.order_no,
+        source: order.source,
+        orderType: order.order_type,
+        items: order.items,
+        subtotal: order.subtotal,
+        discount: order.discount ?? 0,
+        serviceCharge: order.service_charge ?? 0,
+        tax: order.tax,
+        total: order.total,
+        cogs,
+        grossProfit,
+        grossMargin,
+        paymentMethod: paymentPayload.method,
+        paymentAmount: paymentPayload.amount,
+        paymentChange: paymentPayload.change,
+        paymentReference: paymentPayload.reference,
+        paymentPayer: paymentPayload.payer,
+        processedBy: user ? { id: user.id, name: user.name, role: user.role } : undefined,
+        placedAt: order.placed_at,
+        paidAt,
       }),
     )
     dispatch(
@@ -199,18 +254,16 @@ function PaymentModal() {
           <Button variant="ghost" onClick={handleClose}>
             {paymentCaptured ? 'Done' : 'Cancel'}
           </Button>
-          {paymentCaptured && order ? (
-            <Button variant="outline" onClick={() => triggerPrint(order.id)} icon="print">
-              Print Receipt
-            </Button>
-          ) : (
+          {paymentCaptured && order ? null : (
             <Button
               variant="primary"
-              disabled={!order || isProcessing || isInsufficient || missingReference}
+              disabled={
+                !order || !canProcessPayment || isProcessing || isInsufficient || missingReference
+              }
               onClick={handleConfirm}
               icon="payments"
             >
-              Confirm Payment
+              Pay & Print
             </Button>
           )}
         </div>

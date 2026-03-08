@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import { useAppSelector } from '../../../app/store/hooks'
 import Button from '../../../shared/components/ui/Button'
@@ -16,6 +16,7 @@ function KioskPrintSlipPage() {
   const { state } = useKiosk()
   const orders = useAppSelector(selectOrders)
   const hasPrintedRef = useRef(false)
+  const [autoPrinted, setAutoPrinted] = useState(false)
 
   const order = useMemo(() => {
     if (!orderNo) {
@@ -35,6 +36,7 @@ function KioskPrintSlipPage() {
     hasPrintedRef.current = true
     const printTimer = window.setTimeout(() => {
       window.print()
+      setAutoPrinted(true)
     }, PRINT_DELAY_MS)
     const returnTimer = window.setTimeout(() => {
       navigate(`/kiosk/success/${order.order_no}`, { replace: true })
@@ -74,9 +76,11 @@ function KioskPrintSlipPage() {
       <div className="kiosk-print-content">
         <SlipTemplate order={order} />
         <div className="kiosk-print-actions">
-          <Button variant="outline" onClick={() => window.print()}>
-            Print Slip
-          </Button>
+          {autoPrinted ? (
+            <Button variant="outline" onClick={() => window.print()}>
+              Reprint Slip
+            </Button>
+          ) : null}
           <Button variant="primary" onClick={handleDone}>
             Done
           </Button>

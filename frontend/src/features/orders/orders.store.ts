@@ -50,6 +50,7 @@ const addAuditEntry = (order: Order, action: AuditAction, note: string) => {
   })
 }
 
+
 const sanitizeNote = (value: string) =>
   value
     .replace(/\s+/g, ' ')
@@ -58,6 +59,16 @@ const sanitizeNote = (value: string) =>
 
 const setStatus = (order: Order, status: OrderStatus, note?: string) => {
   order.status = status
+  const now = new Date().toISOString()
+  if (status === 'SENT_TO_KITCHEN' && !order.kitchen_sent_at) {
+    order.kitchen_sent_at = now
+  }
+  if (status === 'PREPARING' && !order.kitchen_started_at) {
+    order.kitchen_started_at = now
+  }
+  if (status === 'READY_FOR_PICKUP' && !order.kitchen_ready_at) {
+    order.kitchen_ready_at = now
+  }
   if (note) {
     addAuditEntry(order, 'STATUS', note)
   }
@@ -90,6 +101,18 @@ type ReviewReplacementPayload = {
   approvedBy: ProcessedByPayload
   reviewNote?: string
   status: ReplacementRequestStatus
+}
+
+type UpdatePendingOrderPayload = {
+  id: string
+  items: Order['items']
+  note?: string
+  subtotal: number
+  discount?: number
+  serviceCharge?: number
+  tax: number
+  total: number
+  modifiedBy?: ProcessedByPayload
 }
 
 const applyPaymentDetails = (
@@ -246,6 +269,31 @@ const ordersSlice = createSlice({
       const nextNote = sanitizeNote(action.payload.note)
       order.note = nextNote.length > 0 ? nextNote : undefined
     },
+    updatePendingOrder: (state, action: { payload: UpdatePendingOrderPayload }) => {
+      const order = state.list.find((item) => item.id === action.payload.id)
+      if (!order || order.status !== 'PENDING_PAYMENT') {
+        return
+      }
+
+      order.items = action.payload.items
+      order.note = action.payload.note?.trim() || undefined
+      order.subtotal = action.payload.subtotal
+      order.discount = action.payload.discount ?? 0
+      order.service_charge = action.payload.serviceCharge ?? 0
+      order.tax = action.payload.tax
+      order.total = action.payload.total
+
+      if (action.payload.modifiedBy) {
+        order.modified_by = action.payload.modifiedBy
+        order.modified_at = new Date().toISOString()
+      }
+
+      addAuditEntry(
+        order,
+        'EDIT',
+        `Order modified before payment${action.payload.modifiedBy ? ` by ${action.payload.modifiedBy.name}` : ''}.`,
+      )
+    },
     createReplacementRequest: (state, action: { payload: ReplacementRequestPayload }) => {
       const order = state.list.find((item) => item.id === action.payload.orderId)
       if (!order || order.status !== 'COMPLETED') {
@@ -321,6 +369,7 @@ const ordersSlice = createSlice({
         items: request.items,
         status: 'SENT_TO_KITCHEN',
         createdAt: new Date().toISOString(),
+        sentAt: new Date().toISOString(),
       })
 
       addAuditEntry(
@@ -338,6 +387,7 @@ const ordersSlice = createSlice({
         return
       }
       ticket.status = 'PREPARING'
+      ticket.startedAt = ticket.startedAt ?? new Date().toISOString()
     },
     markReplacementReady: (
       state,
@@ -348,6 +398,7 @@ const ordersSlice = createSlice({
         return
       }
       ticket.status = 'READY_FOR_PICKUP'
+      ticket.readyAt = ticket.readyAt ?? new Date().toISOString()
     },
   },
 })
@@ -364,6 +415,7 @@ export const {
   closeOrder,
   cancelOrder,
   updateOrderNote,
+  updatePendingOrder,
   createReplacementRequest,
   reviewReplacementRequest,
   startReplacementTicket,

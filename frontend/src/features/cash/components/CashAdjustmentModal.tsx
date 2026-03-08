@@ -6,6 +6,7 @@ import Input from '../../../shared/components/ui/Input'
 import Modal from '../../../shared/components/ui/Modal'
 import Select from '../../../shared/components/ui/Select'
 import { formatCurrency } from '../../../shared/lib/format'
+import { buildAuditUser, logAuditEvent } from '../../../shared/lib/audit'
 import { pushToast } from '../../../shared/store/ui.store'
 import { selectAuthUser } from '../../auth/auth.selectors'
 import { selectOrders } from '../../orders/orders.selectors'
@@ -94,6 +95,13 @@ function CashAdjustmentModal({ isOpen, onClose }: CashAdjustmentModalProps) {
         requestedBy: { id: user.id, name: user.name, role: user.role },
       }),
     )
+    logAuditEvent(dispatch, {
+      scope: 'CASH_ADJUSTMENT',
+      action: 'REQUESTED',
+      message: `Cash adjustment requested (${type}) for ${amountNumber}.`,
+      user: buildAuditUser(user),
+      entityId: relatedOrderId || undefined,
+    })
     dispatch(
       pushToast({
         title: 'Adjustment requested',
@@ -167,6 +175,7 @@ function CashAdjustmentModal({ isOpen, onClose }: CashAdjustmentModalProps) {
             className="textarea"
             placeholder="Explain what happened"
             value={reason}
+            name="cashAdjustmentReason"
             onChange={(event) => setReason(event.target.value)}
             maxLength={250}
           />

@@ -15,18 +15,23 @@ import {
   selectInventoryIngredients,
   selectInventoryRecipes,
 } from '../inventory.selectors'
-import type { RecipeLine } from '../inventory.types'
+import type { MeasurementUnit, RecipeLine } from '../inventory.types'
+import { calculateRecipeCost } from '../inventory.logic'
+import { convertToBase, getCompatibleUnits } from '../inventory.conversions'
+import { formatCurrency } from '../../../shared/lib/format'
 
 type RecipeLineDraft = {
   id: string
   ingredientId: string
   qty: string
+  unit: MeasurementUnit | ''
 }
 
 const createEmptyLine = (): RecipeLineDraft => ({
   id: nanoid(),
   ingredientId: '',
   qty: '',
+  unit: '',
 })
 
 function AdminRecipesPage() {
@@ -57,6 +62,24 @@ function AdminRecipesPage() {
     [ingredients],
   )
 
+  const ingredientMap = useMemo(
+    () => new Map(ingredients.map((ingredient) => [ingredient.id, ingredient])),
+    [ingredients],
+  )
+
+  const getUnitOptionsForLine = (ingredientId: string) => {
+    const ingredient = ingredientMap.get(ingredientId)
+    if (!ingredient) {
+      return [{ value: '', label: 'Base unit' }]
+    }
+    const compatible = getCompatibleUnits(ingredient)
+    const extras = compatible.filter((unit) => unit !== ingredient.baseUnit)
+    return [
+      { value: '', label: `Base (${ingredient.baseUnit})` },
+      ...extras.map((unit) => ({ value: unit, label: unit })),
+    ]
+  }
+
   const initialProductId = products[0]?.id ?? ''
   const [selectedProductId, setSelectedProductId] = useState(initialProductId)
   const [lines, setLines] = useState<RecipeLineDraft[]>([createEmptyLine()])
@@ -65,6 +88,21 @@ function AdminRecipesPage() {
 
   const selectedProduct = products.find((product) => product.id === selectedProductId)
   const currentRecipe = recipes.find((recipe) => recipe.productId === selectedProductId)
+  const recipeCost = useMemo(() => {
+    const draftLines = lines
+      .filter((line) => line.ingredientId && Number(line.qty) > 0)
+      .map((line) => ({
+        ingredientId: line.ingredientId,
+        qty: Number(line.qty),
+        unit: line.unit || undefined,
+      }))
+    return calculateRecipeCost(draftLines, ingredients)
+  }, [ingredients, lines])
+  const recipeMargin = selectedProduct ? selectedProduct.price - recipeCost : 0
+  const recipeMarginPct =
+    selectedProduct && selectedProduct.price > 0
+      ? recipeMargin / selectedProduct.price
+      : 0
 
   const stats = useMemo(() => {
     const recipeCount = recipes.length
@@ -84,6 +122,7 @@ function AdminRecipesPage() {
           id: nanoid(),
           ingredientId: line.ingredientId,
           qty: String(line.qty),
+          unit: line.unit ?? '',
         })),
       )
       return
@@ -127,6 +166,16 @@ function AdminRecipesPage() {
       if (!Number.isFinite(qtyValue) || qtyValue <= 0) {
         return 'Each line must have a quantity greater than zero.'
       }
+
+      const ingredient = ingredients.find((item) => item.id === line.ingredientId)
+      if (!ingredient) {
+        return 'Ingredient not found for one of the lines.'
+      }
+      const unit = line.unit || ingredient.baseUnit
+      const conversion = convertToBase(ingredient, qtyValue, unit)
+      if (!conversion.ok) {
+        return conversion.reason
+      }
     }
     return ''
   }
@@ -151,6 +200,7 @@ function AdminRecipesPage() {
     const payloadLines: RecipeLine[] = lines.map((line) => ({
       ingredientId: line.ingredientId,
       qty: Number(line.qty),
+      unit: line.unit || undefined,
     }))
 
     setIsSaving(true)
@@ -241,6 +291,16 @@ function AdminRecipesPage() {
                       handleLineChange(line.id, { qty: event.target.value })
                     }
                   />
+                  <Select
+                    label="Unit"
+                    value={line.unit}
+                    onChange={(event) =>
+                      handleLineChange(line.id, {
+                        unit: event.target.value as MeasurementUnit | '',
+                      })
+                    }
+                    options={getUnitOptionsForLine(line.ingredientId)}
+                  />
                   <Button
                     variant="ghost"
                     onClick={() => handleRemoveLine(line.id)}
@@ -256,6 +316,26 @@ function AdminRecipesPage() {
               <Button variant="outline" onClick={handleAddLine} icon="add">
                 Add Ingredient
               </Button>
+            </div>
+
+            <div className="recipe-summary">
+              <div>
+                <span className="muted">Estimated Recipe Cost</span>
+                <strong>{formatCurrency(recipeCost)}</strong>
+              </div>
+              <div>
+                <span className="muted">Menu Price</span>
+                <strong>{formatCurrency(selectedProduct.price)}</strong>
+              </div>
+              <div>
+                <span className="muted">Gross Margin</span>
+                <strong>
+                  {formatCurrency(recipeMargin)}{' '}
+                  <span className="muted">
+                    ({Math.round(recipeMarginPct * 100)}%)
+                  </span>
+                </strong>
+              </div>
             </div>
 
             {currentRecipe ? (

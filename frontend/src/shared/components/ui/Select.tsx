@@ -1,4 +1,4 @@
-import type { SelectHTMLAttributes } from 'react'
+import { useId, type SelectHTMLAttributes } from 'react'
 
 type SelectOption = {
   value: string
@@ -21,12 +21,15 @@ function Select({
   id,
   ...props
 }: SelectProps) {
-  const selectId = id ?? props.name
+  const autoId = useId()
+  const selectId = id ?? props.name ?? `select-${autoId}`
+  const selectName = props.name ?? selectId
   return (
     <label className="input-field">
       {label ? <span className="input-label">{label}</span> : null}
       <select
         id={selectId}
+        name={selectName}
         className={`select ${error ? 'input-error' : ''} ${className}`}
         {...props}
       >

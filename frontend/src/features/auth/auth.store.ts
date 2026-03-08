@@ -9,12 +9,47 @@ type AuthState = {
   error: string | null
 }
 
-const initialState: AuthState = {
-  status: 'unauthenticated',
-  user: null,
-  token: null,
-  error: null,
+type StoredAuthSession = {
+  token: string
+  user: User
 }
+
+export const AUTH_STORAGE_KEY = 'pos.auth.v1'
+
+const loadStoredSession = (): StoredAuthSession | null => {
+  if (typeof window === 'undefined') {
+    return null
+  }
+  try {
+    const raw = localStorage.getItem(AUTH_STORAGE_KEY)
+    if (!raw) {
+      return null
+    }
+    const parsed = JSON.parse(raw) as StoredAuthSession
+    if (!parsed?.user || !parsed?.token) {
+      return null
+    }
+    return parsed
+  } catch {
+    return null
+  }
+}
+
+const storedSession = loadStoredSession()
+
+const initialState: AuthState = storedSession
+  ? {
+      status: 'authenticated',
+      user: storedSession.user,
+      token: storedSession.token,
+      error: null,
+    }
+  : {
+      status: 'unauthenticated',
+      user: null,
+      token: null,
+      error: null,
+    }
 
 type LoginPayload = {
   username: string
@@ -42,6 +77,9 @@ const authSlice = createSlice({
       state.user = null
       state.token = null
       state.error = null
+      if (typeof window !== 'undefined') {
+        localStorage.removeItem(AUTH_STORAGE_KEY)
+      }
     },
   },
   extraReducers: (builder) => {
@@ -55,6 +93,12 @@ const authSlice = createSlice({
         state.user = action.payload.user
         state.token = action.payload.token
         state.error = null
+        if (typeof window !== 'undefined') {
+          localStorage.setItem(
+            AUTH_STORAGE_KEY,
+            JSON.stringify({ token: action.payload.token, user: action.payload.user }),
+          )
+        }
       })
       .addCase(login.rejected, (state, action) => {
         state.status = 'unauthenticated'

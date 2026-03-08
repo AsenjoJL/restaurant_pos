@@ -6,19 +6,59 @@ import type {
   InventoryShortage,
   InventoryValidation,
 } from './inventory.types.ts'
+import { convertToBase } from './inventory.conversions'
 
 const formatQtyValue = (value: number) =>
   Number.isInteger(value) ? String(value) : value.toFixed(2)
 
-export const formatIngredientQty = (value: number, unit: Ingredient['unit']) =>
+export const formatIngredientQty = (value: number, unit: Ingredient['baseUnit']) =>
   `${formatQtyValue(value)} ${unit}`
 
-export const buildInventoryDeductions = (
+const buildInventoryDeductionsWithValidation = (
   order: Order,
   recipes: Recipe[],
-): InventoryDeduction[] => {
+  ingredients: Ingredient[],
+) => {
   const recipeMap = new Map(recipes.map((recipe) => [recipe.productId, recipe]))
+  const ingredientMap = new Map(ingredients.map((item) => [item.id, item]))
   const requiredMap = new Map<string, number>()
+  const issues: InventoryShortage[] = []
+
+  const addRequirement = (
+    ingredientId: string,
+    qty: number,
+    unit: Recipe['lines'][number]['unit'],
+    multiplier: number,
+  ) => {
+    const ingredient = ingredientMap.get(ingredientId)
+    if (!ingredient) {
+      issues.push({
+        ingredientId,
+        name: 'Unknown ingredient',
+        unit: 'pcs',
+        required: qty * multiplier,
+        available: 0,
+        deficit: qty * multiplier,
+        reason: 'Missing ingredient definition.',
+      })
+      return
+    }
+    const conversion = convertToBase(ingredient, qty * multiplier, unit)
+    if (!conversion.ok) {
+      issues.push({
+        ingredientId,
+        name: ingredient.name,
+        unit: ingredient.baseUnit,
+        required: qty * multiplier,
+        available: ingredient.onHand,
+        deficit: Math.max(qty * multiplier - ingredient.onHand, 0),
+        reason: conversion.reason,
+      })
+      return
+    }
+    const current = requiredMap.get(ingredientId) ?? 0
+    requiredMap.set(ingredientId, current + conversion.baseQty)
+  }
 
   order.items.forEach((item) => {
     if (item.bundle_items && item.bundle_items.length > 0) {
@@ -28,9 +68,12 @@ export const buildInventoryDeductions = (
           return
         }
         recipe.lines.forEach((line) => {
-          const requiredQty = line.qty * bundleItem.quantity * item.quantity
-          const current = requiredMap.get(line.ingredientId) ?? 0
-          requiredMap.set(line.ingredientId, current + requiredQty)
+          addRequirement(
+            line.ingredientId,
+            line.qty,
+            line.unit,
+            bundleItem.quantity * item.quantity,
+          )
         })
       })
       return
@@ -41,22 +84,24 @@ export const buildInventoryDeductions = (
       return
     }
     recipe.lines.forEach((line) => {
-      const requiredQty = line.qty * item.quantity
-      const current = requiredMap.get(line.ingredientId) ?? 0
-      requiredMap.set(line.ingredientId, current + requiredQty)
+      addRequirement(line.ingredientId, line.qty, line.unit, item.quantity)
     })
   })
 
-  return Array.from(requiredMap.entries()).map(([ingredientId, qty]) => ({
-    ingredientId,
-    qty,
-  }))
+  return {
+    deductions: Array.from(requiredMap.entries()).map(([ingredientId, qty]) => ({
+      ingredientId,
+      qty,
+    })),
+    issues,
+  }
 }
 
 export const buildInventoryDeductionsForRefund = (
   order: Order,
   refundItems: { id: string; qty: number }[],
   recipes: Recipe[],
+  ingredients: Ingredient[],
 ): InventoryDeduction[] => {
   if (refundItems.length === 0) {
     return []
@@ -69,21 +114,32 @@ export const buildInventoryDeductionsForRefund = (
       quantity: refundMap.get(item.id) ?? 0,
     }))
 
-  return buildInventoryDeductions({ ...order, items }, recipes)
+  return buildInventoryDeductions({ ...order, items }, recipes, ingredients)
 }
+
+export const buildInventoryDeductions = (
+  order: Order,
+  recipes: Recipe[],
+  ingredients: Ingredient[],
+): InventoryDeduction[] =>
+  buildInventoryDeductionsWithValidation(order, recipes, ingredients).deductions
 
 export const validateInventoryForOrder = (
   order: Order,
   recipes: Recipe[],
   ingredients: Ingredient[],
 ): InventoryValidation => {
-  const deductions = buildInventoryDeductions(order, recipes)
-  if (deductions.length === 0) {
+  const { deductions, issues } = buildInventoryDeductionsWithValidation(
+    order,
+    recipes,
+    ingredients,
+  )
+  if (deductions.length === 0 && issues.length === 0) {
     return { ok: true, deductions, shortages: [] }
   }
 
   const ingredientMap = new Map(ingredients.map((item) => [item.id, item]))
-  const shortages: InventoryShortage[] = []
+  const shortages: InventoryShortage[] = [...issues]
 
   deductions.forEach((deduction) => {
     const ingredient = ingredientMap.get(deduction.ingredientId)
@@ -92,7 +148,7 @@ export const validateInventoryForOrder = (
       shortages.push({
         ingredientId: deduction.ingredientId,
         name: ingredient?.name ?? 'Unknown ingredient',
-        unit: ingredient?.unit ?? 'pcs',
+        unit: ingredient?.baseUnit ?? 'pcs',
         required: deduction.qty,
         available,
         deficit: deduction.qty - available,
@@ -110,10 +166,12 @@ export const buildInventoryShortageMessage = (shortages: InventoryShortage[]) =>
   return shortages
     .map(
       (shortage) =>
-        `${shortage.name}: need ${formatIngredientQty(
-          shortage.required,
-          shortage.unit,
-        )}, on hand ${formatIngredientQty(shortage.available, shortage.unit)}`,
+        shortage.reason
+          ? `${shortage.name}: ${shortage.reason}`
+          : `${shortage.name}: need ${formatIngredientQty(
+              shortage.required,
+              shortage.unit,
+            )}, on hand ${formatIngredientQty(shortage.available, shortage.unit)}`,
     )
     .join(' • ')
 }
@@ -132,7 +190,7 @@ export const buildInventoryDeductionNote = (
     .map((deduction) => {
       const ingredient = ingredientMap.get(deduction.ingredientId)
       const name = ingredient?.name ?? 'Unknown ingredient'
-      const unit = ingredient?.unit ?? 'pcs'
+      const unit = ingredient?.baseUnit ?? 'pcs'
       return `${name} (-${formatIngredientQty(deduction.qty, unit)})`
     })
     .join('; ')
@@ -140,4 +198,97 @@ export const buildInventoryDeductionNote = (
   return orderNo
     ? `Inventory deducted for ${orderNo}: ${details}.`
     : `Inventory deducted: ${details}.`
+}
+
+export const calculateRecipeCost = (
+  recipeLines: Recipe['lines'],
+  ingredients: Ingredient[],
+) => {
+  const ingredientMap = new Map(ingredients.map((item) => [item.id, item]))
+  return recipeLines.reduce((sum, line) => {
+    const ingredient = ingredientMap.get(line.ingredientId)
+    const unitCost = ingredient?.unitCost ?? 0
+    if (!ingredient) {
+      return sum
+    }
+    const conversion = convertToBase(ingredient, line.qty, line.unit)
+    if (!conversion.ok) {
+      return sum
+    }
+    return sum + unitCost * conversion.baseQty
+  }, 0)
+}
+
+export const calculateOrderCost = (
+  order: Order,
+  recipes: Recipe[],
+  ingredients: Ingredient[],
+) => {
+  const deductions = buildInventoryDeductions(order, recipes, ingredients)
+  if (deductions.length === 0) {
+    return 0
+  }
+  const ingredientMap = new Map(ingredients.map((item) => [item.id, item]))
+  return deductions.reduce((sum, deduction) => {
+    const ingredient = ingredientMap.get(deduction.ingredientId)
+    const unitCost = ingredient?.unitCost ?? 0
+    return sum + unitCost * deduction.qty
+  }, 0)
+}
+
+export type InventoryAvailability = 'AVAILABLE' | 'LIMITED' | 'SOLD_OUT'
+
+export const getInventoryAvailabilityForProduct = (
+  productId: string,
+  recipes: Recipe[],
+  ingredients: Ingredient[],
+): InventoryAvailability | null => {
+  const recipe = recipes.find((item) => item.productId === productId)
+  if (!recipe) {
+    return null
+  }
+  const ingredientMap = new Map(ingredients.map((item) => [item.id, item]))
+  let isLimited = false
+  for (const line of recipe.lines) {
+    const ingredient = ingredientMap.get(line.ingredientId)
+    if (!ingredient) {
+      return 'SOLD_OUT'
+    }
+    const conversion = convertToBase(ingredient, line.qty, line.unit)
+    if (!conversion.ok) {
+      return 'SOLD_OUT'
+    }
+    if (ingredient.onHand < conversion.baseQty) {
+      return 'SOLD_OUT'
+    }
+    if (ingredient.onHand <= ingredient.reorderLevel) {
+      isLimited = true
+    }
+  }
+  return isLimited ? 'LIMITED' : 'AVAILABLE'
+}
+
+export const buildInventoryAvailabilityMap = (
+  productIds: string[],
+  recipes: Recipe[],
+  ingredients: Ingredient[],
+) =>
+  new Map(
+    productIds.map((productId) => [
+      productId,
+      getInventoryAvailabilityForProduct(productId, recipes, ingredients),
+    ]),
+  )
+
+export const resolveAvailability = (
+  baseAvailability: InventoryAvailability | undefined,
+  inventoryAvailability: InventoryAvailability | null,
+): InventoryAvailability => {
+  if (baseAvailability === 'SOLD_OUT' || inventoryAvailability === 'SOLD_OUT') {
+    return 'SOLD_OUT'
+  }
+  if (baseAvailability === 'LIMITED' || inventoryAvailability === 'LIMITED') {
+    return 'LIMITED'
+  }
+  return 'AVAILABLE'
 }

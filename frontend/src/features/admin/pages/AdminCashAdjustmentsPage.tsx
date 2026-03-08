@@ -4,6 +4,7 @@ import Button from '../../../shared/components/ui/Button'
 import Input from '../../../shared/components/ui/Input'
 import Modal from '../../../shared/components/ui/Modal'
 import { formatCurrency } from '../../../shared/lib/format'
+import { buildAuditUser, logAuditEvent } from '../../../shared/lib/audit'
 import { pushToast } from '../../../shared/store/ui.store'
 import { selectAuthUser } from '../../auth/auth.selectors'
 import {
@@ -76,6 +77,15 @@ function AdminCashAdjustmentsPage() {
         reviewedBy: { id: user.id, name: user.name, role: user.role },
       }),
     )
+    logAuditEvent(dispatch, {
+      scope: 'CASH_ADJUSTMENT',
+      action: 'APPROVED',
+      message: `Cash adjustment approved (${activeRequest.type}) for ${formatCurrency(
+        activeRequest.amount,
+      )}.`,
+      user: buildAuditUser(user),
+      entityId: activeRequest.relatedOrderId,
+    })
     dispatch(
       pushToast({
         title: 'Adjustment approved',
@@ -108,6 +118,15 @@ function AdminCashAdjustmentsPage() {
         reviewedBy: { id: user.id, name: user.name, role: user.role },
       }),
     )
+    logAuditEvent(dispatch, {
+      scope: 'CASH_ADJUSTMENT',
+      action: 'REJECTED',
+      message: `Cash adjustment rejected (${activeRequest.type}) for ${formatCurrency(
+        activeRequest.amount,
+      )}.`,
+      user: buildAuditUser(user),
+      entityId: activeRequest.relatedOrderId,
+    })
     dispatch(
       pushToast({
         title: 'Adjustment rejected',

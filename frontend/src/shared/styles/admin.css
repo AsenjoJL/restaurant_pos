@@ -160,6 +160,9 @@
 }
 
 .admin-table-head {
+  display: grid;
+  align-items: center;
+  gap: 12px;
   font-weight: 700;
   font-size: 0.75rem;
   text-transform: uppercase;
@@ -186,6 +189,55 @@
 
 .admin-table-row.users {
   grid-template-columns: 1fr 0.6fr 0.6fr 0.8fr auto;
+}
+
+.admin-table-row.sales,
+.admin-table-head.sales {
+  grid-template-columns: 1.1fr 1.2fr 0.7fr 0.7fr 0.6fr 0.7fr 0.7fr 0.7fr 0.6fr 1fr;
+}
+
+.admin-table-row.inventory,
+.admin-table-head.inventory {
+  grid-template-columns: 2.2fr 1.4fr 0.7fr 1fr 1fr 0.9fr 0.8fr 1fr;
+  padding: 14px 16px;
+  background: #ffffff;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+}
+
+.admin-table-row.inventory {
+  align-items: center;
+}
+
+.admin-table-row.inventory > span,
+.admin-table-row.inventory > div {
+  min-width: 0;
+}
+
+.admin-table-row.inventory .inventory-unit,
+.admin-table-row.inventory .inventory-stock,
+.admin-table-row.inventory .inventory-badge,
+.admin-table-row.inventory .admin-row-actions {
+  justify-self: start;
+}
+
+.admin-table-row.inventory .admin-row-actions {
+  justify-content: flex-start;
+  gap: 10px;
+}
+
+@media (max-width: 1100px) {
+  .admin-table-row.inventory,
+  .admin-table-head.inventory {
+    grid-template-columns: 2fr 1.2fr 0.7fr 1fr 1fr 0.8fr 0.9fr 1fr;
+  }
+}
+
+@media (max-width: 900px) {
+  .admin-table-row.inventory,
+  .admin-table-head.inventory {
+    grid-template-columns: 1.6fr 1fr 0.6fr 0.9fr 0.9fr 0.7fr 0.8fr 1fr;
+  }
 }
 
 .admin-row-actions {
@@ -259,7 +311,7 @@
   gap: 16px;
   box-shadow: var(--shadow-sm);
   display: grid;
-  grid-template-columns: minmax(240px, 1fr) minmax(200px, 260px);
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
   align-items: end;
 }
 
@@ -770,6 +822,9 @@
 }
 
 .admin-shell .admin-table-head {
+  display: grid;
+  align-items: center;
+  gap: var(--space-lg);
   font-weight: 700;
   font-size: 0.75rem;
   text-transform: uppercase;
@@ -1000,8 +1055,10 @@
 /* ============================================
    INVENTORY + RECIPE PAGES
    ============================================ */
-.admin-table-row.inventory {
-  grid-template-columns: 1.2fr 0.8fr 0.5fr 0.7fr 0.7fr 0.6fr auto;
+.admin-table-row.inventory,
+.admin-table-head.inventory {
+  grid-template-columns: 2.2fr 1.4fr 0.7fr 1fr 1fr 0.9fr 0.8fr 1fr;
+  justify-items: start;
 }
 
 .inventory-meta {
@@ -1045,6 +1102,20 @@
   border-color: #6ee7b7;
 }
 
+@media (max-width: 1100px) {
+  .admin-table-row.inventory,
+  .admin-table-head.inventory {
+    grid-template-columns: 2fr 1.2fr 0.7fr 1fr 1fr 0.8fr 0.8fr 1fr;
+  }
+}
+
+@media (max-width: 900px) {
+  .admin-table-row.inventory,
+  .admin-table-head.inventory {
+    grid-template-columns: 1.6fr 1fr 0.6fr 0.9fr 0.9fr 0.7fr 0.8fr 1fr;
+  }
+}
+
 .recipe-card {
   display: grid;
   gap: var(--space-lg);
@@ -1065,6 +1136,21 @@
   grid-template-columns: minmax(0, 1.4fr) minmax(0, 0.6fr) auto;
   gap: var(--space-md);
   align-items: end;
+}
+
+.recipe-summary {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: var(--space-md);
+  padding: var(--space-md);
+  border-radius: var(--radius-md);
+  background: var(--panel-muted);
+  border: 1px solid var(--border);
+}
+
+.recipe-summary strong {
+  display: block;
+  font-size: 1.05rem;
 }
 
 @media (max-width: 900px) {

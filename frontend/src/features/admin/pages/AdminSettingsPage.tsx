@@ -18,7 +18,7 @@ function AdminSettingsPage() {
   const [form, setForm] = useState({
     storeName: settings.storeName,
     taxRate: String(settings.taxRate),
-    serviceChargeRate: String(settings.serviceChargeRate),
+    serviceChargeRate: settings.serviceChargeRate > 0 ? String(settings.serviceChargeRate) : '',
     receiptFooter: settings.receiptFooter,
   })
   const [errors, setErrors] = useState<SettingsErrors>({})
@@ -33,8 +33,12 @@ function AdminSettingsPage() {
     if (!Number.isFinite(taxValue) || taxValue < 0 || taxValue > 25) {
       nextErrors.taxRate = 'Tax must be between 0 and 25.'
     }
-    const serviceValue = Number(form.serviceChargeRate)
-    if (!Number.isFinite(serviceValue) || serviceValue < 0 || serviceValue > 20) {
+    const serviceValue =
+      form.serviceChargeRate.trim().length === 0 ? 0 : Number(form.serviceChargeRate)
+    if (
+      form.serviceChargeRate.trim().length > 0 &&
+      (!Number.isFinite(serviceValue) || serviceValue < 0 || serviceValue > 20)
+    ) {
       nextErrors.serviceChargeRate = 'Service charge must be between 0 and 20.'
     }
     setErrors(nextErrors)
@@ -125,13 +129,14 @@ function AdminSettingsPage() {
                 error={errors.taxRate}
               />
               <Input
-                label="Service charge (%)"
+                label="Service charge (%) (optional)"
                 inputMode="decimal"
                 value={form.serviceChargeRate}
                 onChange={(event) =>
                   setForm({ ...form, serviceChargeRate: event.target.value })
                 }
                 error={errors.serviceChargeRate}
+                placeholder="Leave blank to disable"
               />
             </div>
           </div>
@@ -153,6 +158,7 @@ function AdminSettingsPage() {
                   className="textarea"
                   placeholder="Thank you for dining with us."
                   value={form.receiptFooter}
+                  name="receiptFooter"
                   onChange={(event) =>
                     setForm({ ...form, receiptFooter: event.target.value })
                   }

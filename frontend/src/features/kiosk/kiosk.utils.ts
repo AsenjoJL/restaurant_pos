@@ -89,6 +89,8 @@ export const buildKioskOrder = ({
   })),
   note: note.trim() ? note.trim() : undefined,
   subtotal: totals.subtotal,
+  discount: 0,
+  service_charge: 0,
   tax: totals.tax,
   total: totals.total,
   placed_at: placedAt,

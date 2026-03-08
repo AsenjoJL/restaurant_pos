@@ -63,6 +63,9 @@ export type ReplacementTicket = {
   items: ReplacementItem[]
   status: ReplacementTicketStatus
   createdAt: string
+  sentAt?: string
+  startedAt?: string
+  readyAt?: string
 }
 
 export type OrderTotals = {
@@ -71,7 +74,7 @@ export type OrderTotals = {
   total: number
 }
 
-export type AuditAction = 'CANCEL' | 'VOID' | 'REFUND' | 'PAYMENT' | 'STATUS'
+export type AuditAction = 'CANCEL' | 'VOID' | 'REFUND' | 'PAYMENT' | 'STATUS' | 'EDIT'
 
 export type AuditEntry = {
   id: string
@@ -90,6 +93,8 @@ export type Order = {
   items: OrderItem[]
   note?: string
   subtotal: number
+  discount?: number
+  service_charge?: number
   tax: number
   total: number
   payment_method?: PaymentMethod
@@ -102,8 +107,17 @@ export type Order = {
     name: string
     role: Role
   }
+  modified_by?: {
+    id: string
+    name: string
+    role: Role
+  }
+  modified_at?: string
   replacementStatus?: ReplacementStatus
   replacementCount?: number
+  kitchen_sent_at?: string
+  kitchen_started_at?: string
+  kitchen_ready_at?: string
   placed_at: string
   audit_log: AuditEntry[]
 }

@@ -24,6 +24,16 @@ export type SelectedModifier = {
 
 export type ProductType = 'ITEM' | 'BUNDLE'
 
+export type KitchenStation =
+  | 'GRILL'
+  | 'FRY'
+  | 'PANTRY'
+  | 'PIZZA'
+  | 'BAR'
+  | 'DESSERT'
+  | 'ASSEMBLY'
+  | 'UNASSIGNED'
+
 export type BundleGroup = {
   id: string
   label: string
@@ -59,6 +69,7 @@ export type OrderStatus =
 export type MenuCategory = {
   id: string
   name: string
+  station?: KitchenStation
 }
 
 export type MenuProduct = {
@@ -73,6 +84,7 @@ export type MenuProduct = {
   modifierGroups?: ModifierGroup[]
   type?: ProductType
   bundle?: BundleDefinition
+  stationOverride?: KitchenStation
 }
 
 export type CartItem = {

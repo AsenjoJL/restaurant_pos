@@ -313,6 +313,7 @@ function AdminProductsPage() {
             className="textarea"
             placeholder="Short description"
             value={form.description}
+            name="productDescription"
             onChange={(event) => setForm({ ...form, description: event.target.value })}
           />
         </label>

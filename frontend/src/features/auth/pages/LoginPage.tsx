@@ -7,6 +7,7 @@ import { login } from '../auth.store'
 import { selectAuthStatus } from '../auth.selectors'
 import { useCommandLock } from '../../../shared/hooks/useCommandLock'
 import { pushToast } from '../../../shared/store/ui.store'
+import { logAuditEvent } from '../../../shared/lib/audit'
 
 function LoginPage() {
   const dispatch = useAppDispatch()
@@ -23,6 +24,16 @@ function LoginPage() {
     void withLock(async () => {
       const result = await dispatch(login({ username, pin }))
       if (login.fulfilled.match(result)) {
+        logAuditEvent(dispatch, {
+          scope: 'AUTH',
+          action: 'LOGIN',
+          message: 'User signed in.',
+          user: {
+            id: result.payload.user.id,
+            name: result.payload.user.name,
+            role: result.payload.user.role,
+          },
+        })
         dispatch(
           pushToast({
             title: 'Welcome back',

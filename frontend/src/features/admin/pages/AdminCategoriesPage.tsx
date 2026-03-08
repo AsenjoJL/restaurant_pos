@@ -4,7 +4,7 @@ import Button from '../../../shared/components/ui/Button'
 import ConfirmDialog from '../../../shared/components/ui/ConfirmDialog'
 import Input from '../../../shared/components/ui/Input'
 import Modal from '../../../shared/components/ui/Modal'
-import { pushToast } from '../../../shared/store/ui.store'
+import { pushToast } from '../../../shared/store/ui.store'    
 import {
   selectAdminCategories,
   selectAdminProducts,
@@ -273,6 +273,7 @@ function AdminCategoriesPage() {
             className="textarea"
             placeholder="Short description (optional)"
             value={form.description}
+            name="categoryDescription"
             onChange={(event) => setForm({ ...form, description: event.target.value })}
           />
         </label>

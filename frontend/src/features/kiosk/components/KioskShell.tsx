@@ -4,11 +4,8 @@ import { formatCurrency } from '../../../shared/lib/format'
 
 const steps = [
   { label: 'Welcome', path: '/kiosk', icon: 'home' },
-  { label: 'Order Type', path: '/kiosk/order-type', icon: 'swap_horiz' },
-  { label: 'Menu', path: '/kiosk/menu', icon: 'menu_book' },
-  { label: 'Cart', path: '/kiosk/cart', icon: 'shopping_cart' },
-  { label: 'Confirm', path: '/kiosk/confirm', icon: 'checklist' },
-  { label: 'Success', path: '/kiosk/success', icon: 'check_circle' },
+  { label: 'Order', path: '/kiosk/menu', icon: 'menu_book' },
+  { label: 'Pay', path: '/kiosk/print', icon: 'check_circle' },
 ]
 
 const getStepIndex = (pathname: string) => {
@@ -16,10 +13,18 @@ const getStepIndex = (pathname: string) => {
     return 0
   }
 
-  const matchIndex = steps.findIndex(
-    (step) => step.path !== '/kiosk' && pathname.startsWith(step.path),
-  )
-  return matchIndex === -1 ? 0 : matchIndex
+  if (
+    pathname.startsWith('/kiosk/print') ||
+    pathname.startsWith('/kiosk/success')
+  ) {
+    return 2
+  }
+
+  if (pathname.startsWith('/kiosk/menu') || pathname.startsWith('/kiosk/order-type')) {
+    return 1
+  }
+
+  return 0
 }
 
 function KioskLayout() {
@@ -29,6 +34,7 @@ function KioskLayout() {
   const showStepper = activeIndex > 0
   const isPrintRoute = location.pathname.startsWith('/kiosk/print')
   const isWelcomeRoute = location.pathname === '/kiosk' || location.pathname === '/kiosk/'
+  const isMenuRoute = location.pathname.startsWith('/kiosk/menu')
 
   return (
     <div
@@ -77,12 +83,30 @@ function KioskLayout() {
                 <span className="muted"> • {formatCurrency(totals.total)}</span>
               </div>
             </div>
-            <Link className="btn btn-outline btn-md" to="/kiosk/cart">
-              <span className="material-symbols-rounded btn-icon" aria-hidden="true">
-                shopping_cart
-              </span>
-              View Cart
-            </Link>
+            {isMenuRoute ? (
+              <button
+                type="button"
+                className="btn btn-outline btn-md"
+                onClick={() => {
+                  const panel = document.getElementById('kiosk-cart-panel')
+                  if (panel) {
+                    panel.scrollIntoView({ behavior: 'smooth', block: 'start' })
+                  }
+                }}
+              >
+                <span className="material-symbols-rounded btn-icon" aria-hidden="true">
+                  shopping_cart
+                </span>
+                Review Order
+              </button>
+            ) : (
+              <Link className="btn btn-outline btn-md" to="/kiosk/menu">
+                <span className="material-symbols-rounded btn-icon" aria-hidden="true">
+                  shopping_cart
+                </span>
+                Review Order
+              </Link>
+            )}
           </div>
         </header>
       ) : null}

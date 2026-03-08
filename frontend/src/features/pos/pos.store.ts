@@ -24,6 +24,7 @@ type PosUiState = {
   searchTerm: string
   isPaymentOpen: boolean
   activeOrderId: string | null
+  editingOrderId: string | null
   isModifierOpen: boolean
   modifierTargetId: string | null
   isBundleOpen: boolean
@@ -133,6 +134,18 @@ const draftSlice = createSlice({
     setOrderNotes: (state, action: PayloadAction<string>) => {
       state.notes = sanitizeNote(action.payload)
     },
+    loadDraft: (state, action: PayloadAction<DraftOrder>) => {
+      state.id = action.payload.id
+      state.orderType = action.payload.orderType
+      state.tableId = action.payload.tableId
+      state.staffId = action.payload.staffId
+      state.notes = action.payload.notes
+      state.items = action.payload.items
+      state.discount = action.payload.discount
+      state.serviceCharge = action.payload.serviceCharge
+      state.taxRate = action.payload.taxRate
+      state.status = action.payload.status
+    },
     setDiscount: (state, action: PayloadAction<number>) => {
       state.discount = Math.max(0, action.payload)
     },
@@ -163,6 +176,7 @@ const initialUiState: PosUiState = {
   searchTerm: '',
   isPaymentOpen: false,
   activeOrderId: null,
+  editingOrderId: null,
   isModifierOpen: false,
   modifierTargetId: null,
   isBundleOpen: false,
@@ -193,6 +207,12 @@ const uiSlice = createSlice({
     closePaymentModal: (state) => {
       state.isPaymentOpen = false
       state.activeOrderId = null
+    },
+    startEditingOrder: (state, action: PayloadAction<string>) => {
+      state.editingOrderId = action.payload
+    },
+    stopEditingOrder: (state) => {
+      state.editingOrderId = null
     },
     openModifierModal: (state, action: PayloadAction<string>) => {
       state.isModifierOpen = true
@@ -248,6 +268,7 @@ export const {
   setTable,
   setStaff,
   setOrderNotes,
+  loadDraft,
   setDiscount,
   setServiceCharge,
   clearDraft,
@@ -259,6 +280,8 @@ export const {
   setSearchTerm,
   openPaymentModal,
   closePaymentModal,
+  startEditingOrder,
+  stopEditingOrder,
   openModifierModal,
   closeModifierModal,
   openBundleModal,

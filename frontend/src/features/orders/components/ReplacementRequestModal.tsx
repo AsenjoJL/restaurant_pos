@@ -4,6 +4,7 @@ import { useAppDispatch, useAppSelector } from '../../../app/store/hooks'
 import Button from '../../../shared/components/ui/Button'
 import Input from '../../../shared/components/ui/Input'
 import Modal from '../../../shared/components/ui/Modal'
+import { buildAuditUser, logAuditEvent } from '../../../shared/lib/audit'
 import { pushToast } from '../../../shared/store/ui.store'
 import { selectAuthUser } from '../../auth/auth.selectors'
 import type { Order, ReplacementItem } from '../../../shared/types/order'
@@ -103,6 +104,13 @@ function ReplacementRequestModal({ isOpen, order, onClose }: ReplacementRequestM
         requestedBy: { id: user.id, name: user.name, role: user.role },
       }),
     )
+    logAuditEvent(dispatch, {
+      scope: 'REPLACEMENT',
+      action: 'REQUESTED',
+      message: `Replacement requested for order ${order.order_no}.`,
+      user: buildAuditUser(user),
+      entityId: order.id,
+    })
     dispatch(
       pushToast({
         title: 'Replacement requested',
@@ -190,6 +198,7 @@ function ReplacementRequestModal({ isOpen, order, onClose }: ReplacementRequestM
               className="textarea"
               placeholder="Replacement reason"
               value={reason}
+              name="replacementReason"
               onChange={(event) =>
                 setReasonMap((prev) => ({ ...prev, [orderId]: event.target.value }))
               }

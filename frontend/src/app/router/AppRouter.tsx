@@ -7,10 +7,12 @@ import OrdersPage from '../../features/orders/pages/OrdersPage'
 import KitchenDisplayPage from '../../features/kitchen/pages/KitchenDisplayPage'
 import AdminLayout from '../../features/admin/components/AdminLayout'
 import AdminDashboardPage from '../../features/admin/pages/AdminDashboardPage'
+import AdminSalesPage from '../../features/sales/pages/AdminSalesPage'
 import AdminProductsPage from '../../features/admin/pages/AdminProductsPage'
 import AdminCategoriesPage from '../../features/admin/pages/AdminCategoriesPage'
 import AdminCashAdjustmentsPage from '../../features/admin/pages/AdminCashAdjustmentsPage'
 import AdminReplacementsPage from '../../features/admin/pages/AdminReplacementsPage'
+import AdminAuditLogsPage from '../../features/admin/pages/AdminAuditLogsPage'
 import AdminUsersPage from '../../features/admin/pages/AdminUsersPage'
 import AdminSettingsPage from '../../features/admin/pages/AdminSettingsPage'
 import AdminInventoryPage from '../../features/inventory/pages/AdminInventoryPage'
@@ -81,10 +83,12 @@ function AppRouter() {
         >
           <Route index element={<Navigate to="dashboard" replace />} />
           <Route path="dashboard" element={<AdminDashboardPage />} />
+          <Route path="sales" element={<AdminSalesPage />} />
           <Route path="products" element={<AdminProductsPage />} />
           <Route path="categories" element={<AdminCategoriesPage />} />
           <Route path="replacements" element={<AdminReplacementsPage />} />
           <Route path="cash-adjustments" element={<AdminCashAdjustmentsPage />} />
+          <Route path="audit-logs" element={<AdminAuditLogsPage />} />
           <Route path="inventory" element={<AdminInventoryPage />} />
           <Route path="recipes" element={<AdminRecipesPage />} />
           <Route path="users" element={<AdminUsersPage />} />

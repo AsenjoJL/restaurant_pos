@@ -1,4 +1,5 @@
 import { useMemo, useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { useAppDispatch, useAppSelector } from '../../../app/store/hooks'
 import { selectAuthUser } from '../../auth/auth.selectors'
 import Badge from '../../../shared/components/ui/Badge'
@@ -12,7 +13,20 @@ import {
   isPaymentCaptured,
 } from '../../../shared/lib/orders'
 import { normalizeReference } from '../../../shared/lib/validators'
+import { buildAuditUser, logAuditEvent } from '../../../shared/lib/audit'
+import { products, tables } from '../../../mock/data'
 import { selectOrders } from '../orders.selectors'
+import {
+  filterCashierOrders,
+  getCashierHeaderLabel,
+  getCashierPermissions,
+  getPrimaryActionLabel,
+  getReceiptPrintLabel,
+  getReplacementActionLabel,
+  getReplacementLabel,
+  type CashierTab,
+  resolveSelectedOrderId,
+} from '../cashier.logic'
 import {
   cancelOrder,
   closeOrder,
@@ -22,10 +36,11 @@ import {
 import OrderReceiptSheet from '../../../shared/components/receipt/OrderReceiptSheet'
 import OrderReceiptPreview from '../../../shared/components/receipt/OrderReceiptPreview'
 import PaymentModal from '../../pos/components/modals/PaymentModal'
-import { openPaymentModal } from '../../pos/pos.store'
+import { openPaymentModal, loadDraft, startEditingOrder } from '../../pos/pos.store'
+import { buildDraftFromOrder } from '../../pos/pos.utils'
 import ReplacementRequestModal from '../components/ReplacementRequestModal'
-import type { ReplacementStatus } from '../../../shared/types/order'
 import CashAdjustmentModal from '../../cash/components/CashAdjustmentModal'
+import CashDrawerModal from '../../cash/components/CashDrawerModal'
 
 type ConfirmState = {
   isOpen: boolean
@@ -33,12 +48,11 @@ type ConfirmState = {
   targetId: string | null
 }
 
-type CashierTab = 'unpaid' | 'paid' | 'ready' | 'completed'
-
 function OrdersPage() {
   const dispatch = useAppDispatch()
   const orders = useAppSelector(selectOrders)
   const user = useAppSelector(selectAuthUser)
+  const navigate = useNavigate()
   const [tab, setTab] = useState<CashierTab>('unpaid')
   const [query, setQuery] = useState('')
   const [selectedId, setSelectedId] = useState<string | null>(null)
@@ -46,6 +60,7 @@ function OrdersPage() {
   const [printOrderId, setPrintOrderId] = useState<string | null>(null)
   const [replacementOrderId, setReplacementOrderId] = useState<string | null>(null)
   const [isCashAdjustmentOpen, setIsCashAdjustmentOpen] = useState(false)
+  const [isCashDrawerOpen, setIsCashDrawerOpen] = useState(false)
   const [confirm, setConfirm] = useState<ConfirmState>({
     isOpen: false,
     reason: '',
@@ -61,43 +76,12 @@ function OrdersPage() {
     [orders],
   )
 
-  const filteredOrders = useMemo(() => {
-    const trimmed = query.trim().toUpperCase()
-    return orders.filter((order) => {
-      if (order.status === 'CANCELLED') {
-        return false
-      }
+  const filteredOrders = useMemo(
+    () => filterCashierOrders(orders, tab, query),
+    [orders, query, tab],
+  )
 
-      const isReady = order.status === 'READY_FOR_PICKUP'
-      const isCompleted = order.status === 'COMPLETED'
-      const paid = isPaymentCaptured(order)
-      const isPaidInProgress = paid && !isReady && !isCompleted
-      const isUnpaid = order.status === 'PENDING_PAYMENT'
-
-      if (tab === 'unpaid' && !isUnpaid) {
-        return false
-      }
-      if (tab === 'paid' && !isPaidInProgress) {
-        return false
-      }
-      if (tab === 'ready' && !isReady) {
-        return false
-      }
-      if (tab === 'completed' && !isCompleted) {
-        return false
-      }
-
-      if (!trimmed) {
-        return true
-      }
-      return order.order_no.toUpperCase().includes(trimmed)
-    })
-  }, [orders, query, tab])
-
-  const selectedOrderId =
-    selectedId && filteredOrders.some((order) => order.id === selectedId)
-      ? selectedId
-      : filteredOrders[0]?.id ?? null
+  const selectedOrderId = resolveSelectedOrderId(filteredOrders, selectedId)
 
   const selectedOrder =
     filteredOrders.find((order) => order.id === selectedOrderId) ?? null
@@ -105,20 +89,22 @@ function OrdersPage() {
   const printOrder = orders.find((order) => order.id === printOrderId) ?? null
   const replacementOrder = orders.find((order) => order.id === replacementOrderId) ?? null
 
-  const isCashier = user?.role === 'cashier'
-  const canTakePayment = selectedOrder?.status === 'PENDING_PAYMENT'
-  const canSendToKitchen = selectedOrder?.status === 'HOLD'
-  const canCloseOrder = selectedOrder?.status === 'READY_FOR_PICKUP'
-  const isCompleted = selectedOrder?.status === 'COMPLETED'
-  const replacementStatus = selectedOrder?.replacementStatus ?? 'NONE'
-  const canPrint = Boolean(
-    selectedOrder &&
-      selectedOrder.status !== 'CANCELLED' &&
-      selectedOrder.status !== 'PENDING_PAYMENT',
-  )
+  const role = user?.role
+  const {
+    canOperateCashier,
+    canTakePayment,
+    canSendToKitchen,
+    canCloseOrder,
+    canEditOrder,
+    canPrint,
+    canCancelOrder,
+    isCompleted,
+    replacementStatus,
+    canRequestReplacement,
+    isReplacementLocked,
+  } = getCashierPermissions(selectedOrder, role)
 
-  const printLabel =
-    selectedOrder && isPaymentCaptured(selectedOrder) ? 'Print Receipt' : 'Print Invoice'
+  const printLabel = getReceiptPrintLabel(selectedOrder)
 
   const triggerPrint = (orderId: string) => {
     setPrintOrderId(orderId)
@@ -127,10 +113,23 @@ function OrdersPage() {
   }
 
   const handleTakePayment = () => {
-    if (!selectedOrder || !canTakePayment || !isCashier) {
+    if (!selectedOrder || !canTakePayment || !canOperateCashier) {
       return
     }
     dispatch(openPaymentModal({ orderId: selectedOrder.id }))
+  }
+
+  const handleEditOrder = () => {
+    if (!selectedOrder || !canEditOrder) {
+      return
+    }
+    const tableId =
+      selectedOrder.order_type === 'DINE_IN' && selectedOrder.table
+        ? tables.find((table) => table.name === selectedOrder.table)?.id ?? null
+        : null
+    dispatch(loadDraft(buildDraftFromOrder(selectedOrder, products, tableId)))
+    dispatch(startEditingOrder(selectedOrder.id))
+    navigate('/pos')
   }
 
   const handleSendToKitchen = () => {
@@ -139,6 +138,13 @@ function OrdersPage() {
     }
     setIsProcessing(true)
     dispatch(sendToKitchen({ id: selectedOrder.id }))
+    logAuditEvent(dispatch, {
+      scope: 'ORDER',
+      action: 'SENT_TO_KITCHEN',
+      message: `Order ${selectedOrder.order_no} sent to kitchen.`,
+      user: buildAuditUser(user),
+      entityId: selectedOrder.id,
+    })
     setTimeout(() => setIsProcessing(false), 300)
   }
 
@@ -148,6 +154,13 @@ function OrdersPage() {
     }
     setIsProcessing(true)
     dispatch(closeOrder({ id: selectedOrder.id }))
+    logAuditEvent(dispatch, {
+      scope: 'ORDER',
+      action: 'COMPLETED',
+      message: `Order ${selectedOrder.order_no} completed.`,
+      user: buildAuditUser(user),
+      entityId: selectedOrder.id,
+    })
     setTimeout(() => setIsProcessing(false), 300)
   }
 
@@ -155,7 +168,18 @@ function OrdersPage() {
     if (!confirm.targetId) {
       return
     }
+    const order = orders.find((item) => item.id === confirm.targetId)
     dispatch(cancelOrder({ id: confirm.targetId, reason: confirm.reason }))
+    if (order) {
+      logAuditEvent(dispatch, {
+        scope: 'ORDER',
+        action: 'CANCELLED',
+        message: `Order ${order.order_no} cancelled.`,
+        user: buildAuditUser(user),
+        entityId: order.id,
+        metadata: { reason: confirm.reason },
+      })
+    }
     setConfirm({ isOpen: false, reason: '', targetId: null })
   }
 
@@ -166,47 +190,9 @@ function OrdersPage() {
     triggerPrint(selectedOrder.id)
   }
 
-  const primaryActionLabel = selectedOrder
-    ? selectedOrder.status === 'READY_FOR_PICKUP'
-      ? 'Close Order (Completed)'
-      : selectedOrder.status === 'HOLD'
-        ? 'Send to Kitchen'
-        : selectedOrder.status === 'COMPLETED'
-          ? 'Completed'
-          : selectedOrder.status === 'CANCELLED'
-            ? 'Cancelled'
-            : 'In Kitchen'
-    : 'Send to Kitchen'
-
-  const headerLabel =
-    tab === 'unpaid'
-      ? 'Awaiting Payment'
-      : tab === 'paid'
-        ? 'Paid Orders (In Kitchen)'
-        : tab === 'ready'
-          ? 'Ready Orders'
-          : 'Completed Orders'
-
-  const getReplacementLabel = (status: ReplacementStatus) => {
-    switch (status) {
-      case 'PENDING':
-        return 'Replacement Pending'
-      case 'APPROVED':
-        return 'Replacement Approved'
-      default:
-        return ''
-    }
-  }
-
-  const replacementActionLabel =
-    replacementStatus === 'PENDING'
-      ? 'Replacement Requested'
-      : replacementStatus === 'APPROVED'
-        ? 'Replacement Approved'
-        : 'Request Replacement'
-
-  const isReplacementLocked =
-    replacementStatus === 'PENDING' || replacementStatus === 'APPROVED'
+  const primaryActionLabel = getPrimaryActionLabel(selectedOrder)
+  const headerLabel = getCashierHeaderLabel(tab)
+  const replacementActionLabel = getReplacementActionLabel(replacementStatus)
 
   return (
     <div className="page">
@@ -228,6 +214,15 @@ function OrdersPage() {
               icon="report"
             >
               Report Wrong Change
+            </Button>
+          ) : null}
+          {canOperateCashier ? (
+            <Button
+              variant="outline"
+              onClick={() => setIsCashDrawerOpen(true)}
+              icon="point_of_sale"
+            >
+              Cash Drawer
             </Button>
           ) : null}
           <div className="segmented">
@@ -372,6 +367,7 @@ function OrdersPage() {
                   className="textarea"
                   placeholder="Add order notes (max 250 chars)"
                   value={selectedOrder.note ?? ''}
+                  name="orderNote"
                   maxLength={250}
                   onChange={(event) =>
                     dispatch(updateOrderNote({ id: selectedOrder.id, note: event.target.value }))
@@ -385,6 +381,18 @@ function OrdersPage() {
                   <span>Subtotal</span>
                   <span>{formatCurrency(selectedOrder.subtotal)}</span>
                 </div>
+                {selectedOrder.discount && selectedOrder.discount > 0 ? (
+                  <div className="summary-row">
+                    <span>Discount</span>
+                    <span>- {formatCurrency(selectedOrder.discount)}</span>
+                  </div>
+                ) : null}
+                {selectedOrder.service_charge && selectedOrder.service_charge > 0 ? (
+                  <div className="summary-row">
+                    <span>Service</span>
+                    <span>{formatCurrency(selectedOrder.service_charge)}</span>
+                  </div>
+                ) : null}
                 <div className="summary-row">
                   <span>Tax</span>
                   <span>{formatCurrency(selectedOrder.tax)}</span>
@@ -400,7 +408,7 @@ function OrdersPage() {
                   <Button
                     variant="primary"
                     size="lg"
-                    disabled={!isCashier || isProcessing}
+                    disabled={!canOperateCashier || isProcessing}
                     onClick={handleTakePayment}
                     icon="payments"
                   >
@@ -417,22 +425,25 @@ function OrdersPage() {
                     {primaryActionLabel}
                   </Button>
                 )}
-                <Button
-                  variant="outline"
-                  disabled={!canPrint}
-                  onClick={handlePrint}
-                  icon="print"
-                >
-                  {printLabel}
-                </Button>
+                {canEditOrder ? (
+                  <Button
+                    variant="outline"
+                    size="lg"
+                    onClick={handleEditOrder}
+                    icon="edit"
+                  >
+                    Edit Order
+                  </Button>
+                ) : null}
+                {canPrint ? (
+                  <Button variant="outline" onClick={handlePrint} icon="print">
+                    {printLabel}
+                  </Button>
+                ) : null}
                 {isCompleted ? null : (
                   <Button
                     variant="danger"
-                    disabled={
-                      selectedOrder.status === 'COMPLETED' ||
-                      selectedOrder.status === 'CANCELLED' ||
-                      isPaymentCaptured(selectedOrder)
-                    }
+                    disabled={!canCancelOrder}
                     onClick={() =>
                       setConfirm({
                         isOpen: true,
@@ -445,7 +456,7 @@ function OrdersPage() {
                     Cancel Order
                   </Button>
                 )}
-                {isCompleted && isCashier ? (
+                {canRequestReplacement ? (
                   <Button
                     variant="danger"
                     onClick={() => setReplacementOrderId(selectedOrder.id)}
@@ -500,6 +511,10 @@ function OrdersPage() {
       <CashAdjustmentModal
         isOpen={isCashAdjustmentOpen}
         onClose={() => setIsCashAdjustmentOpen(false)}
+      />
+      <CashDrawerModal
+        isOpen={isCashDrawerOpen}
+        onClose={() => setIsCashDrawerOpen(false)}
       />
     </div>
   )

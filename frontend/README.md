@@ -1,73 +1,109 @@
-# React + TypeScript + Vite
+# Restaurant POS System (Frontend)
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+I designed and built a Restaurant POS System specifically for small and growing food businesses. This frontend powers self‑ordering, staff ordering, cashier workflows, kitchen display, and admin inventory/costing.
 
-Currently, two official plugins are available:
+## What’s Included
+- Self‑ordering kiosk flow
+- Staff‑based ordering (cashier input)
+- Cashier payment flow (cash/card/e‑wallets)
+- Kitchen Display System (KDS) with timers and SLA
+- Admin inventory management + recipe costing
+- Combo/bundle builder
+- Cash drawer control
+- Audit logs with CSV export
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) (or [oxc](https://oxc.rs) when used in [rolldown-vite](https://vite.dev/guide/rolldown)) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+## Roles & Access
+- **Cashier**: POS ordering, payments, cash drawer, cashier queue
+- **Kitchen**: Kitchen display only
+- **Admin**: Full access (POS, cashier, kitchen, admin tools)
 
-## React Compiler
+## Core Workflows
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+### 1) Self‑Ordering Kiosk
+1. Customer starts at `/kiosk`
+2. Selects order type and items
+3. Places order → order slip prints
+4. Customer pays at counter
 
-## Expanding the ESLint configuration
+### 2) Staff‑Based Ordering (Cashier POS)
+1. Cashier adds items in `/pos`
+2. Selects Dine‑in or Takeout
+3. Takes payment → order auto‑sent to kitchen
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+### 3) Kitchen Workflow
+1. Order appears in KDS as **SENT_TO_KITCHEN**
+2. Kitchen clicks **Start** → status **PREPARING**
+3. Kitchen clicks **Ready** → status **READY_FOR_PICKUP**
+4. Cashier closes order → **COMPLETED**
 
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
+### 4) Inventory & Costing
+- Inventory is deducted on payment confirmation
+- Recipe lines define ingredient usage per product
+- Unit costs produce **COGS** and **gross margin**
+- Adjustments support restock, waste, variance, manual changes
 
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
+### 5) Cash Drawer Control
+- Open/close shifts with opening float
+- Record cash in/out
+- End‑of‑shift count + variance tracking
 
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+### 6) Replacement / Remake
+- Cashier requests replacement for completed orders
+- Admin approves → replacement ticket sent to kitchen
+
+### 7) Audit Logs
+All key actions are logged (payments, replacements, cash drawer, auth) and can be exported as CSV.
+
+## Routes
+### Public
+- `/kiosk` – Kiosk landing
+- `/kiosk/order-type`
+- `/kiosk/menu`
+- `/kiosk/cart`
+- `/kiosk/confirm`
+- `/kiosk/success/:orderNo`
+- `/kiosk/print/:orderNo`
+
+### Staff
+- `/pos` – Staff POS ordering
+- `/orders` – Cashier queue
+- `/kitchen` – KDS
+
+### Admin
+- `/admin/dashboard`
+- `/admin/products`
+- `/admin/categories`
+- `/admin/inventory`
+- `/admin/recipes`
+- `/admin/replacements`
+- `/admin/cash-adjustments`
+- `/admin/audit-logs`
+- `/admin/users`
+- `/admin/settings`
+
+## Local Storage Keys
+Data is UI‑first and persisted locally:
+- `pos.orders.v1` – orders
+- `pos.auth.v1` – user session
+- `pos.cash.v1` – cash drawer + adjustments
+- `pos.audit.v1` – audit logs
+
+## Setup
+```bash
+npm install
+npm run dev
 ```
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
-
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
-
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+Build:
+```bash
+npm run build
 ```
+
+## Notes
+- UI‑first only (no backend integration yet)
+- All data is mock/localStorage
+- Designed for speed + clarity in busy restaurant workflows
+
+---
+
+Message me if you’re interested in a demo or full deployment.

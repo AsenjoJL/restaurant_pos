@@ -13,7 +13,9 @@ import { selectOrders } from '../../orders/orders.selectors'
 import {
   selectInventoryAdjustments,
   selectInventoryIngredients,
+  selectInventoryRecipes,
 } from '../../inventory/inventory.selectors'
+import { calculateOrderCost } from '../../inventory/inventory.logic'
 
 type SparklineData = {
   points: string
@@ -55,6 +57,7 @@ function AdminDashboardPage() {
   const orders = useAppSelector(selectOrders)
   const ingredients = useAppSelector(selectInventoryIngredients)
   const adjustments = useAppSelector(selectInventoryAdjustments)
+  const recipes = useAppSelector(selectInventoryRecipes)
 
   const stats = useMemo(() => {
     const activeProducts = products.filter((product) => product.isActive).length
@@ -74,10 +77,14 @@ function AdminDashboardPage() {
       (a, b) => new Date(a.placed_at).getTime() - new Date(b.placed_at).getTime(),
     )
     const revenue = paidOrders.reduce((sum, order) => sum + order.total, 0)
+    const cogs = paidOrders.reduce(
+      (sum, order) => sum + calculateOrderCost(order, recipes, ingredients),
+      0,
+    )
     const netSales = revenue
     const avgTicket = paidOrders.length > 0 ? revenue / paidOrders.length : 0
-    const profitMargin = 0.6
-    const profit = netSales * profitMargin
+    const profit = netSales - cogs
+    const profitMargin = netSales > 0 ? profit / netSales : 0
     const pendingPayment = orders.filter((order) => order.status === 'PENDING_PAYMENT').length
     const readyForPickup = orders.filter((order) => order.status === 'READY_FOR_PICKUP').length
     const completed = orders.filter((order) => order.status === 'COMPLETED').length
@@ -112,6 +119,7 @@ function AdminDashboardPage() {
       avgTicket,
       profit,
       profitMargin,
+      cogs,
       pendingPayment,
       readyForPickup,
       completed,
@@ -121,7 +129,7 @@ function AdminDashboardPage() {
       topItems,
       sparkline,
     }
-  }, [adjustments, ingredients, orders])
+  }, [adjustments, ingredients, orders, recipes])
 
   return (
     <div className="page admin-page">
@@ -174,6 +182,12 @@ function AdminDashboardPage() {
           icon="trending_up"
         />
         <AdminStatCard
+          label="COGS"
+          value={formatCurrency(analytics.cogs)}
+          helper="Ingredient costs"
+          icon="receipt_long"
+        />
+        <AdminStatCard
           label="Avg Ticket"
           value={formatCurrency(analytics.avgTicket)}
           helper="Per paid order"
@@ -182,7 +196,7 @@ function AdminDashboardPage() {
         <AdminStatCard
           label="Est. Profit"
           value={formatCurrency(analytics.profit)}
-          helper={`Assumes ${Math.round(analytics.profitMargin * 100)}% margin`}
+          helper={`${Math.round(analytics.profitMargin * 100)}% margin`}
           icon="trending_up"
         />
         <AdminStatCard

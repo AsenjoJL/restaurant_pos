@@ -14,3 +14,4 @@ export const selectTotals = (state: RootState) =>
 export const selectActiveCategory = (state: RootState) => state.pos.ui.activeCategoryId
 export const selectSearchTerm = (state: RootState) => state.pos.ui.searchTerm
 export const selectActivePaymentOrderId = (state: RootState) => state.pos.ui.activeOrderId
+export const selectEditingOrderId = (state: RootState) => state.pos.ui.editingOrderId

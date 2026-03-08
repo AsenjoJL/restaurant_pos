@@ -1,19 +1,22 @@
 import type { MenuProduct } from '../pos/pos.types'
 
-export type IngredientUnit = 'g' | 'kg' | 'ml' | 'l' | 'pcs'
+export type IngredientBaseUnit = 'g' | 'ml' | 'pcs'
+export type MeasurementUnit = IngredientBaseUnit | 'kg' | 'l' | 'tbsp' | 'tsp' | 'cup'
 
 export type Ingredient = {
   id: string
   name: string
   category: string
-  unit: IngredientUnit
+  baseUnit: IngredientBaseUnit
   onHand: number
   reorderLevel: number
+  unitCost?: number
 }
 
 export type RecipeLine = {
   ingredientId: string
   qty: number
+  unit?: MeasurementUnit
 }
 
 export type Recipe = {
@@ -24,15 +27,27 @@ export type Recipe = {
 }
 
 export type InventoryAdjustmentType = 'IN' | 'OUT'
+export type InventoryAdjustmentReason =
+  | 'RESTOCK'
+  | 'WASTE'
+  | 'VARIANCE'
+  | 'MANUAL'
+  | 'SALE'
+  | 'RETURN'
 
 export type InventoryAdjustment = {
   id: string
   ingredientId: string
   type: InventoryAdjustmentType
+  reasonType: InventoryAdjustmentReason
   qty: number
   reason: string
   at: string
   orderId?: string
+  reference?: string
+  countedQty?: number
+  beforeQty?: number
+  afterQty?: number
 }
 
 export type InventoryState = {
@@ -49,10 +64,11 @@ export type InventoryDeduction = {
 export type InventoryShortage = {
   ingredientId: string
   name: string
-  unit: IngredientUnit
+  unit: IngredientBaseUnit
   required: number
   available: number
   deficit: number
+  reason?: string
 }
 
 export type InventoryValidation = {

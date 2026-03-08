@@ -1,6 +1,7 @@
 import { formatCurrency } from '../../../shared/lib/format'
 import { formatEnumLabel } from '../../../shared/lib/orders'
 import type { Order } from '../../../shared/types/order'
+import { KIOSK_TAX_RATE } from '../kiosk.utils'
 
 type SlipTemplateProps = {
   order: Order
@@ -16,6 +17,8 @@ const formatPlacedAt = (value: string) => {
 }
 
 function SlipTemplate({ order, showTotals = true }: SlipTemplateProps) {
+  const taxRateLabel = `${(KIOSK_TAX_RATE * 100).toFixed(2)}%`
+
   return (
     <div className="slip-sheet">
       <div className="slip-header">
@@ -58,7 +61,7 @@ function SlipTemplate({ order, showTotals = true }: SlipTemplateProps) {
             <span>{formatCurrency(order.subtotal)}</span>
           </div>
           <div className="slip-row">
-            <span>Tax (est.)</span>
+            <span>Tax (est.) {taxRateLabel}</span>
             <span>{formatCurrency(order.tax)}</span>
           </div>
           <div className="slip-row slip-total">

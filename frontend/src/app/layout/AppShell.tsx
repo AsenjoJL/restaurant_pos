@@ -4,6 +4,7 @@ import { useAppDispatch, useAppSelector } from '../store/hooks'
 import { selectAuthUser } from '../../features/auth/auth.selectors'
 import { logout } from '../../features/auth/auth.store'
 import Button from '../../shared/components/ui/Button'
+import { buildAuditUser, logAuditEvent } from '../../shared/lib/audit'
 
 type AppShellProps = {
   children: ReactNode
@@ -16,6 +17,16 @@ function AppShell({ children }: AppShellProps) {
   const isAdmin = role === 'admin'
   const isCashier = role === 'cashier'
   const isKitchen = role === 'kitchen'
+
+  const handleLogout = () => {
+    logAuditEvent(dispatch, {
+      scope: 'AUTH',
+      action: 'LOGOUT',
+      message: 'User signed out.',
+      user: buildAuditUser(user),
+    })
+    dispatch(logout())
+  }
 
   return (
     <div className="app-shell">
@@ -81,7 +92,7 @@ function AppShell({ children }: AppShellProps) {
               <span className="user-name">{user?.name ?? 'Unknown User'}</span>
               <span className="user-role">{user?.role ?? 'unknown'}</span>
             </div>
-            <Button variant="ghost" onClick={() => dispatch(logout())}>
+            <Button variant="ghost" onClick={handleLogout}>
               Sign out
             </Button>
           </div>

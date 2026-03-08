@@ -121,7 +121,7 @@ function KioskItemModal({ product, isOpen, onClose, onAdd }: KioskItemModalProps
             Cancel
           </Button>
           <Button variant="primary" onClick={handleAdd}>
-            Add to Cart
+            Add Item
           </Button>
         </div>
       </div>
