@@ -1,30 +1,12 @@
-@import url('https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600;9..144,700&family=Space+Grotesk:wght@400;500;600;700&family=Outfit:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap');
-
 :root {
   color-scheme: light;
-  font-family: 'Space Grotesk', 'Segoe UI', sans-serif;
+  font-family: var(--font-body, 'Manrope', 'Segoe UI', sans-serif);
   line-height: 1.5;
   font-weight: 400;
   font-synthesis: none;
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-
-  --bg: #f3f1ea;
-  --panel: #ffffff;
-  --panel-muted: #f6f3ee;
-  --panel-strong: #1b1f1c;
-  --text: #1d1d1b;
-  --muted: #6b675f;
-  --border: #e4dfd7;
-  --accent: #1f6f5c;
-  --accent-soft: #d7efe6;
-  --accent-2: #e28a2c;
-  --danger: #c84f3d;
-  --shadow: 0 18px 40px rgba(21, 20, 18, 0.08);
-  --radius-lg: 24px;
-  --radius-md: 16px;
-  --radius-sm: 12px;
 }
 
 *,
@@ -51,7 +33,7 @@ h1,
 h2,
 h3,
 h4 {
-  font-family: 'Fraunces', 'Times New Roman', serif;
+  font-family: var(--font-display, 'Sora', 'Segoe UI', sans-serif);
   margin: 0;
   letter-spacing: -0.02em;
 }

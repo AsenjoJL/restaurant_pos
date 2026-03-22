@@ -1,5 +1,6 @@
-import { createSlice, nanoid } from '@reduxjs/toolkit'
+import { createAsyncThunk, createSlice, nanoid } from '@reduxjs/toolkit'
 import { orders as initialOrders } from '../../mock/data'
+import type { RootState } from '../../app/store/store'
 import type {
   AuditAction,
   Order,
@@ -10,6 +11,9 @@ import type {
   ReplacementRequestStatus,
   ReplacementTicket,
 } from '../../shared/types/order'
+import { ordersRepository } from './api'
+import { kitchenRepository } from '../kitchen/api'
+import type { CapturePaymentInput, CreateOrderInput, UpdateOrderInput } from './types/contracts'
 
 export const ORDERS_STORAGE_KEY = 'pos.orders.v1'
 
@@ -40,6 +44,95 @@ const initialState: OrdersState = {
   replacementRequests: [],
   replacementTickets: [],
 }
+
+const toCreateOrderInput = (order: Order): CreateOrderInput => ({
+  source: order.source,
+  orderType: order.order_type,
+  table: order.table,
+  note: order.note,
+  items: order.items,
+})
+
+const toUpdateOrderInput = (order: Order): UpdateOrderInput => ({
+  items: order.items,
+  note: order.note,
+  table: order.table,
+  status: order.status,
+})
+
+export const hydrateOrdersFromRepository = createAsyncThunk(
+  'orders/hydrateFromRepository',
+  async () => ordersRepository.list(),
+)
+
+export const syncCreateOrder = createAsyncThunk<void, { order: Order }>(
+  'orders/syncCreate',
+  async ({ order }) => {
+    await ordersRepository.create(toCreateOrderInput(order))
+  },
+)
+
+export const syncOrderUpdate = createAsyncThunk<
+  void,
+  { id: string },
+  { state: RootState }
+>('orders/syncUpdate', async ({ id }, { getState }) => {
+  const order = getState().orders.list.find((item) => item.id === id)
+  if (!order) {
+    return
+  }
+  await ordersRepository.update(id, toUpdateOrderInput(order))
+})
+
+export const syncOrderCancellation = createAsyncThunk<
+  void,
+  { id: string; reason: string }
+>('orders/syncCancel', async ({ id, reason }) => {
+  await ordersRepository.cancel(id, reason)
+})
+
+export const syncCapturedPayment = createAsyncThunk<
+  void,
+  { id: string },
+  { state: RootState }
+>('orders/syncPayment', async ({ id }, { getState }) => {
+  const order = getState().orders.list.find((item) => item.id === id)
+  if (!order || !order.payment_method || order.payment_amount === undefined) {
+    return
+  }
+
+  const paymentPayload: CapturePaymentInput = {
+    method: order.payment_method,
+    amount: order.payment_amount,
+    reference: order.payment_reference,
+    payer: order.payment_payer,
+  }
+
+  await ordersRepository.capturePayment(order.id, paymentPayload)
+
+  if (order.status !== 'PAID') {
+    await ordersRepository.update(order.id, { status: order.status })
+  }
+})
+
+export const hydrateKitchenQueueFromRepository = createAsyncThunk(
+  'orders/hydrateKitchenQueueFromRepository',
+  async () => kitchenRepository.getQueue(),
+)
+
+export const syncKitchenOrderStatus = createAsyncThunk<
+  void,
+  { id: string; status: 'PREPARING' | 'READY_FOR_PICKUP' | 'COMPLETED' }
+>('orders/syncKitchenOrderStatus', async ({ id, status }) => {
+  await kitchenRepository.updateOrderStatus(id, { status })
+})
+
+export const syncKitchenReplacementStatus = createAsyncThunk<
+  void,
+  { id: string; status: 'PREPARING' | 'READY_FOR_PICKUP' }
+>('orders/syncKitchenReplacementStatus', async ({ id, status }) => {
+  await kitchenRepository.updateReplacementStatus(id, { status })
+})
 
 const addAuditEntry = (order: Order, action: AuditAction, note: string) => {
   order.audit_log.push({
@@ -400,6 +493,27 @@ const ordersSlice = createSlice({
       ticket.status = 'READY_FOR_PICKUP'
       ticket.readyAt = ticket.readyAt ?? new Date().toISOString()
     },
+  },
+  extraReducers: (builder) => {
+    builder.addCase(hydrateOrdersFromRepository.fulfilled, (state, action) => {
+      state.list = action.payload
+    })
+    builder.addCase(hydrateKitchenQueueFromRepository.fulfilled, (state, action) => {
+      const nextList = [...state.list]
+      action.payload.orders.forEach((queueOrder) => {
+        const index = nextList.findIndex((order) => order.id === queueOrder.id)
+        if (index >= 0) {
+          nextList[index] = {
+            ...nextList[index],
+            ...queueOrder,
+          }
+          return
+        }
+        nextList.unshift(queueOrder)
+      })
+      state.list = nextList
+      state.replacementTickets = action.payload.replacementTickets
+    })
   },
 })
 

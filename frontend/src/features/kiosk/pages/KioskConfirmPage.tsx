@@ -5,7 +5,7 @@ import { formatCurrency } from '../../../shared/lib/format'
 import { MAX_NOTE_LENGTH } from '../../../shared/lib/validators'
 import { pushToast } from '../../../shared/store/ui.store'
 import { useAppDispatch } from '../../../app/store/hooks'
-import { addOrder } from '../../orders/orders.store'
+import { addOrder, syncCreateOrder } from '../../orders/orders.store'
 import { useKiosk } from '../kiosk.context'
 import { getModifierGroupsForCategory } from '../kiosk.data'
 
@@ -83,6 +83,7 @@ function KioskConfirmPage() {
       return
     }
     dispatch(addOrder(result.order))
+    void dispatch(syncCreateOrder({ order: result.order }))
     dispatch(
       pushToast({
         title: 'Order placed',

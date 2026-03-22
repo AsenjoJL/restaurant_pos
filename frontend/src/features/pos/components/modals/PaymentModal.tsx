@@ -9,14 +9,14 @@ import { pushToast } from '../../../../shared/store/ui.store'
 import OrderReceiptPreview from '../../../../shared/components/receipt/OrderReceiptPreview'
 import OrderReceiptSheet from '../../../../shared/components/receipt/OrderReceiptSheet'
 import { selectOrders } from '../../../orders/orders.selectors'
-import { capturePaymentAndSend } from '../../../orders/orders.store'
+import { capturePaymentAndSend, syncCapturedPayment } from '../../../orders/orders.store'
 import { clearDraft, closePaymentModal } from '../../pos.store'
 import { selectActivePaymentOrderId, selectPosUi, selectTotals } from '../../pos.selectors'
 import {
   selectInventoryIngredients,
   selectInventoryRecipes,
 } from '../../../inventory/inventory.selectors'
-import { applyInventoryDeductions } from '../../../inventory/inventory.store'
+import { applyInventoryDeductions, syncSaleDeductions } from '../../../inventory/inventory.store'
 import {
   buildInventoryDeductionNote,
   buildInventoryShortageMessage,
@@ -24,9 +24,10 @@ import {
   validateInventoryForOrder,
 } from '../../../inventory/inventory.logic'
 import { buildAuditUser, logAuditEvent } from '../../../../shared/lib/audit'
+import { triggerPrint as triggerNativePrint } from '../../../../shared/lib/print'
 import type { PaymentMethod } from '../../../../shared/types/order'
 import { selectAuthUser } from '../../../auth/auth.selectors'
-import { addSalesRecord } from '../../../sales/sales.store'
+import { addSalesRecord, syncSalesRecord } from '../../../sales/sales.store'
 
 function PaymentModal() {
   const dispatch = useAppDispatch()
@@ -79,7 +80,9 @@ function PaymentModal() {
 
   const triggerPrint = (orderId: string) => {
     setPrintOrderId(orderId)
-    window.setTimeout(() => window.print(), 300)
+    window.setTimeout(() => {
+      void triggerNativePrint({ silent: true })
+    }, 300)
     window.setTimeout(() => setPrintOrderId(null), 900)
   }
 
@@ -165,6 +168,13 @@ function PaymentModal() {
           deductions: validation.deductions,
         }),
       )
+      void dispatch(
+        syncSaleDeductions({
+          orderId: order.id,
+          orderNo: order.order_no,
+          deductions: validation.deductions,
+        }),
+      )
     }
 
     const paymentAmount = isCash ? amountNumber : total
@@ -205,6 +215,7 @@ function PaymentModal() {
         processedBy: user ? { id: user.id, name: user.name, role: user.role } : undefined,
       }),
     )
+    void dispatch(syncCapturedPayment({ id: order.id }))
     dispatch(
       addSalesRecord({
         orderId: order.id,
@@ -230,6 +241,7 @@ function PaymentModal() {
         paidAt,
       }),
     )
+    void dispatch(syncSalesRecord({ orderId: order.id }))
     dispatch(
       pushToast({
         title: 'Payment recorded',

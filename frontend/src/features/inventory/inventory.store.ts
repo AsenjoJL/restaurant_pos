@@ -1,5 +1,6 @@
-import { createSlice, nanoid, type PayloadAction } from '@reduxjs/toolkit'
+import { createAsyncThunk, createSlice, nanoid, type PayloadAction } from '@reduxjs/toolkit'
 import { ingredients as initialIngredients, recipes as initialRecipes } from '../../mock/data'
+import type { RootState } from '../../app/store/store'
 import type {
   IngredientBaseUnit,
   InventoryAdjustmentType,
@@ -8,6 +9,7 @@ import type {
   InventoryState,
   RecipeLine,
 } from './inventory.types'
+import { inventoryRepository } from './api'
 
 export const INVENTORY_STORAGE_KEY = 'pos.inventory.v1'
 
@@ -71,6 +73,88 @@ const initialState: InventoryState =
     recipes: initialRecipes,
     adjustments: [],
   }
+
+export const hydrateInventoryFromRepository = createAsyncThunk(
+  'inventory/hydrateFromRepository',
+  async () => inventoryRepository.getSnapshot(),
+)
+
+export const syncUpsertIngredient = createAsyncThunk<
+  void,
+  ({ id: string } & IngredientPayload) | IngredientPayload
+>('inventory/syncUpsertIngredient', async (payload) => {
+  await inventoryRepository.upsertIngredient(payload)
+})
+
+export const syncStockAdjustment = createAsyncThunk<void, AdjustStockPayload>(
+  'inventory/syncStockAdjustment',
+  async (payload) => {
+    await inventoryRepository.createAdjustment(payload)
+  },
+)
+
+export const syncSaveRecipe = createAsyncThunk<void, SaveRecipePayload>(
+  'inventory/syncSaveRecipe',
+  async (payload) => {
+    await inventoryRepository.saveRecipe(payload)
+  },
+)
+
+export const syncRemoveRecipe = createAsyncThunk<void, string>(
+  'inventory/syncRemoveRecipe',
+  async (productId) => {
+    await inventoryRepository.removeRecipe(productId)
+  },
+)
+
+export const syncSaleDeductions = createAsyncThunk<
+  void,
+  DeductionPayload,
+  { state: RootState }
+>('inventory/syncSaleDeductions', async (payload, { getState }) => {
+  const ingredientMap = new Map(
+    getState().inventory.ingredients.map((ingredient) => [ingredient.id, ingredient]),
+  )
+  const label = payload.orderNo ? `Order ${payload.orderNo} payment` : 'Order payment'
+
+  await Promise.all(
+    payload.deductions.map(async (deduction) => {
+      const ingredient = ingredientMap.get(deduction.ingredientId)
+      if (!ingredient) {
+        return
+      }
+      await inventoryRepository.createAdjustment({
+        ingredientId: deduction.ingredientId,
+        type: 'OUT',
+        reasonType: 'SALE',
+        qty: deduction.qty,
+        reason: label,
+        orderId: payload.orderId,
+      })
+    }),
+  )
+})
+
+export const syncReturnDeductions = createAsyncThunk<
+  void,
+  DeductionPayload,
+  { state: RootState }
+>('inventory/syncReturnDeductions', async (payload) => {
+  const label = payload.orderNo ? `Order ${payload.orderNo} refund` : 'Order refund'
+
+  await Promise.all(
+    payload.deductions.map(async (deduction) => {
+      await inventoryRepository.createAdjustment({
+        ingredientId: deduction.ingredientId,
+        type: 'IN',
+        reasonType: 'RETURN',
+        qty: deduction.qty,
+        reason: label,
+        orderId: payload.orderId,
+      })
+    }),
+  )
+})
 
 const inventorySlice = createSlice({
   name: 'inventory',
@@ -205,6 +289,13 @@ const inventorySlice = createSlice({
         })
       })
     },
+  },
+  extraReducers: (builder) => {
+    builder.addCase(hydrateInventoryFromRepository.fulfilled, (state, action) => {
+      state.ingredients = action.payload.ingredients
+      state.recipes = action.payload.recipes
+      state.adjustments = action.payload.adjustments
+    })
   },
 })
 

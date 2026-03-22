@@ -1,4 +1,4 @@
-import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom'
+import { BrowserRouter, HashRouter, Navigate, Route, Routes } from 'react-router-dom'
 import RequireAuth from './guards/RequireAuth'
 import AppShell from '../layout/AppShell'
 import LoginPage from '../../features/auth/pages/LoginPage'
@@ -27,8 +27,13 @@ import KioskSuccessPage from '../../features/kiosk/pages/KioskSuccessPage'
 import KioskPrintSlipPage from '../../features/kiosk/pages/KioskPrintSlipPage'
 
 function AppRouter() {
+  const useHashRouter =
+    import.meta.env.VITE_ROUTER_MODE === 'hash' ||
+    (typeof window !== 'undefined' && window.location.protocol === 'file:')
+  const Router = useHashRouter ? HashRouter : BrowserRouter
+
   return (
-    <BrowserRouter>
+    <Router>
       <Routes>
         <Route path="/" element={<Navigate to="/kiosk" replace />} />
         <Route path="/login" element={<LoginPage />} />
@@ -96,7 +101,7 @@ function AppRouter() {
         </Route>
         <Route path="*" element={<Navigate to="/kiosk" replace />} />
       </Routes>
-    </BrowserRouter>
+    </Router>
   )
 }
 

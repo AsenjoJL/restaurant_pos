@@ -12,6 +12,30 @@ I designed and built a Restaurant POS System specifically for small and growing 
 - Cash drawer control
 - Audit logs with CSV export
 
+## Tech Stack
+- **Language**: TypeScript + TSX
+- **UI Framework**: React 19
+- **Build Tool**: Vite (`@vitejs/plugin-react`)
+- **State Management**: Redux Toolkit + React Redux
+- **Routing**: React Router DOM
+- **Desktop Packaging (Kiosk)**: Electron + electron-builder (Windows NSIS)
+- **Data Access Pattern**: Repository pattern with `mock` / `api` mode switching
+- **API/HTTP Layer**: Custom `fetch` client (`httpClient`)
+- **Client Persistence**: localStorage + cross-tab sync (`storage` event)
+- **Styling**: Custom CSS architecture (`base.css`, `pos.css`, `admin.css`, `kiosk.css`, `tokens.css`)
+- **Reporting Utility**: `xlsx`
+- **Linting**: ESLint
+
+## Data Mode (Mock or API)
+- `VITE_DATA_MODE=mock` → runs frontend-only using repository mock implementations
+- `VITE_DATA_MODE=api` → uses HTTP repositories for Laravel API integration
+- `VITE_API_BASE_URL` controls the API base path (default `/api/v1`)
+
+Copy `.env.example` to `.env` and set values per environment.
+
+Architecture guide:
+- `docs/FRONTEND_ARCHITECTURE.md`
+
 ## Roles & Access
 - **Cashier**: POS ordering, payments, cash drawer, cashier queue
 - **Kitchen**: Kitchen display only

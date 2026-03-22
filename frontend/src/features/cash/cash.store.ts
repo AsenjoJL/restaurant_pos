@@ -152,7 +152,7 @@ const cashSlice = createSlice({
   name: 'cashAdjustments',
   initialState,
   reducers: {
-    hydrateCashState: (state, action: { payload: CashState }) => {
+    hydrateCashState: (_state, action: { payload: CashState }) => {
       return {
         ...defaultState,
         ...action.payload,

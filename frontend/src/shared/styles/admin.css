@@ -74,45 +74,6 @@
   background: var(--panel-muted);
 }
 
-.admin-shell {
-  display: grid;
-  gap: 20px;
-  padding: 24px;
-}
-
-.admin-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  gap: 16px;
-  flex-wrap: wrap;
-}
-
-.admin-nav {
-  display: flex;
-  gap: 10px;
-  flex-wrap: wrap;
-}
-
-.admin-nav-link {
-  text-decoration: none;
-  color: var(--text);
-  font-weight: 600;
-  padding: 8px 14px;
-  border-radius: 999px;
-  background: var(--panel-muted);
-}
-
-.admin-nav-link.active {
-  background: var(--panel-strong);
-  color: #ffffff;
-}
-
-.admin-page {
-  padding: 0;
-  gap: 20px;
-}
-
 .admin-stats {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));

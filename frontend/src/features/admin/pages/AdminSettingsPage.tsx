@@ -4,12 +4,18 @@ import Button from '../../../shared/components/ui/Button'
 import Input from '../../../shared/components/ui/Input'
 import { pushToast } from '../../../shared/store/ui.store'
 import { selectAdminSettings } from '../admin.selectors'
-import { updateSettings } from '../admin.store'
+import { syncAdminSettings, updateSettings } from '../admin.store'
 
 type SettingsErrors = {
   storeName?: string
   taxRate?: string
   serviceChargeRate?: string
+  kitchenIntervalMs?: string
+  salesIntervalMs?: string
+  ordersIntervalMs?: string
+  backoffMultiplier?: string
+  maxIntervalMultiplier?: string
+  jitterRatio?: string
 }
 
 function AdminSettingsPage() {
@@ -20,6 +26,12 @@ function AdminSettingsPage() {
     taxRate: String(settings.taxRate),
     serviceChargeRate: settings.serviceChargeRate > 0 ? String(settings.serviceChargeRate) : '',
     receiptFooter: settings.receiptFooter,
+    kitchenIntervalMs: String(settings.liveSync.kitchenIntervalMs),
+    salesIntervalMs: String(settings.liveSync.salesIntervalMs),
+    ordersIntervalMs: String(settings.liveSync.ordersIntervalMs),
+    backoffMultiplier: String(settings.liveSync.backoffMultiplier),
+    maxIntervalMultiplier: String(settings.liveSync.maxIntervalMultiplier),
+    jitterRatio: String(settings.liveSync.jitterRatio),
   })
   const [errors, setErrors] = useState<SettingsErrors>({})
   const [isSaving, setIsSaving] = useState(false)
@@ -41,15 +53,63 @@ function AdminSettingsPage() {
     ) {
       nextErrors.serviceChargeRate = 'Service charge must be between 0 and 20.'
     }
+    const kitchenIntervalMs = Number(form.kitchenIntervalMs)
+    if (!Number.isFinite(kitchenIntervalMs) || kitchenIntervalMs < 1000 || kitchenIntervalMs > 60000) {
+      nextErrors.kitchenIntervalMs = 'Kitchen sync must be between 1000 and 60000 ms.'
+    }
+    const salesIntervalMs = Number(form.salesIntervalMs)
+    if (!Number.isFinite(salesIntervalMs) || salesIntervalMs < 1000 || salesIntervalMs > 60000) {
+      nextErrors.salesIntervalMs = 'Sales sync must be between 1000 and 60000 ms.'
+    }
+    const ordersIntervalMs = Number(form.ordersIntervalMs)
+    if (!Number.isFinite(ordersIntervalMs) || ordersIntervalMs < 1000 || ordersIntervalMs > 60000) {
+      nextErrors.ordersIntervalMs = 'Orders sync must be between 1000 and 60000 ms.'
+    }
+    const backoffMultiplier = Number(form.backoffMultiplier)
+    if (!Number.isFinite(backoffMultiplier) || backoffMultiplier < 1.1 || backoffMultiplier > 5) {
+      nextErrors.backoffMultiplier = 'Backoff multiplier must be between 1.1 and 5.'
+    }
+    const maxIntervalMultiplier = Number(form.maxIntervalMultiplier)
+    if (
+      !Number.isFinite(maxIntervalMultiplier) ||
+      maxIntervalMultiplier < 1 ||
+      maxIntervalMultiplier > 20
+    ) {
+      nextErrors.maxIntervalMultiplier = 'Max interval multiplier must be between 1 and 20.'
+    }
+    const jitterRatio = Number(form.jitterRatio)
+    if (!Number.isFinite(jitterRatio) || jitterRatio < 0 || jitterRatio > 0.5) {
+      nextErrors.jitterRatio = 'Jitter ratio must be between 0 and 0.5.'
+    }
     setErrors(nextErrors)
-    return { nextErrors, taxValue, serviceValue }
+    return {
+      nextErrors,
+      taxValue,
+      serviceValue,
+      kitchenIntervalMs,
+      salesIntervalMs,
+      ordersIntervalMs,
+      backoffMultiplier,
+      maxIntervalMultiplier,
+      jitterRatio,
+    }
   }
 
-  const handleSave = () => {
+  const handleSave = async () => {
     if (isSaving) {
       return
     }
-    const { nextErrors, taxValue, serviceValue } = validate()
+    const {
+      nextErrors,
+      taxValue,
+      serviceValue,
+      kitchenIntervalMs,
+      salesIntervalMs,
+      ordersIntervalMs,
+      backoffMultiplier,
+      maxIntervalMultiplier,
+      jitterRatio,
+    } = validate()
     if (Object.keys(nextErrors).length > 0) {
       dispatch(
         pushToast({
@@ -61,22 +121,45 @@ function AdminSettingsPage() {
       return
     }
     setIsSaving(true)
-    dispatch(
-      updateSettings({
-        storeName: form.storeName.trim(),
-        taxRate: taxValue,
-        serviceChargeRate: serviceValue,
-        receiptFooter: form.receiptFooter.trim(),
-      }),
-    )
-    dispatch(
-      pushToast({
-        title: 'Settings saved',
-        description: 'Store settings have been updated.',
-        variant: 'success',
-      }),
-    )
-    setTimeout(() => setIsSaving(false), 200)
+    const previousSettings = settings
+    const nextSettings = {
+      storeName: form.storeName.trim(),
+      taxRate: taxValue,
+      serviceChargeRate: serviceValue,
+      receiptFooter: form.receiptFooter.trim(),
+      liveSync: {
+        kitchenIntervalMs,
+        salesIntervalMs,
+        ordersIntervalMs,
+        backoffMultiplier,
+        maxIntervalMultiplier,
+        jitterRatio,
+      },
+    }
+
+    dispatch(updateSettings(nextSettings))
+
+    try {
+      await dispatch(syncAdminSettings(nextSettings)).unwrap()
+      dispatch(
+        pushToast({
+          title: 'Settings saved',
+          description: 'Store settings have been updated.',
+          variant: 'success',
+        }),
+      )
+    } catch {
+      dispatch(updateSettings(previousSettings))
+      dispatch(
+        pushToast({
+          title: 'Save failed',
+          description: 'Settings were restored. Please try again.',
+          variant: 'error',
+        }),
+      )
+    } finally {
+      setIsSaving(false)
+    }
   }
 
   return (
@@ -166,9 +249,78 @@ function AdminSettingsPage() {
               </label>
             </div>
           </div>
+
+          <div className="admin-settings-section admin-settings-wide">
+            <div className="admin-section-title">
+              <span className="material-symbols-rounded section-icon" aria-hidden="true">
+                sync
+              </span>
+              <div>
+                <h3>Live Sync</h3>
+                <p className="muted">Polling timings used in API mode.</p>
+              </div>
+            </div>
+            <div className="admin-form-grid">
+              <Input
+                label="Kitchen sync (ms)"
+                inputMode="numeric"
+                value={form.kitchenIntervalMs}
+                onChange={(event) =>
+                  setForm({ ...form, kitchenIntervalMs: event.target.value })
+                }
+                error={errors.kitchenIntervalMs}
+              />
+              <Input
+                label="Sales sync (ms)"
+                inputMode="numeric"
+                value={form.salesIntervalMs}
+                onChange={(event) => setForm({ ...form, salesIntervalMs: event.target.value })}
+                error={errors.salesIntervalMs}
+              />
+              <Input
+                label="Orders sync (ms)"
+                inputMode="numeric"
+                value={form.ordersIntervalMs}
+                onChange={(event) => setForm({ ...form, ordersIntervalMs: event.target.value })}
+                error={errors.ordersIntervalMs}
+              />
+              <Input
+                label="Backoff multiplier"
+                inputMode="decimal"
+                value={form.backoffMultiplier}
+                onChange={(event) =>
+                  setForm({ ...form, backoffMultiplier: event.target.value })
+                }
+                error={errors.backoffMultiplier}
+              />
+              <Input
+                label="Max interval multiplier"
+                inputMode="decimal"
+                value={form.maxIntervalMultiplier}
+                onChange={(event) =>
+                  setForm({ ...form, maxIntervalMultiplier: event.target.value })
+                }
+                error={errors.maxIntervalMultiplier}
+              />
+              <Input
+                label="Jitter ratio"
+                inputMode="decimal"
+                value={form.jitterRatio}
+                onChange={(event) => setForm({ ...form, jitterRatio: event.target.value })}
+                error={errors.jitterRatio}
+              />
+            </div>
+          </div>
         </div>
         <div className="admin-actions">
-          <Button variant="primary" onClick={handleSave} disabled={isSaving} icon="save">
+          <Button
+            variant="primary"
+            onClick={() => {
+              void handleSave()
+            }}
+            disabled={isSaving}
+            icon="save"
+          >
             {isSaving ? 'Saving...' : 'Save Settings'}
           </Button>
         </div>

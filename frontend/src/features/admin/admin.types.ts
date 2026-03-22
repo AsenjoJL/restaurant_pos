@@ -1,4 +1,5 @@
 import type { Role } from '../auth/auth.types'
+import type { LiveSyncSettings } from '../../shared/types/live-sync'
 
 export type AdminCategory = {
   id: string
@@ -29,6 +30,7 @@ export type AdminSettings = {
   taxRate: number
   serviceChargeRate: number
   receiptFooter: string
+  liveSync: LiveSyncSettings
 }
 
 export type AdminState = {

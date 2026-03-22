@@ -1,12 +1,17 @@
-import { useMemo, useState } from 'react'
+import { useCallback, useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { DATA_MODE } from '../../../app/config/data-mode'
+import { getLiveSyncPollingOptions } from '../../../app/config/live-sync'
 import { useAppDispatch, useAppSelector } from '../../../app/store/hooks'
+import { selectAdminSettings } from '../../admin/admin.selectors'
 import { selectAuthUser } from '../../auth/auth.selectors'
 import Badge from '../../../shared/components/ui/Badge'
 import Button from '../../../shared/components/ui/Button'
 import ConfirmDialog from '../../../shared/components/ui/ConfirmDialog'
 import Input from '../../../shared/components/ui/Input'
+import { useLiveSyncPolling } from '../../../shared/hooks/useLiveSyncPolling'
 import { formatCurrency } from '../../../shared/lib/format'
+import { triggerPrint as triggerNativePrint } from '../../../shared/lib/print'
 import {
   formatEnumLabel,
   getItemCount,
@@ -30,7 +35,10 @@ import {
 import {
   cancelOrder,
   closeOrder,
+  hydrateOrdersFromRepository,
   sendToKitchen,
+  syncOrderCancellation,
+  syncOrderUpdate,
   updateOrderNote,
 } from '../orders.store'
 import OrderReceiptSheet from '../../../shared/components/receipt/OrderReceiptSheet'
@@ -51,6 +59,7 @@ type ConfirmState = {
 function OrdersPage() {
   const dispatch = useAppDispatch()
   const orders = useAppSelector(selectOrders)
+  const settings = useAppSelector(selectAdminSettings)
   const user = useAppSelector(selectAuthUser)
   const navigate = useNavigate()
   const [tab, setTab] = useState<CashierTab>('unpaid')
@@ -65,6 +74,16 @@ function OrdersPage() {
     isOpen: false,
     reason: '',
     targetId: null,
+  })
+
+  const syncOrders = useCallback(() => {
+    void dispatch(hydrateOrdersFromRepository())
+  }, [dispatch])
+
+  useLiveSyncPolling({
+    enabled: DATA_MODE === 'api',
+    sync: syncOrders,
+    ...getLiveSyncPollingOptions('cashierOrders', settings.liveSync),
   })
 
   const pendingCount = useMemo(
@@ -90,6 +109,7 @@ function OrdersPage() {
   const replacementOrder = orders.find((order) => order.id === replacementOrderId) ?? null
 
   const role = user?.role
+  const isCashier = role === 'cashier'
   const {
     canOperateCashier,
     canTakePayment,
@@ -108,7 +128,9 @@ function OrdersPage() {
 
   const triggerPrint = (orderId: string) => {
     setPrintOrderId(orderId)
-    window.setTimeout(() => window.print(), 300)
+    window.setTimeout(() => {
+      void triggerNativePrint({ silent: true })
+    }, 300)
     window.setTimeout(() => setPrintOrderId(null), 900)
   }
 
@@ -138,6 +160,7 @@ function OrdersPage() {
     }
     setIsProcessing(true)
     dispatch(sendToKitchen({ id: selectedOrder.id }))
+    void dispatch(syncOrderUpdate({ id: selectedOrder.id }))
     logAuditEvent(dispatch, {
       scope: 'ORDER',
       action: 'SENT_TO_KITCHEN',
@@ -154,6 +177,7 @@ function OrdersPage() {
     }
     setIsProcessing(true)
     dispatch(closeOrder({ id: selectedOrder.id }))
+    void dispatch(syncOrderUpdate({ id: selectedOrder.id }))
     logAuditEvent(dispatch, {
       scope: 'ORDER',
       action: 'COMPLETED',
@@ -170,6 +194,7 @@ function OrdersPage() {
     }
     const order = orders.find((item) => item.id === confirm.targetId)
     dispatch(cancelOrder({ id: confirm.targetId, reason: confirm.reason }))
+    void dispatch(syncOrderCancellation({ id: confirm.targetId, reason: confirm.reason }))
     if (order) {
       logAuditEvent(dispatch, {
         scope: 'ORDER',

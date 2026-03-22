@@ -5,11 +5,20 @@ import type { Role } from '../../features/auth/auth.types'
 
 const escapeCsv = (value: string) => `"${value.replace(/"/g, '""')}"`
 
+type CreateAuditEntryInput = Omit<AuditLogEntry, 'id' | 'createdAt' | 'severity'> & {
+  severity?: AuditLogEntry['severity']
+}
+
 export const logAuditEvent = (
   dispatch: AppDispatch,
-  entry: Omit<AuditLogEntry, 'id' | 'createdAt'>,
+  entry: CreateAuditEntryInput,
 ) => {
-  dispatch(addAuditEntry(entry))
+  dispatch(
+    addAuditEntry({
+      ...entry,
+      severity: entry.severity ?? 'INFO',
+    }),
+  )
 }
 
 export const buildAuditUser = (

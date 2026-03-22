@@ -10,6 +10,8 @@ import { formatCurrency } from '../../../shared/lib/format'
 import {
   addIngredient,
   adjustStock,
+  syncStockAdjustment,
+  syncUpsertIngredient,
   updateIngredient,
 } from '../inventory.store'
 import {
@@ -350,6 +352,7 @@ function AdminInventoryPage() {
 
     if (editing) {
       dispatch(updateIngredient({ id: editing.id, ...payload }))
+      void dispatch(syncUpsertIngredient({ id: editing.id, ...payload }))
       dispatch(
         pushToast({
           title: 'Ingredient updated',
@@ -359,6 +362,7 @@ function AdminInventoryPage() {
       )
     } else {
       dispatch(addIngredient(payload))
+      void dispatch(syncUpsertIngredient(payload))
       dispatch(
         pushToast({
           title: 'Ingredient added',
@@ -476,6 +480,18 @@ function AdminInventoryPage() {
             : undefined,
       }),
     )
+    void dispatch(
+      syncStockAdjustment({
+        ingredientId: adjustForm.ingredientId,
+        type: nextType,
+        reasonType: adjustForm.reasonType,
+        qty: nextQty,
+        reason: adjustForm.reason.trim(),
+        reference: adjustForm.reference.trim() || undefined,
+        countedQty:
+          adjustForm.reasonType === 'VARIANCE' ? Number(adjustForm.countedQty) : undefined,
+      }),
+    )
     dispatch(
       pushToast({
         title: 'Stock adjusted',
@@ -527,11 +543,13 @@ function AdminInventoryPage() {
         const existing = ingredientByName.get(payload.name.toLowerCase())
         if (existing) {
           dispatch(updateIngredient({ id: existing.id, ...payload }))
+          void dispatch(syncUpsertIngredient({ id: existing.id, ...payload }))
           updated += 1
           return
         }
 
         dispatch(addIngredient(payload))
+        void dispatch(syncUpsertIngredient(payload))
         imported += 1
       })
 
@@ -542,7 +560,7 @@ function AdminInventoryPage() {
           variant: errorsCount > 0 ? 'warning' : 'success',
         }),
       )
-    } catch (error) {
+    } catch {
       dispatch(
         pushToast({
           title: 'Import failed',

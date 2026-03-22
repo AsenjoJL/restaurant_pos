@@ -1,6 +1,9 @@
-import { useMemo, useState } from 'react'
+import { useCallback, useMemo, useState } from 'react'
 import { useAppDispatch, useAppSelector } from '../../../app/store/hooks'
+import { getLiveSyncPollingOptions } from '../../../app/config/live-sync'
+import { selectAdminSettings } from '../../admin/admin.selectors'
 import Badge from '../../../shared/components/ui/Badge'
+import { useLiveSyncPolling } from '../../../shared/hooks/useLiveSyncPolling'
 import {
   formatEnumLabel,
   getItemCount,
@@ -12,10 +15,14 @@ import {
   markReady,
   startPreparing,
   startReplacementTicket,
+  syncKitchenOrderStatus,
+  syncKitchenReplacementStatus,
+  hydrateKitchenQueueFromRepository,
   markReplacementReady,
 } from '../../orders/orders.store'
 import type { OrderStatus } from '../../../shared/types/order'
 import type { KitchenStation } from '../../pos/pos.types'
+import { DATA_MODE } from '../../../app/config/data-mode'
 import { getKitchenStationLabel, resolveKitchenStation } from '../kitchen.utils'
 import {
   buildOrderStationCountMap,
@@ -36,7 +43,18 @@ function KitchenDisplayPage() {
   const dispatch = useAppDispatch()
   const orders = useAppSelector(selectOrders)
   const replacementTickets = useAppSelector(selectReplacementTickets)
+  const settings = useAppSelector(selectAdminSettings)
   const [activeStation, setActiveStation] = useState<KitchenStation | 'ALL'>('ALL')
+
+  const syncKitchenQueue = useCallback(() => {
+    void dispatch(hydrateKitchenQueueFromRepository())
+  }, [dispatch])
+
+  useLiveSyncPolling({
+    enabled: DATA_MODE === 'api',
+    sync: syncKitchenQueue,
+    ...getLiveSyncPollingOptions('kitchenQueue', settings.liveSync),
+  })
 
   const kitchenOrders = useMemo(
     () => orders.filter((order) => isKitchenStatus(order.status)),
@@ -84,6 +102,26 @@ function KitchenDisplayPage() {
       return (counts.get(activeStation) ?? 0) > 0
     })
   }, [activeStation, replacementStationCountMap, replacementTickets])
+
+  const handleStartOrder = (id: string) => {
+    dispatch(startPreparing({ id }))
+    void dispatch(syncKitchenOrderStatus({ id, status: 'PREPARING' }))
+  }
+
+  const handleReadyOrder = (id: string) => {
+    dispatch(markReady({ id }))
+    void dispatch(syncKitchenOrderStatus({ id, status: 'READY_FOR_PICKUP' }))
+  }
+
+  const handleStartReplacement = (id: string) => {
+    dispatch(startReplacementTicket({ id }))
+    void dispatch(syncKitchenReplacementStatus({ id, status: 'PREPARING' }))
+  }
+
+  const handleReadyReplacement = (id: string) => {
+    dispatch(markReplacementReady({ id }))
+    void dispatch(syncKitchenReplacementStatus({ id, status: 'READY_FOR_PICKUP' }))
+  }
 
   return (
     <div className="page">
@@ -235,7 +273,7 @@ function KitchenDisplayPage() {
                 <button
                   type="button"
                   className="btn btn-outline"
-                  onClick={() => dispatch(startPreparing({ id: order.id }))}
+                  onClick={() => handleStartOrder(order.id)}
                   disabled={order.status !== 'SENT_TO_KITCHEN'}
                 >
                   Start
@@ -243,7 +281,7 @@ function KitchenDisplayPage() {
                 <button
                   type="button"
                   className="btn btn-primary"
-                  onClick={() => dispatch(markReady({ id: order.id }))}
+                  onClick={() => handleReadyOrder(order.id)}
                   disabled={order.status !== 'PREPARING'}
                 >
                   Ready
@@ -315,7 +353,7 @@ function KitchenDisplayPage() {
                 <button
                   type="button"
                   className="btn btn-outline"
-                  onClick={() => dispatch(startReplacementTicket({ id: ticket.id }))}
+                  onClick={() => handleStartReplacement(ticket.id)}
                   disabled={ticket.status !== 'SENT_TO_KITCHEN'}
                 >
                   Start
@@ -323,7 +361,7 @@ function KitchenDisplayPage() {
                 <button
                   type="button"
                   className="btn btn-primary"
-                  onClick={() => dispatch(markReplacementReady({ id: ticket.id }))}
+                  onClick={() => handleReadyReplacement(ticket.id)}
                   disabled={ticket.status !== 'PREPARING'}
                 >
                   Ready

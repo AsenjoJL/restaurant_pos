@@ -23,7 +23,12 @@ import { selectAuthUser } from '../../auth/auth.selectors'
 import { selectDraft, selectEditingOrderId, selectTotals } from '../pos.selectors'
 import CartItemRow from './cart/CartItemRow'
 import { buildStaffOrder, generateStaffOrderNumber, mapDraftItemsToOrderItems } from '../pos.utils'
-import { addOrder, updatePendingOrder } from '../../orders/orders.store'
+import {
+  addOrder,
+  syncCreateOrder,
+  syncOrderUpdate,
+  updatePendingOrder,
+} from '../../orders/orders.store'
 import { pushToast } from '../../../shared/store/ui.store'
 
 function CartPanel() {
@@ -81,6 +86,7 @@ function CartPanel() {
     })
 
     dispatch(addOrder(order))
+    void dispatch(syncCreateOrder({ order }))
     dispatch(openPaymentModal({ orderId: order.id }))
   }
 
@@ -112,6 +118,7 @@ function CartPanel() {
         modifiedBy: user ? { id: user.id, name: user.name, role: user.role } : undefined,
       }),
     )
+    void dispatch(syncOrderUpdate({ id: editingOrderId }))
 
     dispatch(openPaymentModal({ orderId: editingOrderId }))
     dispatch(stopEditingOrder())

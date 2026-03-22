@@ -10,6 +10,8 @@ import { selectAdminProducts } from '../../admin/admin.selectors'
 import {
   saveRecipe,
   removeRecipe,
+  syncRemoveRecipe,
+  syncSaveRecipe,
 } from '../inventory.store'
 import {
   selectInventoryIngredients,
@@ -210,6 +212,12 @@ function AdminRecipesPage() {
         lines: payloadLines,
       }),
     )
+    void dispatch(
+      syncSaveRecipe({
+        productId: selectedProductId,
+        lines: payloadLines,
+      }),
+    )
     dispatch(
       pushToast({
         title: 'Recipe saved',
@@ -225,6 +233,7 @@ function AdminRecipesPage() {
       return
     }
     dispatch(removeRecipe(selectedProductId))
+    void dispatch(syncRemoveRecipe(selectedProductId))
     setLines([createEmptyLine()])
     dispatch(
       pushToast({

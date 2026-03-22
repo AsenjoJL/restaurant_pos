@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { categories, products } from '../../../mock/data'
 import { useAppDispatch, useAppSelector } from '../../../app/store/hooks'
@@ -10,7 +10,7 @@ import { pushToast } from '../../../shared/store/ui.store'
 import { useKiosk } from '../kiosk.context'
 import KioskItemModal from '../components/KioskItemModal'
 import type { MenuProduct } from '../../pos/pos.types'
-import { addOrder } from '../../orders/orders.store'
+import { addOrder, syncCreateOrder } from '../../orders/orders.store'
 import {
   selectInventoryIngredients,
   selectInventoryRecipes,
@@ -42,7 +42,6 @@ function KioskMenuPage() {
   const [activeCategory, setActiveCategory] = useState(categories[0]?.id ?? 'all')
   const [selectedProduct, setSelectedProduct] = useState<MenuProduct | null>(null)
   const [searchTerm, setSearchTerm] = useState('')
-  const [isLoading, setIsLoading] = useState(false)
   const [brokenImages, setBrokenImages] = useState<Record<string, boolean>>({})
   const [isPlacing, setIsPlacing] = useState(false)
   const [isClearConfirmOpen, setIsClearConfirmOpen] = useState(false)
@@ -67,12 +66,6 @@ function KioskMenuPage() {
       ),
     [ingredients, recipes],
   )
-
-  useEffect(() => {
-    setIsLoading(true)
-    const timer = window.setTimeout(() => setIsLoading(false), 250)
-    return () => window.clearTimeout(timer)
-  }, [activeCategory, searchTerm])
 
   const activeCategoryName = getCategoryName(categoryNameMap, activeCategory, 'Menu')
 
@@ -150,6 +143,7 @@ function KioskMenuPage() {
     }
 
     dispatch(addOrder(result.order))
+    void dispatch(syncCreateOrder({ order: result.order }))
     dispatch(
       pushToast({
         title: 'Order placed',
@@ -233,13 +227,7 @@ function KioskMenuPage() {
             </div>
           </div>
 
-          {isLoading ? (
-            <div className="kiosk-loading-grid">
-              {Array.from({ length: 6 }).map((_, index) => (
-                <div key={`skeleton-${index}`} className="kiosk-product-skeleton" />
-              ))}
-            </div>
-          ) : visibleProducts.length === 0 ? (
+          {visibleProducts.length === 0 ? (
             <div className="kiosk-empty-state">
               <span className="material-symbols-rounded" aria-hidden="true">
                 restaurant

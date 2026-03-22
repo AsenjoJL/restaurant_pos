@@ -1,12 +1,15 @@
-import { createSlice, nanoid, type PayloadAction } from '@reduxjs/toolkit'
+import { createAsyncThunk, createSlice, nanoid, type PayloadAction } from '@reduxjs/toolkit'
+import type { RootState } from '../../app/store/store'
 import { categories, products, users } from '../../mock/data'
+import { getDefaultLiveSyncSettings } from '../../app/config/live-sync'
+import { adminRepository } from './api'
 import type {
-  AdminCategory,
-  AdminProduct,
   AdminSettings,
   AdminState,
   AdminUser,
 } from './admin.types'
+
+export const ADMIN_STORAGE_KEY = 'pos.admin.v1'
 
 type CategoryPayload = {
   name: string
@@ -35,7 +38,7 @@ const categoryDescriptions: Record<string, string> = {
   desserts: 'Sweet finishes for every meal.',
 }
 
-const initialState: AdminState = {
+const seededState: AdminState = {
   categories: categories
     .filter((category) => category.id !== 'all')
     .map((category) => ({
@@ -64,13 +67,78 @@ const initialState: AdminState = {
     taxRate: 8.25,
     serviceChargeRate: 5,
     receiptFooter: 'Thank you for dining with us.',
+    liveSync: getDefaultLiveSyncSettings(),
   },
 }
+
+const loadStoredAdminState = (): AdminState | null => {
+  if (typeof window === 'undefined') {
+    return null
+  }
+
+  try {
+    const raw = localStorage.getItem(ADMIN_STORAGE_KEY)
+    if (!raw) {
+      return null
+    }
+    const parsed = JSON.parse(raw) as AdminState
+    if (!parsed) {
+      return null
+    }
+    if (
+      !Array.isArray(parsed.categories) ||
+      !Array.isArray(parsed.products) ||
+      !Array.isArray(parsed.users) ||
+      !parsed.settings
+    ) {
+      return null
+    }
+    return {
+      ...parsed,
+      settings: {
+        ...parsed.settings,
+        liveSync: parsed.settings.liveSync ?? getDefaultLiveSyncSettings(),
+      },
+    }
+  } catch {
+    return null
+  }
+}
+
+const initialState: AdminState = loadStoredAdminState() ?? seededState
+
+export const hydrateAdminFromRepository = createAsyncThunk(
+  'admin/hydrateFromRepository',
+  async () => adminRepository.getSnapshot(),
+)
+
+export const syncAdminSettings = createAsyncThunk<void, AdminSettings>(
+  'admin/syncSettings',
+  async (payload) => {
+    await adminRepository.saveSettings(payload)
+  },
+)
+
+export const syncAdminSnapshot = createAsyncThunk<void, void, { state: RootState }>(
+  'admin/syncSnapshot',
+  async (_, { getState }) => {
+    await adminRepository.saveSnapshot(getState().admin)
+  },
+)
 
 const adminSlice = createSlice({
   name: 'admin',
   initialState,
   reducers: {
+    setAdminState: (state, action: PayloadAction<AdminState>) => {
+      state.categories = action.payload.categories
+      state.products = action.payload.products
+      state.users = action.payload.users
+      state.settings = {
+        ...action.payload.settings,
+        liveSync: action.payload.settings.liveSync ?? getDefaultLiveSyncSettings(),
+      }
+    },
     addCategory: (state, action: PayloadAction<CategoryPayload>) => {
       state.categories.unshift({
         id: nanoid(),
@@ -157,12 +225,27 @@ const adminSlice = createSlice({
       }
     },
     updateSettings: (state, action: PayloadAction<AdminSettings>) => {
-      state.settings = action.payload
+      state.settings = {
+        ...action.payload,
+        liveSync: action.payload.liveSync ?? getDefaultLiveSyncSettings(),
+      }
     },
+  },
+  extraReducers: (builder) => {
+    builder.addCase(hydrateAdminFromRepository.fulfilled, (state, action) => {
+      state.categories = action.payload.categories
+      state.products = action.payload.products
+      state.users = action.payload.users
+      state.settings = {
+        ...action.payload.settings,
+        liveSync: action.payload.settings.liveSync ?? getDefaultLiveSyncSettings(),
+      }
+    })
   },
 })
 
 export const {
+  setAdminState,
   addCategory,
   updateCategory,
   deleteCategory,

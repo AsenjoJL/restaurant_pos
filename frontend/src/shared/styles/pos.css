@@ -3,20 +3,15 @@
    ============================================ */
 
 /* ============================================
-   POS FONT IMPORTS
-   ============================================ */
-@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap');
-
-/* ============================================
    POS CSS VARIABLES - DESIGN TOKENS
    ============================================ */
-:root {
+.pos-screen {
   /* POS-specific colors */
   --pos-bg: #f8fafc;
   --pos-sidebar-bg: #ffffff;
   --pos-products-bg: #ffffff;
-  --pos-cart-bg: #0f172a;
-  --pos-cart-text: #ffffff;
+  --pos-cart-bg: #ffffff;
+  --pos-cart-text: #0f172a;
 
   /* Interactive colors */
   --pos-primary: #10b981;
@@ -497,7 +492,7 @@
   flex-direction: column;
   gap: 1.25rem;
   box-shadow: var(--pos-shadow-lg);
-  border: 1px solid #1e293b;
+  border: 1px solid var(--pos-border);
   position: relative;
   overflow: hidden;
   color: var(--pos-cart-text);
@@ -522,7 +517,7 @@
   justify-content: space-between;
   align-items: center;
   padding-bottom: 1rem;
-  border-bottom: 2px solid #334155;
+  border-bottom: 2px solid #e2e8f0;
 }
 
 .pos-cart-title {
@@ -535,7 +530,7 @@
   font-family: 'Outfit', sans-serif;
   font-size: 1.25rem;
   font-weight: 700;
-  color: white;
+  color: #0f172a;
   margin: 0;
   letter-spacing: -0.02em;
 }

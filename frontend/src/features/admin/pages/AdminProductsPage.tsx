@@ -11,6 +11,7 @@ import {
   selectAdminProducts,
 } from '../admin.selectors'
 import AdminStatCard from '../components/AdminStatCard'
+import { dispatchAndSyncAdmin } from '../admin.actions'
 import {
   addProduct,
   toggleProductActive,
@@ -145,7 +146,7 @@ function AdminProductsPage() {
     return { nextErrors, priceValue }
   }
 
-  const handleSave = () => {
+  const handleSave = async () => {
     if (isSaving) {
       return
     }
@@ -169,29 +170,34 @@ function AdminProductsPage() {
       categoryId: form.categoryId,
     }
     if (editing) {
-      dispatch(
+      const synced = await dispatchAndSyncAdmin(
+        dispatch,
         updateProduct({
           id: editing.id,
           isActive: editing.isActive,
           ...payload,
         }),
       )
-      dispatch(
-        pushToast({
-          title: 'Product updated',
-          description: `${payload.name} was saved.`,
-          variant: 'success',
-        }),
-      )
+      if (synced) {
+        dispatch(
+          pushToast({
+            title: 'Product updated',
+            description: `${payload.name} was saved.`,
+            variant: 'success',
+          }),
+        )
+      }
     } else {
-      dispatch(addProduct(payload))
-      dispatch(
-        pushToast({
-          title: 'Product added',
-          description: `${payload.name} was created.`,
-          variant: 'success',
-        }),
-      )
+      const synced = await dispatchAndSyncAdmin(dispatch, addProduct(payload))
+      if (synced) {
+        dispatch(
+          pushToast({
+            title: 'Product added',
+            description: `${payload.name} was created.`,
+            variant: 'success',
+          }),
+        )
+      }
     }
     setTimeout(() => {
       setIsSaving(false)
@@ -199,15 +205,17 @@ function AdminProductsPage() {
     }, 200)
   }
 
-  const handleToggleActive = (product: AdminProduct) => {
-    dispatch(toggleProductActive(product.id))
-    dispatch(
-      pushToast({
-        title: product.isActive ? 'Product hidden' : 'Product activated',
-        description: product.name,
-        variant: 'info',
-      }),
-    )
+  const handleToggleActive = async (product: AdminProduct) => {
+    const synced = await dispatchAndSyncAdmin(dispatch, toggleProductActive(product.id))
+    if (synced) {
+      dispatch(
+        pushToast({
+          title: product.isActive ? 'Product hidden' : 'Product activated',
+          description: product.name,
+          variant: 'info',
+        }),
+      )
+    }
   }
 
   return (
@@ -272,7 +280,9 @@ function AdminProductsPage() {
                   </Button>
                   <Button
                     variant="outline"
-                    onClick={() => handleToggleActive(product)}
+                    onClick={() => {
+                      void handleToggleActive(product)
+                    }}
                     icon={product.isActive ? 'toggle_off' : 'toggle_on'}
                   >
                     {product.isActive ? 'Disable' : 'Enable'}
@@ -293,7 +303,13 @@ function AdminProductsPage() {
             <Button variant="ghost" onClick={closeModal} disabled={isSaving}>
               Cancel
             </Button>
-            <Button variant="primary" onClick={handleSave} disabled={isSaving}>
+            <Button
+              variant="primary"
+              onClick={() => {
+                void handleSave()
+              }}
+              disabled={isSaving}
+            >
               {isSaving ? 'Saving...' : 'Save Product'}
             </Button>
           </div>

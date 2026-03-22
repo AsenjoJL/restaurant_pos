@@ -12,7 +12,8 @@
 /* ============================================
    KIOSK-SPECIFIC VARIABLES
    ============================================ */
-:root {
+.kiosk-shell,
+.kiosk-root {
   /* Kiosk-specific enhancements */
   --kiosk-hero-gradient: linear-gradient(140deg, #ffffff 0%, #fff7eb 35%, #f0f6ff 100%);
   --kiosk-card-gradient: linear-gradient(135deg, #ffffff 0%, #fefcf8 100%);

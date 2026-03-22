@@ -10,6 +10,7 @@ import {
   selectAdminProducts,
 } from '../admin.selectors'
 import AdminStatCard from '../components/AdminStatCard'
+import { dispatchAndSyncAdmin } from '../admin.actions'
 import {
   addCategory,
   deleteCategory,
@@ -107,7 +108,7 @@ function AdminCategoriesPage() {
     return nextErrors
   }
 
-  const handleSave = () => {
+  const handleSave = async () => {
     if (isSaving) {
       return
     }
@@ -129,29 +130,34 @@ function AdminCategoriesPage() {
       description: form.description.trim(),
     }
     if (editing) {
-      dispatch(
+      const synced = await dispatchAndSyncAdmin(
+        dispatch,
         updateCategory({
           id: editing.id,
           isActive: editing.isActive,
           ...payload,
         }),
       )
-      dispatch(
-        pushToast({
-          title: 'Category updated',
-          description: `${payload.name} was saved.`,
-          variant: 'success',
-        }),
-      )
+      if (synced) {
+        dispatch(
+          pushToast({
+            title: 'Category updated',
+            description: `${payload.name} was saved.`,
+            variant: 'success',
+          }),
+        )
+      }
     } else {
-      dispatch(addCategory(payload))
-      dispatch(
-        pushToast({
-          title: 'Category added',
-          description: `${payload.name} was created.`,
-          variant: 'success',
-        }),
-      )
+      const synced = await dispatchAndSyncAdmin(dispatch, addCategory(payload))
+      if (synced) {
+        dispatch(
+          pushToast({
+            title: 'Category added',
+            description: `${payload.name} was created.`,
+            variant: 'success',
+          }),
+        )
+      }
     }
     setTimeout(() => {
       setIsSaving(false)
@@ -174,19 +180,21 @@ function AdminCategoriesPage() {
     setConfirm({ isOpen: true, targetId: category.id, reason: '' })
   }
 
-  const handleDeleteConfirm = () => {
+  const handleDeleteConfirm = async () => {
     if (!confirm.targetId) {
       return
     }
     const category = categories.find((item) => item.id === confirm.targetId)
-    dispatch(deleteCategory(confirm.targetId))
-    dispatch(
-      pushToast({
-        title: 'Category deleted',
-        description: category ? `${category.name} was removed.` : 'Category removed.',
-        variant: 'warning',
-      }),
-    )
+    const synced = await dispatchAndSyncAdmin(dispatch, deleteCategory(confirm.targetId))
+    if (synced) {
+      dispatch(
+        pushToast({
+          title: 'Category deleted',
+          description: category ? `${category.name} was removed.` : 'Category removed.',
+          variant: 'warning',
+        }),
+      )
+    }
     setConfirm({ isOpen: false, targetId: null, reason: '' })
   }
 
@@ -253,7 +261,13 @@ function AdminCategoriesPage() {
             <Button variant="ghost" onClick={closeModal} disabled={isSaving}>
               Cancel
             </Button>
-            <Button variant="primary" onClick={handleSave} disabled={isSaving}>
+            <Button
+              variant="primary"
+              onClick={() => {
+                void handleSave()
+              }}
+              disabled={isSaving}
+            >
               {isSaving ? 'Saving...' : 'Save Category'}
             </Button>
           </div>
@@ -285,7 +299,9 @@ function AdminCategoriesPage() {
         description="This will remove the category from the admin list."
         reason={confirm.reason}
         onReasonChange={(value) => setConfirm((prev) => ({ ...prev, reason: value }))}
-        onConfirm={handleDeleteConfirm}
+        onConfirm={() => {
+          void handleDeleteConfirm()
+        }}
         onCancel={() => setConfirm({ isOpen: false, targetId: null, reason: '' })}
         confirmLabel="Delete"
       />

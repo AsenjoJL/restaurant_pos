@@ -3,6 +3,7 @@ import { Provider } from 'react-redux'
 import { store } from '../store/store'
 import AuthProvider from './AuthProvider'
 import ToastProvider from './ToastProvider'
+import DataBootstrapProvider from './DataBootstrapProvider'
 
 type AppProvidersProps = {
   children: ReactNode
@@ -11,9 +12,11 @@ type AppProvidersProps = {
 function AppProviders({ children }: AppProvidersProps) {
   return (
     <Provider store={store}>
-      <AuthProvider>
-        <ToastProvider>{children}</ToastProvider>
-      </AuthProvider>
+      <DataBootstrapProvider>
+        <AuthProvider>
+          <ToastProvider>{children}</ToastProvider>
+        </AuthProvider>
+      </DataBootstrapProvider>
     </Provider>
   )
 }

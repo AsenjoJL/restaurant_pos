@@ -6,7 +6,13 @@ import Modal from '../../../shared/components/ui/Modal'
 import Select from '../../../shared/components/ui/Select'
 import { pushToast } from '../../../shared/store/ui.store'
 import { selectAdminUsers } from '../admin.selectors'
-import { addUser, resetUserPassword, toggleUserActive, updateUser } from '../admin.store'
+import { dispatchAndSyncAdmin } from '../admin.actions'
+import {
+  addUser,
+  resetUserPassword,
+  toggleUserActive,
+  updateUser,
+} from '../admin.store'
 import type { AdminUser } from '../admin.types'
 import AdminStatCard from '../components/AdminStatCard'
 
@@ -112,7 +118,7 @@ function AdminUsersPage() {
     return nextErrors
   }
 
-  const handleSave = () => {
+  const handleSave = async () => {
     if (isSaving) {
       return
     }
@@ -135,23 +141,30 @@ function AdminUsersPage() {
       role: form.role,
     }
     if (editing) {
-      dispatch(updateUser({ id: editing.id, ...payload }))
-      dispatch(
-        pushToast({
-          title: 'User updated',
-          description: `${payload.name} was saved.`,
-          variant: 'success',
-        }),
+      const synced = await dispatchAndSyncAdmin(
+        dispatch,
+        updateUser({ id: editing.id, ...payload }),
       )
+      if (synced) {
+        dispatch(
+          pushToast({
+            title: 'User updated',
+            description: `${payload.name} was saved.`,
+            variant: 'success',
+          }),
+        )
+      }
     } else {
-      dispatch(addUser(payload))
-      dispatch(
-        pushToast({
-          title: 'User created',
-          description: `${payload.name} was added.`,
-          variant: 'success',
-        }),
-      )
+      const synced = await dispatchAndSyncAdmin(dispatch, addUser(payload))
+      if (synced) {
+        dispatch(
+          pushToast({
+            title: 'User created',
+            description: `${payload.name} was added.`,
+            variant: 'success',
+          }),
+        )
+      }
     }
     setTimeout(() => {
       setIsSaving(false)
@@ -159,15 +172,17 @@ function AdminUsersPage() {
     }, 200)
   }
 
-  const handleToggleActive = (user: AdminUser) => {
-    dispatch(toggleUserActive(user.id))
-    dispatch(
-      pushToast({
-        title: user.isActive ? 'User disabled' : 'User enabled',
-        description: user.name,
-        variant: 'info',
-      }),
-    )
+  const handleToggleActive = async (user: AdminUser) => {
+    const synced = await dispatchAndSyncAdmin(dispatch, toggleUserActive(user.id))
+    if (synced) {
+      dispatch(
+        pushToast({
+          title: user.isActive ? 'User disabled' : 'User enabled',
+          description: user.name,
+          variant: 'info',
+        }),
+      )
+    }
   }
 
   const handleResetPassword = (user: AdminUser) => {
@@ -226,7 +241,9 @@ function AdminUsersPage() {
                 </Button>
                 <Button
                   variant="outline"
-                  onClick={() => handleToggleActive(user)}
+                  onClick={() => {
+                    void handleToggleActive(user)
+                  }}
                   icon={user.isActive ? 'toggle_off' : 'toggle_on'}
                 >
                   {user.isActive ? 'Disable' : 'Enable'}
@@ -253,7 +270,13 @@ function AdminUsersPage() {
             <Button variant="ghost" onClick={closeModal} disabled={isSaving}>
               Cancel
             </Button>
-            <Button variant="primary" onClick={handleSave} disabled={isSaving}>
+            <Button
+              variant="primary"
+              onClick={() => {
+                void handleSave()
+              }}
+              disabled={isSaving}
+            >
               {isSaving ? 'Saving...' : 'Save User'}
             </Button>
           </div>

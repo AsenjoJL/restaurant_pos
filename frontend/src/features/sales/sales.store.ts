@@ -1,10 +1,13 @@
-import { createSlice, nanoid } from '@reduxjs/toolkit'
+import { createAsyncThunk, createSlice, nanoid } from '@reduxjs/toolkit'
+import type { RootState } from '../../app/store/store'
 import { ingredients, orders as initialOrders, recipes } from '../../mock/data'
 import { isPaymentCaptured } from '../../shared/lib/orders'
 import type { Order } from '../../shared/types/order'
 import type { SalesRecord } from '../../shared/types/sales'
 import { ORDERS_STORAGE_KEY } from '../orders/orders.store'
 import { calculateOrderCost } from '../inventory/inventory.logic'
+import { salesRepository } from './api'
+import type { UpsertSalesRecordInput } from './api/sales.repository'
 
 export const SALES_STORAGE_KEY = 'pos.sales.v1'
 
@@ -12,7 +15,7 @@ type SalesState = {
   records: SalesRecord[]
 }
 
-type AddSalesRecordPayload = Omit<SalesRecord, 'id' | 'paidAt'> & {
+export type AddSalesRecordPayload = Omit<SalesRecord, 'id' | 'paidAt'> & {
   id?: string
   paidAt?: string
 }
@@ -150,6 +153,27 @@ const initialState: SalesState = {
   records: seededRecords,
 }
 
+const toRepositoryPayload = (record: SalesRecord): UpsertSalesRecordInput => ({
+  ...record,
+})
+
+export const hydrateSalesFromRepository = createAsyncThunk(
+  'sales/hydrateFromRepository',
+  async () => salesRepository.getSnapshot(),
+)
+
+export const syncSalesRecord = createAsyncThunk<
+  void,
+  { orderId: string },
+  { state: RootState }
+>('sales/syncRecord', async ({ orderId }, { getState }) => {
+  const record = getState().sales.records.find((item) => item.orderId === orderId)
+  if (!record) {
+    return
+  }
+  await salesRepository.upsertRecord(toRepositoryPayload(record))
+})
+
 const salesSlice = createSlice({
   name: 'sales',
   initialState,
@@ -171,8 +195,13 @@ const salesSlice = createSlice({
       state.records.unshift(record)
     },
     setSalesRecords: (state, action: { payload: SalesRecord[] }) => {
-      state.records = action.payload
+      state.records = action.payload.map((record) => fillCostFields(record))
     },
+  },
+  extraReducers: (builder) => {
+    builder.addCase(hydrateSalesFromRepository.fulfilled, (state, action) => {
+      state.records = action.payload.records.map((record) => fillCostFields(record))
+    })
   },
 })
 

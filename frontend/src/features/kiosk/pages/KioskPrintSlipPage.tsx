@@ -3,6 +3,7 @@ import { useNavigate, useParams } from 'react-router-dom'
 import { useAppSelector } from '../../../app/store/hooks'
 import Button from '../../../shared/components/ui/Button'
 import PrintPortal from '../../../shared/components/receipt/PrintPortal'
+import { triggerPrint } from '../../../shared/lib/print'
 import { selectOrders } from '../../orders/orders.selectors'
 import SlipTemplate from '../components/SlipTemplate'
 import { useKiosk } from '../kiosk.context'
@@ -35,7 +36,7 @@ function KioskPrintSlipPage() {
     }
     hasPrintedRef.current = true
     const printTimer = window.setTimeout(() => {
-      window.print()
+      void triggerPrint({ silent: true })
       setAutoPrinted(true)
     }, PRINT_DELAY_MS)
     const returnTimer = window.setTimeout(() => {
@@ -77,7 +78,7 @@ function KioskPrintSlipPage() {
         <SlipTemplate order={order} />
         <div className="kiosk-print-actions">
           {autoPrinted ? (
-            <Button variant="outline" onClick={() => window.print()}>
+            <Button variant="outline" onClick={() => void triggerPrint({ silent: true })}>
               Reprint Slip
             </Button>
           ) : null}

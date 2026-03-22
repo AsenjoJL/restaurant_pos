@@ -1,6 +1,5 @@
 import type {
   Ingredient,
-  IngredientBaseUnit,
   MeasurementUnit,
 } from './inventory.types'
 

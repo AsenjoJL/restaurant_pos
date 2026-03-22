@@ -1,12 +1,17 @@
-import { useMemo, useState } from 'react'
-import { useAppSelector } from '../../../app/store/hooks'
+import { useCallback, useMemo, useState } from 'react'
+import { useAppDispatch, useAppSelector } from '../../../app/store/hooks'
+import { DATA_MODE } from '../../../app/config/data-mode'
+import { getLiveSyncPollingOptions } from '../../../app/config/live-sync'
+import { selectAdminSettings } from '../../admin/admin.selectors'
 import Input from '../../../shared/components/ui/Input'
 import Select from '../../../shared/components/ui/Select'
 import Button from '../../../shared/components/ui/Button'
+import { useLiveSyncPolling } from '../../../shared/hooks/useLiveSyncPolling'
 import { formatCurrency } from '../../../shared/lib/format'
 import { selectSalesRecords } from '../sales.selectors'
 import type { PaymentMethod } from '../../../shared/types/order'
 import { categories, products } from '../../../mock/data'
+import { hydrateSalesFromRepository } from '../sales.store'
 
 const methodOptions = [
   { value: 'ALL', label: 'All methods' },
@@ -17,11 +22,23 @@ const methodOptions = [
 ]
 
 function AdminSalesPage() {
+  const dispatch = useAppDispatch()
   const records = useAppSelector(selectSalesRecords)
+  const settings = useAppSelector(selectAdminSettings)
   const [query, setQuery] = useState('')
   const [methodFilter, setMethodFilter] = useState('ALL')
   const [startDate, setStartDate] = useState('')
   const [endDate, setEndDate] = useState('')
+
+  const syncSales = useCallback(() => {
+    void dispatch(hydrateSalesFromRepository())
+  }, [dispatch])
+
+  useLiveSyncPolling({
+    enabled: DATA_MODE === 'api',
+    sync: syncSales,
+    ...getLiveSyncPollingOptions('salesRecords', settings.liveSync),
+  })
 
   const toLocalDayStart = (value: string) => {
     const date = new Date(`${value}T00:00:00`)
@@ -58,7 +75,7 @@ function AdminSalesPage() {
         record.processedBy?.name.toLowerCase().includes(trimmed)
       )
     })
-  }, [methodFilter, query, records])
+  }, [endDate, methodFilter, query, records, startDate])
 
   const metrics = useMemo(() => {
     const totalsByMethod: Record<PaymentMethod, number> = {
