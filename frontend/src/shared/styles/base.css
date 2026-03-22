@@ -1,3 +1,11 @@
+/* ============================================
+   BASE STYLESHEET - FOUNDATION LAYER
+   Purpose:
+   - Defines base element defaults and reusable primitives
+   - Provides shared component styles used by multiple features
+   ============================================ */
+
+/* Root-level browser defaults and typography baseline */
 :root {
   color-scheme: light;
   font-family: var(--font-body, 'Manrope', 'Segoe UI', sans-serif);
@@ -15,6 +23,7 @@
   box-sizing: border-box;
 }
 
+/* Global document defaults */
 body {
   margin: 0;
   min-height: 100vh;
@@ -61,6 +70,7 @@ textarea {
   box-shadow: var(--shadow);
 }
 
+/* Shared utility and layout atoms */
 .sidebar-header {
   display: flex;
   justify-content: space-between;

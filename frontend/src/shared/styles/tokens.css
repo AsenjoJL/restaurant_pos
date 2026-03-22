@@ -1,3 +1,11 @@
+/* ============================================
+   TOKENS STYLESHEET - DESIGN TOKEN SOURCE
+   Purpose:
+   - Centralizes typography, color, spacing, radius, and shadow tokens
+   - Provides the shared visual system consumed by all style layers
+   ============================================ */
+
+/* Global CSS custom properties (design tokens) */
 :root {
   --font-body: 'Manrope', 'Segoe UI', sans-serif;
   --font-display: 'Sora', 'Segoe UI', sans-serif;

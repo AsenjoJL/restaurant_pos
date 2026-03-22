@@ -1,11 +1,22 @@
+/* ============================================
+   SITE STYLESHEET - ORCHESTRATION LAYER
+   Purpose:
+   - Imports all shared style modules in one place
+   - Adds app-wide visual polish not tied to one feature page
+   ============================================ */
+
+/* Global font imports used across POS, Kiosk, and Admin surfaces */
 @import url('https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700&family=Sora:wght@500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap');
 @import url('https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@24,500,0,0');
+
+/* Internal style layers */
 @import './base.css';
 @import './pos.css';
 @import './kiosk.css';
 @import './admin.css';
 @import './tokens.css';
 
+/* Global body presentation */
 body {
   font-family: var(--font-body);
   background:
@@ -35,6 +46,7 @@ h4 {
   font-size: 20px;
 }
 
+/* Shared application top header */
 .app-header {
   display: flex;
   align-items: center;
