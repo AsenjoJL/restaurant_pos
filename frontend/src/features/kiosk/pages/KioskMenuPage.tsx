@@ -2,6 +2,7 @@ import { useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { categories, products } from '../../../mock/data'
 import { useAppDispatch, useAppSelector } from '../../../app/store/hooks'
+import { selectAdminProducts } from '../../admin/admin.selectors'
 import Button from '../../../shared/components/ui/Button'
 import Input from '../../../shared/components/ui/Input'
 import { formatCurrency } from '../../../shared/lib/format'
@@ -21,7 +22,12 @@ import {
 } from '../../inventory/inventory.logic'
 import { getModifierGroupsForCategory } from '../kiosk.data'
 import ConfirmDialog from '../../../shared/components/ui/ConfirmDialog'
-import { buildCategoryNameMap, filterMenuProducts, getCategoryName } from '../../pos/menu.utils'
+import {
+  buildCategoryNameMap,
+  filterMenuProducts,
+  getCategoryName,
+  mergeMenuProductsWithAdmin,
+} from '../../pos/menu.utils'
 
 function KioskMenuPage() {
   const navigate = useNavigate()
@@ -39,6 +45,7 @@ function KioskMenuPage() {
   } = useKiosk()
   const ingredients = useAppSelector(selectInventoryIngredients)
   const recipes = useAppSelector(selectInventoryRecipes)
+  const adminProducts = useAppSelector(selectAdminProducts)
   const [activeCategory, setActiveCategory] = useState(categories[0]?.id ?? 'all')
   const [selectedProduct, setSelectedProduct] = useState<MenuProduct | null>(null)
   const [searchTerm, setSearchTerm] = useState('')
@@ -48,23 +55,28 @@ function KioskMenuPage() {
   const [clearReason, setClearReason] = useState('')
   const categoryNameMap = useMemo(() => buildCategoryNameMap(categories), [])
 
+  const runtimeProducts = useMemo(
+    () => mergeMenuProductsWithAdmin(products, adminProducts),
+    [adminProducts],
+  )
+
   const visibleProducts = useMemo(
     () =>
-      filterMenuProducts(products, {
+      filterMenuProducts(runtimeProducts, {
         activeCategoryId: activeCategory,
         searchTerm,
       }),
-    [activeCategory, searchTerm],
+    [activeCategory, runtimeProducts, searchTerm],
   )
 
   const inventoryAvailability = useMemo(
     () =>
       buildInventoryAvailabilityMap(
-        products.map((product) => product.id),
+        runtimeProducts.map((product) => product.id),
         recipes,
         ingredients,
       ),
-    [ingredients, recipes],
+    [ingredients, recipes, runtimeProducts],
   )
 
   const activeCategoryName = getCategoryName(categoryNameMap, activeCategory, 'Menu')
@@ -259,6 +271,12 @@ function KioskMenuPage() {
                 const hasModifiers =
                   getModifierGroupsForCategory(product.categoryId).length > 0
                 const canAdd = resolvedAvailability === 'AVAILABLE'
+                const categoryLabel = getCategoryName(
+                  categoryNameMap,
+                  product.categoryId,
+                  product.categoryId,
+                )
+                const chipLabel = product.description || categoryLabel
                 return (
                   <button
                     type="button"
@@ -301,16 +319,14 @@ function KioskMenuPage() {
                           </span>
                         </div>
                       )}
-                      <span className="product-chip">
-                        {getCategoryName(categoryNameMap, product.categoryId, product.categoryId)}
-                      </span>
                       {resolvedAvailability !== 'AVAILABLE' ? (
                         <span
                           className={`availability-badge availability-${resolvedAvailability.toLowerCase()}`}
                         >
-                          {resolvedAvailability === 'LIMITED' ? 'Low stock' : 'Sold out'}
+                          {resolvedAvailability === 'LIMITED' ? 'Low stock' : 'Unavailable'}
                         </span>
                       ) : null}
+                      <span className="product-chip">{chipLabel}</span>
                     </div>
                     <div className="product-content">
                       <h3>{product.name}</h3>
@@ -332,7 +348,7 @@ function KioskMenuPage() {
         </div>
 
         {/* Cart Panel */}
-        <aside className="panel kiosk-cart-panel" id="kiosk-cart-panel">
+        <aside className="panel kiosk-cart-panel">
           <div className="kiosk-cart-header">
             <div>
               <h3>Your Order</h3>

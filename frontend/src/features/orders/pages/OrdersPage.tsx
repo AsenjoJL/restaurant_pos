@@ -1,4 +1,4 @@
-import { useCallback, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { DATA_MODE } from '../../../app/config/data-mode'
 import { getLiveSyncPollingOptions } from '../../../app/config/live-sync'
@@ -19,6 +19,12 @@ import {
 } from '../../../shared/lib/orders'
 import { normalizeReference } from '../../../shared/lib/validators'
 import { buildAuditUser, logAuditEvent } from '../../../shared/lib/audit'
+import {
+  formatOverrideRemaining,
+  getAdminOverrideRemainingMs,
+  isAdminOverrideActive,
+  setAdminOverride,
+} from '../../../shared/lib/admin-override'
 import { products, tables } from '../../../mock/data'
 import { selectOrders } from '../orders.selectors'
 import {
@@ -109,7 +115,35 @@ function OrdersPage() {
   const replacementOrder = orders.find((order) => order.id === replacementOrderId) ?? null
 
   const role = user?.role
+  const isAdmin = role === 'admin'
   const isCashier = role === 'cashier'
+  const [adminOverride, setAdminOverrideState] = useState(() =>
+    isAdminOverrideActive('cashier'),
+  )
+  const [overrideRemainingMs, setOverrideRemainingMs] = useState(() =>
+    getAdminOverrideRemainingMs('cashier'),
+  )
+
+  useEffect(() => {
+    if (!isAdmin) {
+      return
+    }
+    const sync = () => {
+      setAdminOverrideState(isAdminOverrideActive('cashier'))
+      setOverrideRemainingMs(getAdminOverrideRemainingMs('cashier'))
+    }
+    sync()
+    const timer = window.setInterval(sync, 1000)
+    return () => window.clearInterval(timer)
+  }, [isAdmin])
+
+  const handleToggleAdminOverride = () => {
+    const next = !adminOverride
+    setAdminOverride('cashier', next)
+    setAdminOverrideState(next)
+    setOverrideRemainingMs(next ? getAdminOverrideRemainingMs('cashier') : 0)
+  }
+
   const {
     canOperateCashier,
     canTakePayment,
@@ -122,7 +156,7 @@ function OrdersPage() {
     replacementStatus,
     canRequestReplacement,
     isReplacementLocked,
-  } = getCashierPermissions(selectedOrder, role)
+  } = getCashierPermissions(selectedOrder, role, { adminOverride })
 
   const printLabel = getReceiptPrintLabel(selectedOrder)
 
@@ -220,11 +254,16 @@ function OrdersPage() {
   const replacementActionLabel = getReplacementActionLabel(replacementStatus)
 
   return (
-    <div className="page">
+    <div className="page cashier-page">
       <div className="page-header">
         <div>
           <h2>Cashier Queue</h2>
-          <p className="muted">Collect payments, send tickets, and close orders.</p>
+          <p className="muted">
+            Collect payments, send tickets, and close orders.
+            {isAdmin && !adminOverride
+              ? ' Admin is currently view-only.'
+              : ''}
+          </p>
         </div>
         <div className="cashier-tools">
           <Input
@@ -239,6 +278,17 @@ function OrdersPage() {
               icon="report"
             >
               Report Wrong Change
+            </Button>
+          ) : null}
+          {isAdmin ? (
+            <Button
+              variant={adminOverride ? 'primary' : 'outline'}
+              onClick={handleToggleAdminOverride}
+              icon="admin_panel_settings"
+            >
+              {adminOverride
+                ? `Override ON ${formatOverrideRemaining(overrideRemainingMs)}`
+                : 'Enable Override'}
             </Button>
           ) : null}
           {canOperateCashier ? (

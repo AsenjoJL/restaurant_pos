@@ -26,6 +26,7 @@ export type MockOrder = Order
 
 export const categories: MenuCategory[] = [
   { id: 'all', name: 'All Items' },
+  { id: 'raw-materials', name: 'Raw Materials', station: 'PANTRY' },
   { id: 'appetizers', name: 'Appetizers', station: 'FRY' },
   { id: 'rice-meals', name: 'Rice Meals', station: 'GRILL' },
   { id: 'pasta', name: 'Pasta', station: 'PANTRY' },
@@ -46,6 +47,23 @@ export const categories: MenuCategory[] = [
 // products images source file
 
 const productImages: Record<string, string> = {
+  // Raw materials
+  'Coffee Beans': '/brewed coffee.jpg',
+  'Milk': '/ice latte.jpg',
+  'Flour': '/pizza.jpg',
+  'Sugar': '/caramel machiatto.jpg',
+  'Chicken (raw)': '/fried chicken plate.jpg',
+  'Beef': '/beef tapa.jpg',
+  'Pork': '/pork sisig.jpg',
+  'Mozzarella Cheese': '/mozarilla sticks.jpg',
+  'Butter': '/shrimp.jpg',
+  'Tomato': '/pizza.jpg',
+  'Lettuce': '/burger.png',
+  'Garlic': '/garlic rice.jpg',
+  'Oil': '/seafood aglio olio.jpg',
+  'Rice': '/steamed rice.jpg',
+  'Shrimp': '/shrimp.jpg',
+
   'Lumpia Shanghai': '/lumpia.jpg',
   'Mozzarella Sticks': '/mozarilla sticks.jpg',
   'Calamaris Rings': '/calamari rings.jpg',
@@ -192,6 +210,129 @@ const latteModifiers: MenuProduct['modifierGroups'] = [
 // product menu per category
 
 const baseProducts: MenuProduct[] = [
+  // Raw Materials & Ingredients
+  {
+    id: 'raw-1',
+    name: 'Coffee Beans',
+    description: 'Premium arabica coffee beans',
+    price: 35,
+    categoryId: 'raw-materials',
+    tone: 'clay',
+  },
+  {
+    id: 'raw-2',
+    name: 'Milk',
+    description: 'Fresh pasteurized milk',
+    price: 28,
+    categoryId: 'raw-materials',
+    tone: 'mint',
+  },
+  {
+    id: 'raw-3',
+    name: 'Flour',
+    description: 'All-purpose wheat flour',
+    price: 22,
+    categoryId: 'raw-materials',
+    tone: 'mint',
+  },
+  {
+    id: 'raw-4',
+    name: 'Sugar',
+    description: 'Refined white sugar',
+    price: 25,
+    categoryId: 'raw-materials',
+    tone: 'sun',
+  },
+  {
+    id: 'raw-5',
+    name: 'Chicken (raw)',
+    description: 'Fresh raw chicken meat',
+    price: 45,
+    categoryId: 'raw-materials',
+    tone: 'orchard',
+  },
+  {
+    id: 'raw-6',
+    name: 'Beef',
+    description: 'Fresh raw beef cuts',
+    price: 52,
+    categoryId: 'raw-materials',
+    tone: 'clay',
+  },
+  {
+    id: 'raw-7',
+    name: 'Pork',
+    description: 'Fresh raw pork meat',
+    price: 48,
+    categoryId: 'raw-materials',
+    tone: 'clay',
+  },
+  {
+    id: 'raw-8',
+    name: 'Mozzarella Cheese',
+    description: 'Fresh mozzarella cheese blocks',
+    price: 38,
+    categoryId: 'raw-materials',
+    tone: 'sun',
+  },
+  {
+    id: 'raw-9',
+    name: 'Butter',
+    description: 'Unsalted butter',
+    price: 32,
+    categoryId: 'raw-materials',
+    tone: 'sun',
+  },
+  {
+    id: 'raw-10',
+    name: 'Tomato',
+    description: 'Fresh ripe tomatoes',
+    price: 15,
+    categoryId: 'raw-materials',
+    tone: 'sun',
+  },
+  {
+    id: 'raw-11',
+    name: 'Lettuce',
+    description: 'Fresh romaine lettuce',
+    price: 12,
+    categoryId: 'raw-materials',
+    tone: 'mint',
+  },
+  {
+    id: 'raw-12',
+    name: 'Garlic',
+    description: 'Fresh garlic bulbs',
+    price: 18,
+    categoryId: 'raw-materials',
+    tone: 'clay',
+  },
+  {
+    id: 'raw-13',
+    name: 'Oil',
+    description: 'Cooking vegetable oil',
+    price: 30,
+    categoryId: 'raw-materials',
+    tone: 'sun',
+  },
+  {
+    id: 'raw-14',
+    name: 'Rice',
+    description: 'White jasmine rice',
+    price: 28,
+    categoryId: 'raw-materials',
+    tone: 'mint',
+  },
+  {
+    id: 'raw-15',
+    name: 'Shrimp',
+    description: 'Fresh raw shrimp',
+    price: 58,
+    categoryId: 'raw-materials',
+    tone: 'ocean',
+  },
+
+  // Finished Products
   {
     id: 'prod-1',
     name: 'Lumpia Shanghai',

@@ -2,9 +2,12 @@ import type { MenuProduct } from '../pos/pos.types'
 
 export type IngredientBaseUnit = 'g' | 'ml' | 'pcs'
 export type MeasurementUnit = IngredientBaseUnit | 'kg' | 'l' | 'tbsp' | 'tsp' | 'cup'
+export type IngredientType = 'RAW' | 'NON_RAW'
 
 export type Ingredient = {
   id: string
+  inventoryId?: string
+  ingredientType?: IngredientType
   name: string
   category: string
   baseUnit: IngredientBaseUnit

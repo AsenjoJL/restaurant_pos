@@ -1156,6 +1156,9 @@
   position: sticky;
   top: 110px;
   align-self: start;
+  max-height: calc(100vh - 130px);
+  overflow-y: auto;
+  overscroll-behavior: contain;
 }
 
 .kiosk-cart-header {
@@ -1191,21 +1194,27 @@
 }
 
 .kiosk-toggle-btn {
-  border: 2px solid var(--border);
+  border: 1px solid #e4e7ec;
   background: #ffffff;
   border-radius: 14px;
   padding: 12px;
   font-weight: 700;
-  font-size: 0.95rem;
+  font-size: 1.15rem;
+  color: #0f172a;
   cursor: pointer;
   transition: all var(--kiosk-transition);
 }
 
+.kiosk-toggle-btn:hover {
+  border-color: #9ad1ba;
+  color: #065f46;
+}
+
 .kiosk-toggle-btn.is-active {
-  background: var(--accent);
-  border-color: var(--accent);
+  background: linear-gradient(135deg, #10b981, #34d399);
+  border-color: #10b981;
   color: #ffffff;
-  box-shadow: 0 8px 20px rgba(31, 111, 92, 0.2);
+  box-shadow: 0 8px 18px rgba(16, 185, 129, 0.25);
 }
 
 .kiosk-cart-items {
@@ -1246,6 +1255,128 @@
   min-height: 58px;
   font-size: 1.05rem;
   font-weight: 700;
+}
+
+/* ============================================
+   SELF-ORDER TYPOGRAPHY SCALE (SLIGHT INCREASE)
+   ============================================ */
+.kiosk-shell .page-header h2 {
+  font-size: 2rem;
+  line-height: 1.1;
+}
+
+.kiosk-shell .page-header .muted {
+  font-size: 1.08rem;
+}
+
+.kiosk-shell .kiosk-actions .btn {
+  font-size: 1.06rem;
+}
+
+.kiosk-shell .kiosk-category-panel h3 {
+  font-size: 1.7rem;
+}
+
+.kiosk-shell .kiosk-search .input-label {
+  font-size: 0.95rem;
+  font-weight: 700;
+}
+
+.kiosk-shell .kiosk-search .input {
+  font-size: 1.04rem;
+}
+
+.kiosk-shell .kiosk-category-list .category-button {
+  font-size: 1.08rem;
+  font-weight: 700;
+}
+
+.kiosk-shell .kiosk-products h2 {
+  font-size: 2rem;
+}
+
+.kiosk-shell .kiosk-products-count {
+  font-size: 0.95rem;
+  font-weight: 700;
+}
+
+.kiosk-shell .kiosk-product-card .product-content h3 {
+  font-size: 1.14rem;
+}
+
+.kiosk-shell .kiosk-product-card .product-content .muted {
+  font-size: 0.98rem;
+}
+
+.kiosk-shell .kiosk-product-card .price {
+  font-size: 1.2rem;
+}
+
+.kiosk-shell .kiosk-product-card .kiosk-add-hint {
+  font-size: 0.98rem;
+}
+
+.kiosk-shell .kiosk-product-card .product-chip,
+.kiosk-shell .kiosk-product-card .availability-badge {
+  font-size: 0.78rem;
+}
+
+.kiosk-shell .kiosk-cart-header h3 {
+  font-size: 2rem;
+  line-height: 1.1;
+}
+
+.kiosk-shell .kiosk-cart-header .muted {
+  font-size: 1.08rem;
+}
+
+.kiosk-shell .kiosk-cart-total-chip {
+  font-size: 1rem;
+}
+
+.kiosk-shell .kiosk-cart-total-chip strong {
+  font-size: 1.9rem;
+  line-height: 1.1;
+}
+
+.kiosk-shell .kiosk-toggle-btn {
+  font-size: 1.15rem;
+}
+
+.kiosk-shell .kiosk-cart-item h4 {
+  font-size: 1.1rem;
+}
+
+.kiosk-shell .kiosk-cart-item .muted,
+.kiosk-shell .kiosk-modifiers {
+  font-size: 0.98rem;
+}
+
+.kiosk-shell .kiosk-cart-item .qty-control,
+.kiosk-shell .kiosk-cart-item .line-total,
+.kiosk-shell .kiosk-cart-item .link-btn {
+  font-size: 1rem;
+}
+
+.kiosk-shell .input-label {
+  font-size: 1.2rem;
+  font-weight: 700;
+}
+
+.kiosk-shell .textarea {
+  font-size: 1.04rem;
+}
+
+.kiosk-shell .summary-row {
+  font-size: 1.08rem;
+}
+
+.kiosk-shell .summary-total {
+  font-size: 1.22rem;
+}
+
+.kiosk-shell .kiosk-cart-actions .btn {
+  font-size: 1.1rem;
 }
 
 .kiosk-products h2 {
@@ -1829,6 +1960,54 @@
   border-top: 2px solid var(--border);
 }
 
+.kiosk-review-modal {
+  display: grid;
+  gap: 12px;
+}
+
+.kiosk-review-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid var(--border);
+}
+
+.kiosk-review-list {
+  display: grid;
+  gap: 8px;
+  max-height: 320px;
+  overflow-y: auto;
+  padding-right: 4px;
+}
+
+.kiosk-review-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 12px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: #ffffff;
+  padding: 10px 12px;
+}
+
+.kiosk-review-empty {
+  border: 1px dashed var(--border);
+  border-radius: 12px;
+  background: var(--panel-muted);
+  padding: 14px;
+  text-align: center;
+}
+
+.kiosk-review-totals {
+  display: grid;
+  gap: 8px;
+  border-top: 1px solid var(--border);
+  padding-top: 10px;
+}
+
 /* ============================================
    QUANTITY CONTROLS
    ============================================ */
@@ -1933,6 +2112,8 @@
 
   .kiosk-cart-panel {
     position: static;
+    max-height: none;
+    overflow: visible;
   }
 
   .kiosk-attract-card {

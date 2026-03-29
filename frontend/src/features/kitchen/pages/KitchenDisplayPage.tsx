@@ -1,8 +1,10 @@
-import { useCallback, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 import { useAppDispatch, useAppSelector } from '../../../app/store/hooks'
 import { getLiveSyncPollingOptions } from '../../../app/config/live-sync'
 import { selectAdminSettings } from '../../admin/admin.selectors'
+import { selectAuthUser } from '../../auth/auth.selectors'
 import Badge from '../../../shared/components/ui/Badge'
+import Button from '../../../shared/components/ui/Button'
 import { useLiveSyncPolling } from '../../../shared/hooks/useLiveSyncPolling'
 import {
   formatEnumLabel,
@@ -25,6 +27,12 @@ import type { KitchenStation } from '../../pos/pos.types'
 import { DATA_MODE } from '../../../app/config/data-mode'
 import { getKitchenStationLabel, resolveKitchenStation } from '../kitchen.utils'
 import {
+  formatOverrideRemaining,
+  getAdminOverrideRemainingMs,
+  isAdminOverrideActive,
+  setAdminOverride,
+} from '../../../shared/lib/admin-override'
+import {
   buildOrderStationCountMap,
   buildReplacementStationCountMap,
   createEmptyStationCounts,
@@ -44,7 +52,30 @@ function KitchenDisplayPage() {
   const orders = useAppSelector(selectOrders)
   const replacementTickets = useAppSelector(selectReplacementTickets)
   const settings = useAppSelector(selectAdminSettings)
+  const user = useAppSelector(selectAuthUser)
+  const role = user?.role
+  const isAdmin = role === 'admin'
+  const [adminOverride, setAdminOverrideState] = useState(() =>
+    isAdminOverrideActive('kitchen'),
+  )
+  const [overrideRemainingMs, setOverrideRemainingMs] = useState(() =>
+    getAdminOverrideRemainingMs('kitchen'),
+  )
+  const canOperateKitchen = role === 'kitchen' || (isAdmin && adminOverride)
   const [activeStation, setActiveStation] = useState<KitchenStation | 'ALL'>('ALL')
+
+  useEffect(() => {
+    if (!isAdmin) {
+      return
+    }
+    const sync = () => {
+      setAdminOverrideState(isAdminOverrideActive('kitchen'))
+      setOverrideRemainingMs(getAdminOverrideRemainingMs('kitchen'))
+    }
+    sync()
+    const timer = window.setInterval(sync, 1000)
+    return () => window.clearInterval(timer)
+  }, [isAdmin])
 
   const syncKitchenQueue = useCallback(() => {
     void dispatch(hydrateKitchenQueueFromRepository())
@@ -123,12 +154,42 @@ function KitchenDisplayPage() {
     void dispatch(syncKitchenReplacementStatus({ id, status: 'READY_FOR_PICKUP' }))
   }
 
+  const handleToggleAdminOverride = () => {
+    const next = !adminOverride
+    setAdminOverride('kitchen', next)
+    setAdminOverrideState(next)
+    setOverrideRemainingMs(next ? getAdminOverrideRemainingMs('kitchen') : 0)
+  }
+
   return (
-    <div className="page">
+    <div className="page kitchen-page">
       <div className="page-header">
         <div>
           <h2>Kitchen Display</h2>
-          <p className="muted">SENT_TO_KITCHEN+ orders from kiosk and staff.</p>
+          <p className="muted">
+            SENT_TO_KITCHEN+ orders from kiosk and staff.
+            {isAdmin && !adminOverride ? ' Admin is currently view-only.' : ''}
+          </p>
+        </div>
+        <div className="admin-row-actions">
+          <Button
+            variant="outline"
+            onClick={() => window.open('/KDS', '_blank', 'noopener,noreferrer')}
+            icon="cast"
+          >
+            Open Customer Board
+          </Button>
+          {isAdmin ? (
+            <Button
+              variant={adminOverride ? 'primary' : 'outline'}
+              onClick={handleToggleAdminOverride}
+              icon="admin_panel_settings"
+            >
+              {adminOverride
+                ? `Override ON ${formatOverrideRemaining(overrideRemainingMs)}`
+                : 'Enable Override'}
+            </Button>
+          ) : null}
         </div>
       </div>
 
@@ -274,7 +335,7 @@ function KitchenDisplayPage() {
                   type="button"
                   className="btn btn-outline"
                   onClick={() => handleStartOrder(order.id)}
-                  disabled={order.status !== 'SENT_TO_KITCHEN'}
+                  disabled={order.status !== 'SENT_TO_KITCHEN' || !canOperateKitchen}
                 >
                   Start
                 </button>
@@ -282,7 +343,7 @@ function KitchenDisplayPage() {
                   type="button"
                   className="btn btn-primary"
                   onClick={() => handleReadyOrder(order.id)}
-                  disabled={order.status !== 'PREPARING'}
+                  disabled={order.status !== 'PREPARING' || !canOperateKitchen}
                 >
                   Ready
                 </button>
@@ -354,7 +415,7 @@ function KitchenDisplayPage() {
                   type="button"
                   className="btn btn-outline"
                   onClick={() => handleStartReplacement(ticket.id)}
-                  disabled={ticket.status !== 'SENT_TO_KITCHEN'}
+                  disabled={ticket.status !== 'SENT_TO_KITCHEN' || !canOperateKitchen}
                 >
                   Start
                 </button>
@@ -362,7 +423,7 @@ function KitchenDisplayPage() {
                   type="button"
                   className="btn btn-primary"
                   onClick={() => handleReadyReplacement(ticket.id)}
-                  disabled={ticket.status !== 'PREPARING'}
+                  disabled={ticket.status !== 'PREPARING' || !canOperateKitchen}
                 >
                   Ready
                 </button>

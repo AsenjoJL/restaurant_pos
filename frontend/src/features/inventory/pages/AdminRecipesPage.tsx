@@ -3,11 +3,14 @@ import { useMemo, useState } from 'react'
 import { useAppDispatch, useAppSelector } from '../../../app/store/hooks'
 import Button from '../../../shared/components/ui/Button'
 import Input from '../../../shared/components/ui/Input'
+import Modal from '../../../shared/components/ui/Modal'
 import Select from '../../../shared/components/ui/Select'
 import { pushToast } from '../../../shared/store/ui.store'
 import AdminStatCard from '../../admin/components/AdminStatCard'
 import { selectAdminProducts } from '../../admin/admin.selectors'
 import {
+  addIngredient,
+  syncUpsertIngredient,
   saveRecipe,
   removeRecipe,
   syncRemoveRecipe,
@@ -17,7 +20,12 @@ import {
   selectInventoryIngredients,
   selectInventoryRecipes,
 } from '../inventory.selectors'
-import type { MeasurementUnit, RecipeLine } from '../inventory.types'
+import type {
+  IngredientBaseUnit,
+  IngredientType,
+  MeasurementUnit,
+  RecipeLine,
+} from '../inventory.types'
 import { calculateRecipeCost } from '../inventory.logic'
 import { convertToBase, getCompatibleUnits } from '../inventory.conversions'
 import { formatCurrency } from '../../../shared/lib/format'
@@ -29,12 +37,40 @@ type RecipeLineDraft = {
   unit: MeasurementUnit | ''
 }
 
+type IngredientFormState = {
+  ingredientType: IngredientType
+  name: string
+  category: string
+  baseUnit: IngredientBaseUnit
+  onHand: string
+  reorderLevel: string
+  unitCost: string
+}
+
+type IngredientErrors = {
+  name?: string
+  category?: string
+  onHand?: string
+  reorderLevel?: string
+  unitCost?: string
+}
+
 const createEmptyLine = (): RecipeLineDraft => ({
   id: nanoid(),
   ingredientId: '',
   qty: '',
   unit: '',
 })
+
+const emptyIngredientForm: IngredientFormState = {
+  ingredientType: 'RAW',
+  name: '',
+  category: '',
+  baseUnit: 'pcs',
+  onHand: '',
+  reorderLevel: '',
+  unitCost: '',
+}
 
 function AdminRecipesPage() {
   const dispatch = useAppDispatch()
@@ -58,7 +94,9 @@ function AdminRecipesPage() {
       { value: '', label: 'Select ingredient' },
       ...ingredients.map((ingredient) => ({
         value: ingredient.id,
-        label: ingredient.name,
+        label: ingredient.inventoryId
+          ? `${ingredient.inventoryId} - ${ingredient.name}`
+          : ingredient.name,
       })),
     ],
     [ingredients],
@@ -87,6 +125,19 @@ function AdminRecipesPage() {
   const [lines, setLines] = useState<RecipeLineDraft[]>([createEmptyLine()])
   const [formError, setFormError] = useState('')
   const [isSaving, setIsSaving] = useState(false)
+  const [isIngredientModalOpen, setIsIngredientModalOpen] = useState(false)
+  const [ingredientForm, setIngredientForm] = useState<IngredientFormState>(emptyIngredientForm)
+  const [ingredientErrors, setIngredientErrors] = useState<IngredientErrors>({})
+
+  const ingredientCategoryOptions = useMemo(
+    () => [
+      { value: '', label: 'Select category' },
+      ...Array.from(new Set(ingredients.map((item) => item.category)))
+        .sort()
+        .map((category) => ({ value: category, label: category })),
+    ],
+    [ingredients],
+  )
 
   const selectedProduct = products.find((product) => product.id === selectedProductId)
   const currentRecipe = recipes.find((recipe) => recipe.productId === selectedProductId)
@@ -244,6 +295,66 @@ function AdminRecipesPage() {
     )
   }
 
+  const handleCreateIngredient = () => {
+    const nextErrors: IngredientErrors = {}
+    const name = ingredientForm.name.trim()
+    const category = ingredientForm.category.trim()
+    const onHand = Number(ingredientForm.onHand)
+    const reorderLevel = Number(ingredientForm.reorderLevel)
+    const unitCost = Number(ingredientForm.unitCost)
+
+    if (!name) {
+      nextErrors.name = 'Ingredient name is required.'
+    }
+    if (!category) {
+      nextErrors.category = 'Category is required.'
+    }
+    if (!Number.isFinite(onHand) || onHand < 0) {
+      nextErrors.onHand = 'Enter a valid on-hand quantity.'
+    }
+    if (!Number.isFinite(reorderLevel) || reorderLevel < 0) {
+      nextErrors.reorderLevel = 'Enter a valid reorder level.'
+    }
+    if (!Number.isFinite(unitCost) || unitCost < 0) {
+      nextErrors.unitCost = 'Enter a valid unit cost.'
+    }
+
+    setIngredientErrors(nextErrors)
+    if (Object.keys(nextErrors).length > 0) {
+      dispatch(
+        pushToast({
+          title: 'Fix ingredient fields',
+          description: 'Please complete the required ingredient details.',
+          variant: 'error',
+        }),
+      )
+      return
+    }
+
+    const payload = {
+      ingredientType: ingredientForm.ingredientType,
+      name,
+      category,
+      baseUnit: ingredientForm.baseUnit,
+      onHand,
+      reorderLevel,
+      unitCost,
+    }
+
+    dispatch(addIngredient(payload))
+    void dispatch(syncUpsertIngredient(payload))
+    dispatch(
+      pushToast({
+        title: 'Ingredient added',
+        description: `${name} is now available in recipes.`,
+        variant: 'success',
+      }),
+    )
+    setIngredientForm(emptyIngredientForm)
+    setIngredientErrors({})
+    setIsIngredientModalOpen(false)
+  }
+
   return (
     <div className="page admin-page">
       <div className="page-header">
@@ -251,11 +362,30 @@ function AdminRecipesPage() {
           <h2>Recipes</h2>
           <p className="muted">Map ingredients to menu products for inventory deduction.</p>
         </div>
-        <div className="admin-row-actions">
-          <Button variant="outline" onClick={handleClearRecipe} icon="delete">
+        <div className="admin-row-actions recipe-header-actions">
+          <Button
+            variant="outline"
+            className="recipe-action-btn recipe-action-add"
+            onClick={() => setIsIngredientModalOpen(true)}
+            icon="add"
+          >
+            New Inventory Ingredient
+          </Button>
+          <Button
+            variant="outline"
+            className="recipe-action-btn recipe-action-clear"
+            onClick={handleClearRecipe}
+            icon="delete"
+          >
             Clear Recipe
           </Button>
-          <Button variant="primary" onClick={handleSave} icon="save" disabled={isSaving}>
+          <Button
+            variant="primary"
+            className="recipe-action-btn recipe-action-save"
+            onClick={handleSave}
+            icon="save"
+            disabled={isSaving}
+          >
             {isSaving ? 'Saving...' : 'Save Recipe'}
           </Button>
         </div>
@@ -362,6 +492,103 @@ function AdminRecipesPage() {
           </div>
         )}
       </div>
+
+      <Modal
+        isOpen={isIngredientModalOpen}
+        title="Add Inventory Ingredient"
+        onClose={() => {
+          setIsIngredientModalOpen(false)
+          setIngredientErrors({})
+        }}
+        footer={
+          <div className="modal-actions">
+            <Button variant="ghost" onClick={() => setIsIngredientModalOpen(false)}>
+              Cancel
+            </Button>
+            <Button variant="primary" onClick={handleCreateIngredient}>
+              Add Ingredient
+            </Button>
+          </div>
+        }
+      >
+        <Input
+          label="Ingredient name"
+          placeholder="e.g. Chicken Thigh"
+          value={ingredientForm.name}
+          onChange={(event) =>
+            setIngredientForm((prev) => ({ ...prev, name: event.target.value }))
+          }
+          error={ingredientErrors.name}
+        />
+        <Select
+          label="Ingredient type"
+          value={ingredientForm.ingredientType}
+          onChange={(event) =>
+            setIngredientForm((prev) => ({
+              ...prev,
+              ingredientType: event.target.value as IngredientType,
+            }))
+          }
+          options={[
+            { value: 'RAW', label: 'Raw ingredient' },
+            { value: 'NON_RAW', label: 'Non-raw / finished stock' },
+          ]}
+        />
+        <Select
+          label="Category"
+          value={ingredientForm.category}
+          onChange={(event) =>
+            setIngredientForm((prev) => ({ ...prev, category: event.target.value }))
+          }
+          options={ingredientCategoryOptions}
+          error={ingredientErrors.category}
+        />
+        <Select
+          label="Base unit"
+          value={ingredientForm.baseUnit}
+          onChange={(event) =>
+            setIngredientForm((prev) => ({
+              ...prev,
+              baseUnit: event.target.value as IngredientBaseUnit,
+            }))
+          }
+          options={[
+            { value: 'pcs', label: 'pcs' },
+            { value: 'g', label: 'g' },
+            { value: 'ml', label: 'ml' },
+          ]}
+        />
+        <Input
+          label="On hand"
+          inputMode="decimal"
+          placeholder="0"
+          value={ingredientForm.onHand}
+          onChange={(event) =>
+            setIngredientForm((prev) => ({ ...prev, onHand: event.target.value }))
+          }
+          error={ingredientErrors.onHand}
+        />
+        <Input
+          label="Reorder level"
+          inputMode="decimal"
+          placeholder="0"
+          value={ingredientForm.reorderLevel}
+          onChange={(event) =>
+            setIngredientForm((prev) => ({ ...prev, reorderLevel: event.target.value }))
+          }
+          error={ingredientErrors.reorderLevel}
+        />
+        <Input
+          label="Unit cost"
+          inputMode="decimal"
+          placeholder="0.00"
+          value={ingredientForm.unitCost}
+          onChange={(event) =>
+            setIngredientForm((prev) => ({ ...prev, unitCost: event.target.value }))
+          }
+          error={ingredientErrors.unitCost}
+        />
+      </Modal>
     </div>
   )
 }

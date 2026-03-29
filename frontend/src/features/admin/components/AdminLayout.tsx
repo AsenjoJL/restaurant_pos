@@ -8,6 +8,7 @@ const navItems = [
   { label: 'Replacements', path: '/admin/replacements', icon: 'undo' },
   { label: 'Audit Logs', path: '/admin/audit-logs', icon: 'fact_check' },
   { label: 'Cash Adjustments', path: '/admin/cash-adjustments', icon: 'payments' },
+  { label: 'Order Deductions', path: '/admin/orders-dashboard', icon: 'store' },
   { label: 'Inventory', path: '/admin/inventory', icon: 'inventory' },
   { label: 'Recipes', path: '/admin/recipes', icon: 'menu_book' },
   { label: 'Users', path: '/admin/users', icon: 'groups' },

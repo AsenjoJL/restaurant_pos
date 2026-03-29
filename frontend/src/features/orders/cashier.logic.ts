@@ -74,8 +74,10 @@ type CashierPermissions = {
 export const getCashierPermissions = (
   order: Order | null,
   role: Role | undefined,
+  options?: { adminOverride?: boolean },
 ): CashierPermissions => {
-  const canOperateCashier = role === 'cashier' || role === 'admin'
+  const canOperateCashier =
+    role === 'cashier' || (role === 'admin' && Boolean(options?.adminOverride))
   const isCompleted = order?.status === 'COMPLETED'
   const replacementStatus = order?.replacementStatus ?? 'NONE'
 

@@ -1,6 +1,7 @@
 import { useMemo, useState } from 'react'
 import { categories, products } from '../../../mock/data'
 import { useAppDispatch, useAppSelector } from '../../../app/store/hooks'
+import { selectAdminProducts } from '../../admin/admin.selectors'
 import { selectActiveCategory, selectSearchTerm } from '../pos.selectors'
 import {
   selectInventoryIngredients,
@@ -13,35 +14,46 @@ import {
   buildInventoryAvailabilityMap,
   resolveAvailability,
 } from '../../inventory/inventory.logic'
-import { buildCategoryNameMap, filterMenuProducts, getCategoryName } from '../menu.utils'
+import {
+  buildCategoryNameMap,
+  filterMenuProducts,
+  getCategoryName,
+  mergeMenuProductsWithAdmin,
+} from '../menu.utils'
 
 function ProductGrid() {
   const dispatch = useAppDispatch()
   const activeCategoryId = useAppSelector(selectActiveCategory)
   const searchTerm = useAppSelector(selectSearchTerm)
+  const adminProducts = useAppSelector(selectAdminProducts)
   const ingredients = useAppSelector(selectInventoryIngredients)
   const recipes = useAppSelector(selectInventoryRecipes)
   const [brokenImages, setBrokenImages] = useState<Record<string, boolean>>({})
 
   const categoryNameMap = useMemo(() => buildCategoryNameMap(categories), [])
 
+  const runtimeProducts = useMemo(
+    () => mergeMenuProductsWithAdmin(products, adminProducts),
+    [adminProducts],
+  )
+
   const filteredProducts = useMemo(
     () =>
-      filterMenuProducts(products, {
+      filterMenuProducts(runtimeProducts, {
         activeCategoryId,
         searchTerm,
       }),
-    [activeCategoryId, searchTerm],
+    [activeCategoryId, runtimeProducts, searchTerm],
   )
 
   const inventoryAvailability = useMemo(
     () =>
       buildInventoryAvailabilityMap(
-        products.map((product) => product.id),
+        runtimeProducts.map((product) => product.id),
         recipes,
         ingredients,
       ),
-    [ingredients, recipes],
+    [ingredients, recipes, runtimeProducts],
   )
 
   const activeCategoryName = getCategoryName(categoryNameMap, activeCategoryId)
@@ -71,6 +83,14 @@ function ProductGrid() {
             )
             const isBundle = product.type === 'BUNDLE'
             const canAdd = resolvedAvailability === 'AVAILABLE'
+            const imageKey = product.image ?? ''
+            const imageBroken = imageKey ? brokenImages[imageKey] : false
+            const categoryLabel = getCategoryName(
+              categoryNameMap,
+              product.categoryId,
+              product.categoryId,
+            )
+            const chipLabel = product.description || categoryLabel
             return (
               <article
                 key={product.id}
@@ -95,18 +115,21 @@ function ProductGrid() {
               >
                 <div
                   className={`product-media${
-                    product.image && !brokenImages[product.id] ? ' has-image' : ''
+                    product.image && !imageBroken ? ' has-image' : ''
                   }`}
                 >
-                  {product.image && !brokenImages[product.id] ? (
+                  {product.image && !imageBroken ? (
                     <img
                       className="product-image"
                       src={encodeURI(product.image)}
                       alt={product.name}
                       loading="lazy"
-                      onError={() =>
-                        setBrokenImages((prev) => ({ ...prev, [product.id]: true }))
-                      }
+                      onError={() => {
+                        if (!imageKey) {
+                          return
+                        }
+                        setBrokenImages((prev) => ({ ...prev, [imageKey]: true }))
+                      }}
                     />
                   ) : (
                     <div className="product-image-fallback">
@@ -115,17 +138,15 @@ function ProductGrid() {
                       </span>
                     </div>
                   )}
-                  <span className="product-chip">
-                    {getCategoryName(categoryNameMap, product.categoryId, product.categoryId)}
-                  </span>
-                  {product.type === 'BUNDLE' ? <span className="product-badge">Combo</span> : null}
                   {resolvedAvailability !== 'AVAILABLE' ? (
                     <span
                       className={`availability-badge availability-${resolvedAvailability.toLowerCase()}`}
                     >
-                      {resolvedAvailability === 'LIMITED' ? 'Limited' : 'Sold out'}
+                      {resolvedAvailability === 'LIMITED' ? 'Limited' : 'Unavailable'}
                     </span>
                   ) : null}
+                  <span className="product-chip">{chipLabel}</span>
+                  {product.type === 'BUNDLE' ? <span className="product-badge">Combo</span> : null}
                 </div>
                 <div className="product-content">
                   <div>

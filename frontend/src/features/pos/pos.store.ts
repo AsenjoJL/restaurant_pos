@@ -41,6 +41,7 @@ const createDraft = (): DraftOrder => ({
   notes: '',
   items: [],
   discount: 0,
+  promoCode: null,
   serviceCharge: 0,
   taxRate: 0.0825,
   status: 'draft',
@@ -142,12 +143,20 @@ const draftSlice = createSlice({
       state.notes = action.payload.notes
       state.items = action.payload.items
       state.discount = action.payload.discount
+      state.promoCode = action.payload.promoCode
       state.serviceCharge = action.payload.serviceCharge
       state.taxRate = action.payload.taxRate
       state.status = action.payload.status
     },
     setDiscount: (state, action: PayloadAction<number>) => {
       state.discount = Math.max(0, action.payload)
+    },
+    setPromoCode: (state, action: PayloadAction<string | null>) => {
+      const nextValue = action.payload?.trim().toUpperCase() ?? null
+      state.promoCode = nextValue && nextValue.length > 0 ? nextValue : null
+    },
+    clearPromoCode: (state) => {
+      state.promoCode = null
     },
     setServiceCharge: (state, action: PayloadAction<number>) => {
       state.serviceCharge = Math.max(0, action.payload)
@@ -161,6 +170,7 @@ const draftSlice = createSlice({
       state.notes = reset.notes
       state.items = reset.items
       state.discount = reset.discount
+      state.promoCode = reset.promoCode
       state.serviceCharge = reset.serviceCharge
       state.taxRate = reset.taxRate
       state.status = reset.status
@@ -270,6 +280,8 @@ export const {
   setOrderNotes,
   loadDraft,
   setDiscount,
+  setPromoCode,
+  clearPromoCode,
   setServiceCharge,
   clearDraft,
   clearItems,

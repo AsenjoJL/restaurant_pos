@@ -2,7 +2,9 @@ import { createAsyncThunk, createSlice, nanoid, type PayloadAction } from '@redu
 import { ingredients as initialIngredients, recipes as initialRecipes } from '../../mock/data'
 import type { RootState } from '../../app/store/store'
 import type {
+  Ingredient,
   IngredientBaseUnit,
+  IngredientType,
   InventoryAdjustmentType,
   InventoryAdjustmentReason,
   InventoryDeduction,
@@ -14,6 +16,8 @@ import { inventoryRepository } from './api'
 export const INVENTORY_STORAGE_KEY = 'pos.inventory.v1'
 
 type IngredientPayload = {
+  inventoryId?: string
+  ingredientType?: IngredientType
   name: string
   category: string
   baseUnit: IngredientBaseUnit
@@ -44,6 +48,123 @@ type DeductionPayload = {
   deductions: InventoryDeduction[]
 }
 
+const normalizeInventoryId = (value?: string) => value?.trim().toUpperCase() ?? ''
+const NON_RAW_CATEGORY_KEYWORDS = ['packaging', 'service item', 'service items', 'supplies']
+const NON_RAW_NAME_KEYWORDS = [
+  'bag',
+  'cup',
+  'box',
+  'container',
+  'straw',
+  'napkin',
+  'tissue',
+  'fork',
+  'spoon',
+  'lid',
+  'wrapper',
+]
+
+const inferIngredientType = (name?: string, category?: string): IngredientType | undefined => {
+  const normalizedName = name?.toLowerCase().trim() ?? ''
+  const normalizedCategory = category?.toLowerCase().trim() ?? ''
+  const hasNonRawCategory = NON_RAW_CATEGORY_KEYWORDS.some((keyword) =>
+    normalizedCategory.includes(keyword),
+  )
+  const hasNonRawName = NON_RAW_NAME_KEYWORDS.some((keyword) =>
+    normalizedName.includes(keyword),
+  )
+  if (hasNonRawCategory || hasNonRawName) {
+    return 'NON_RAW'
+  }
+  return undefined
+}
+
+const normalizeIngredientType = (
+  value: IngredientType | undefined,
+  options?: { name?: string; category?: string; fallback?: IngredientType },
+): IngredientType => {
+  if (value === 'NON_RAW') {
+    return 'NON_RAW'
+  }
+  const inferred = inferIngredientType(options?.name, options?.category)
+  if (inferred) {
+    return inferred
+  }
+  if (value === 'RAW') {
+    return 'RAW'
+  }
+  if (options?.fallback === 'NON_RAW') {
+    return 'NON_RAW'
+  }
+  return 'RAW'
+}
+
+const getMaxInventorySequence = (ingredients: Ingredient[]) =>
+  ingredients.reduce((max, ingredient) => {
+    const match = normalizeInventoryId(ingredient.inventoryId).match(/^ING-(\d+)$/)
+    if (!match) {
+      return max
+    }
+    const parsed = Number(match[1])
+    return Number.isFinite(parsed) ? Math.max(max, parsed) : max
+  }, 0)
+
+const createInventoryIdGenerator = (ingredients: Ingredient[]) => {
+  let sequence = getMaxInventorySequence(ingredients)
+  return () => {
+    sequence += 1
+    return `ING-${String(sequence).padStart(4, '0')}`
+  }
+}
+
+const ensureUniqueInventoryId = (
+  desired: string | undefined,
+  ingredients: Ingredient[],
+  excludeIngredientId?: string,
+) => {
+  const normalizedDesired = normalizeInventoryId(desired)
+  const used = new Set(
+    ingredients
+      .filter((ingredient) => ingredient.id !== excludeIngredientId)
+      .map((ingredient) => normalizeInventoryId(ingredient.inventoryId))
+      .filter(Boolean),
+  )
+  if (normalizedDesired && !used.has(normalizedDesired)) {
+    return normalizedDesired
+  }
+  const getNext = createInventoryIdGenerator(ingredients)
+  let candidate = getNext()
+  while (used.has(candidate)) {
+    candidate = getNext()
+  }
+  return candidate
+}
+
+const normalizeIngredients = (ingredients: Ingredient[]) => {
+  const used = new Set<string>()
+  let sequence = getMaxInventorySequence(ingredients)
+  return ingredients.map((ingredient) => {
+    let nextInventoryId = normalizeInventoryId(ingredient.inventoryId)
+    if (!nextInventoryId || used.has(nextInventoryId)) {
+      sequence += 1
+      nextInventoryId = `ING-${String(sequence).padStart(4, '0')}`
+      while (used.has(nextInventoryId)) {
+        sequence += 1
+        nextInventoryId = `ING-${String(sequence).padStart(4, '0')}`
+      }
+    }
+    used.add(nextInventoryId)
+    return {
+      ...ingredient,
+      inventoryId: nextInventoryId,
+      ingredientType: normalizeIngredientType(ingredient.ingredientType, {
+        name: ingredient.name,
+        category: ingredient.category,
+      }),
+    }
+  })
+}
+
 const loadStoredInventory = () => {
   if (typeof window === 'undefined') {
     return null
@@ -58,7 +179,7 @@ const loadStoredInventory = () => {
       return null
     }
     return {
-      ingredients: parsed.ingredients,
+      ingredients: normalizeIngredients(parsed.ingredients),
       recipes: parsed.recipes,
       adjustments: Array.isArray(parsed.adjustments) ? parsed.adjustments : [],
     } satisfies InventoryState
@@ -69,7 +190,7 @@ const loadStoredInventory = () => {
 
 const initialState: InventoryState =
   loadStoredInventory() ?? {
-    ingredients: initialIngredients,
+    ingredients: normalizeIngredients(initialIngredients),
     recipes: initialRecipes,
     adjustments: [],
   }
@@ -161,13 +282,19 @@ const inventorySlice = createSlice({
   initialState,
   reducers: {
     setInventoryState: (state, action: PayloadAction<InventoryState>) => {
-      state.ingredients = action.payload.ingredients
+      state.ingredients = normalizeIngredients(action.payload.ingredients)
       state.recipes = action.payload.recipes
       state.adjustments = action.payload.adjustments
     },
     addIngredient: (state, action: PayloadAction<IngredientPayload>) => {
+      const nextId = nanoid()
       state.ingredients.unshift({
-        id: nanoid(),
+        id: nextId,
+        inventoryId: ensureUniqueInventoryId(action.payload.inventoryId, state.ingredients),
+        ingredientType: normalizeIngredientType(action.payload.ingredientType, {
+          name: action.payload.name,
+          category: action.payload.category,
+        }),
         name: action.payload.name,
         category: action.payload.category,
         baseUnit: action.payload.baseUnit,
@@ -185,6 +312,19 @@ const inventorySlice = createSlice({
         return
       }
       target.name = action.payload.name
+      target.inventoryId = ensureUniqueInventoryId(
+        action.payload.inventoryId ?? target.inventoryId,
+        state.ingredients,
+        target.id,
+      )
+      target.ingredientType = normalizeIngredientType(
+        action.payload.ingredientType,
+        {
+          name: action.payload.name,
+          category: action.payload.category,
+          fallback: target.ingredientType,
+        },
+      )
       target.category = action.payload.category
       target.baseUnit = action.payload.baseUnit
       target.onHand = action.payload.onHand
@@ -197,6 +337,21 @@ const inventorySlice = createSlice({
       )
       if (!target) {
         return
+      }
+      if (action.payload.reasonType === 'RESTOCK') {
+        const nextReference = action.payload.reference?.trim().toUpperCase()
+        if (!nextReference) {
+          return
+        }
+        const duplicate = state.adjustments.some((adjustment) => {
+          if (adjustment.reasonType !== 'RESTOCK') {
+            return false
+          }
+          return (adjustment.reference?.trim().toUpperCase() ?? '') === nextReference
+        })
+        if (duplicate) {
+          return
+        }
       }
       const delta = action.payload.type === 'IN' ? action.payload.qty : -action.payload.qty
       const beforeQty = target.onHand
@@ -292,7 +447,7 @@ const inventorySlice = createSlice({
   },
   extraReducers: (builder) => {
     builder.addCase(hydrateInventoryFromRepository.fulfilled, (state, action) => {
-      state.ingredients = action.payload.ingredients
+      state.ingredients = normalizeIngredients(action.payload.ingredients)
       state.recipes = action.payload.recipes
       state.adjustments = action.payload.adjustments
     })

@@ -35,6 +35,7 @@ Copy `.env.example` to `.env` and set values per environment.
 
 Architecture guide:
 - `docs/FRONTEND_ARCHITECTURE.md`
+- `docs/UI_STYLE_SPEC.md`
 
 ## Roles & Access
 - **Cashier**: POS ordering, payments, cash drawer, cashier queue

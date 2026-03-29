@@ -38,11 +38,14 @@ let categoriesState: AdminCategory[] = categoriesSeed
     isActive: true,
   }))
 
-let productsState: AdminProduct[] = productsSeed.map((product) => ({
+let productsState: AdminProduct[] = productsSeed.map((product, index) => ({
   id: product.id,
+  sku: `PRD-NON-${String(index + 1).padStart(4, '0')}`,
   name: product.name,
   description: product.description,
   price: product.price,
+  baseCost: Math.max(product.price * 0.55, 1),
+  productClass: 'NON_RAW',
   categoryId: product.categoryId,
   isActive: true,
 }))

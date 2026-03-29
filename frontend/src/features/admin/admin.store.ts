@@ -1,6 +1,7 @@
 import { createAsyncThunk, createSlice, nanoid, type PayloadAction } from '@reduxjs/toolkit'
 import type { RootState } from '../../app/store/store'
 import { categories, products, users } from '../../mock/data'
+import type { MenuProduct } from '../pos/pos.types'
 import { getDefaultLiveSyncSettings } from '../../app/config/live-sync'
 import { adminRepository } from './api'
 import type {
@@ -9,7 +10,7 @@ import type {
   AdminUser,
 } from './admin.types'
 
-export const ADMIN_STORAGE_KEY = 'pos.admin.v1'
+export const ADMIN_STORAGE_KEY = 'pos.admin.v3'
 
 type CategoryPayload = {
   name: string
@@ -20,7 +21,33 @@ type ProductPayload = {
   name: string
   description: string
   price: number
+  baseCost: number
+  productClass: 'RAW' | 'NON_RAW'
   categoryId: string
+}
+
+const buildSkuPrefix = (productClass: 'RAW' | 'NON_RAW') =>
+  productClass === 'RAW' ? 'RAW' : 'NON'
+
+const parseSkuSequence = (sku: string, productClass: 'RAW' | 'NON_RAW') => {
+  const prefix = buildSkuPrefix(productClass)
+  const match = sku.match(new RegExp(`^PRD-${prefix}-(\\d{4})$`))
+  if (!match) {
+    return 0
+  }
+  return Number(match[1]) || 0
+}
+
+const generateProductSku = (
+  existingProducts: AdminState['products'],
+  productClass: 'RAW' | 'NON_RAW',
+) => {
+  const nextSeq =
+    existingProducts
+      .map((item) => parseSkuSequence(item.sku, productClass))
+      .reduce((max, current) => Math.max(max, current), 0) + 1
+  const prefix = buildSkuPrefix(productClass)
+  return `PRD-${prefix}-${String(nextSeq).padStart(4, '0')}`
 }
 
 type UserPayload = {
@@ -38,6 +65,58 @@ const categoryDescriptions: Record<string, string> = {
   desserts: 'Sweet finishes for every meal.',
 }
 
+// Intelligent detection of raw materials vs finished products
+const isRawMaterialProduct = (product: MenuProduct): boolean => {
+  const name = product.name.toLowerCase()
+  const isFromIngredientsCategory = product.categoryId?.includes('ingredient')
+  
+  // Raw material categories/keywords
+  const rawKeywords = [
+    'beans', 'coffee', 'sugar', 'flour', 'rice', 'oil', 'milk', 'cheese',
+    'butter', 'salt', 'spice', 'sauce', 'meat', 'beef', 'chicken', 'pork',
+    'fish', 'shrimp', 'vegetable', 'lettuce', 'tomato', 'onion', 'garlic',
+    'ingredient', 'raw material', 'base', 'leaf', 'leaves', 'powder'
+  ]
+  
+  // Finished product keywords/patterns (usually prepared dishes)
+  const finishedKeywords = [
+    'pizza', 'burger', 'sandwich', 'soup', 'salad', 'plate', 'meal',
+    'combo', 'rice', 'pasta', 'noodle', 'roll', 'flan', 'cake', 'shake',
+    'smoothie', 'coffee', 'tea', 'latte', 'macchiato', 'drink', 'soda'
+  ]
+  
+  // Check for raw material keywords in name
+  const hasRawKeyword = rawKeywords.some(kw => 
+    name.includes(kw) && !name.includes('burger') && !name.includes('coffee cake')
+  )
+  
+  // Check for finished product keywords
+  const hasFinishedKeyword = finishedKeywords.some(kw => name.includes(kw))
+  
+  // If explicitly in ingredient category, it's raw
+  if (isFromIngredientsCategory) {
+    return true
+  }
+  
+  // If it has raw keyword and no finished keyword, it's raw
+  if (hasRawKeyword && !hasFinishedKeyword) {
+    return true
+  }
+  
+  // Price heuristic: raw materials are typically cheaper per unit than finished dishes
+  // If price is very low (< ₱50) and not a beverage/side, likely raw
+  if (product.price < 50 && !name.includes('drink') && !name.includes('cola') && 
+      !name.includes('soda') && !name.includes('tea') && !name.includes('coffee')) {
+    // But exclude items that sound like finished meals
+    if (!hasFinishedKeyword) {
+      return true
+    }
+  }
+  
+  // Default: treat as non-raw (finished product)
+  return false
+}
+
 const seededState: AdminState = {
   categories: categories
     .filter((category) => category.id !== 'all')
@@ -47,14 +126,22 @@ const seededState: AdminState = {
       description: categoryDescriptions[category.id] ?? '',
       isActive: true,
     })),
-  products: products.map((product) => ({
-    id: product.id,
-    name: product.name,
-    description: product.description,
-    price: product.price,
-    categoryId: product.categoryId,
-    isActive: true,
-  })),
+  products: products.map((product, index) => {
+    const isRaw = isRawMaterialProduct(product)
+    return {
+      id: product.id,
+      sku: isRaw
+        ? `PRD-RAW-${String(index + 1).padStart(4, '0')}`
+        : `PRD-NON-${String(index + 1).padStart(4, '0')}`,
+      name: product.name,
+      description: product.description,
+      price: product.price,
+      baseCost: Math.max(product.price * 0.55, 1),
+      productClass: isRaw ? 'RAW' : 'NON_RAW',
+      categoryId: product.categoryId,
+      isActive: true,
+    }
+  }),
   users: users.map((user) => ({
     id: user.id,
     name: user.name,
@@ -95,6 +182,20 @@ const loadStoredAdminState = (): AdminState | null => {
     }
     return {
       ...parsed,
+      products: parsed.products.map((product, index) => ({
+        ...product,
+        sku:
+          (product as AdminState['products'][number]).sku ??
+          `PRD-NON-${String(index + 1).padStart(4, '0')}`,
+        baseCost:
+          Number((product as AdminState['products'][number]).baseCost) > 0
+            ? Number((product as AdminState['products'][number]).baseCost)
+            : Math.max(product.price * 0.55, 1),
+        productClass:
+          (product as AdminState['products'][number]).productClass === 'RAW'
+            ? 'RAW'
+            : 'NON_RAW',
+      })),
       settings: {
         ...parsed.settings,
         liveSync: parsed.settings.liveSync ?? getDefaultLiveSyncSettings(),
@@ -165,9 +266,12 @@ const adminSlice = createSlice({
     addProduct: (state, action: PayloadAction<ProductPayload>) => {
       state.products.unshift({
         id: nanoid(),
+        sku: generateProductSku(state.products, action.payload.productClass),
         name: action.payload.name,
         description: action.payload.description,
         price: action.payload.price,
+        baseCost: action.payload.baseCost,
+        productClass: action.payload.productClass,
         categoryId: action.payload.categoryId,
         isActive: true,
       })
@@ -183,6 +287,8 @@ const adminSlice = createSlice({
       target.name = action.payload.name
       target.description = action.payload.description
       target.price = action.payload.price
+      target.baseCost = action.payload.baseCost
+      target.productClass = action.payload.productClass
       target.categoryId = action.payload.categoryId
       target.isActive = action.payload.isActive
     },

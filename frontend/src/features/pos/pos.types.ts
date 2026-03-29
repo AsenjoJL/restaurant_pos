@@ -104,6 +104,7 @@ export type DraftOrder = {
   notes: string
   items: CartItem[]
   discount: number
+  promoCode: string | null
   serviceCharge: number
   taxRate: number
   status: OrderStatus

@@ -6,12 +6,21 @@ import { selectAdminSettings } from '../../admin/admin.selectors'
 import Input from '../../../shared/components/ui/Input'
 import Select from '../../../shared/components/ui/Select'
 import Button from '../../../shared/components/ui/Button'
+import Modal from '../../../shared/components/ui/Modal'
 import { useLiveSyncPolling } from '../../../shared/hooks/useLiveSyncPolling'
 import { formatCurrency } from '../../../shared/lib/format'
+import { triggerPrint as triggerNativePrint } from '../../../shared/lib/print'
+import { pushToast } from '../../../shared/store/ui.store'
 import { selectSalesRecords } from '../sales.selectors'
-import type { PaymentMethod } from '../../../shared/types/order'
-import { categories, products } from '../../../mock/data'
+import AdminStatCard from '../../admin/components/AdminStatCard'
+import type { PaymentMethod, Order, OrderStatus } from '../../../shared/types/order'
+import type { SalesRecord } from '../../../shared/types/sales'
 import { hydrateSalesFromRepository } from '../sales.store'
+import { selectOrders } from '../../orders/orders.selectors'
+import { cancelOrder, syncOrderCancellation } from '../../orders/orders.store'
+import OrderReceiptSheet from '../../../shared/components/receipt/OrderReceiptSheet'
+
+type SalesUiStatus = 'PAID' | 'PENDING' | 'VOIDED' | 'CANCELLED'
 
 const methodOptions = [
   { value: 'ALL', label: 'All methods' },
@@ -21,14 +30,53 @@ const methodOptions = [
   { value: 'OTHER', label: 'Other' },
 ]
 
+const statusOptions = [
+  { value: 'ALL', label: 'All status' },
+  { value: 'PAID', label: 'Paid' },
+  { value: 'PENDING', label: 'Pending' },
+  { value: 'VOIDED', label: 'Voided' },
+  { value: 'CANCELLED', label: 'Cancelled' },
+]
+
+const toPrintableOrder = (
+  record: SalesRecord,
+  status: OrderStatus,
+): Order => ({
+  id: record.orderId,
+  order_no: record.orderNo,
+  source: record.source,
+  status,
+  order_type: record.orderType,
+  table: null,
+  items: record.items,
+  note: undefined,
+  subtotal: record.subtotal,
+  discount: record.discount ?? 0,
+  service_charge: record.serviceCharge ?? 0,
+  tax: record.tax,
+  total: record.total,
+  payment_method: record.paymentMethod,
+  payment_amount: record.paymentAmount,
+  payment_change: record.paymentChange,
+  payment_reference: record.paymentReference,
+  payment_payer: record.paymentPayer,
+  processed_by: record.processedBy,
+  placed_at: record.placedAt,
+  audit_log: [],
+})
+
 function AdminSalesPage() {
   const dispatch = useAppDispatch()
   const records = useAppSelector(selectSalesRecords)
   const settings = useAppSelector(selectAdminSettings)
+  const orders = useAppSelector(selectOrders)
   const [query, setQuery] = useState('')
   const [methodFilter, setMethodFilter] = useState('ALL')
+  const [statusFilter, setStatusFilter] = useState('ALL')
   const [startDate, setStartDate] = useState('')
   const [endDate, setEndDate] = useState('')
+  const [selectedRecordId, setSelectedRecordId] = useState<string | null>(null)
+  const [printOrderId, setPrintOrderId] = useState<string | null>(null)
 
   const syncSales = useCallback(() => {
     void dispatch(hydrateSalesFromRepository())
@@ -39,6 +87,32 @@ function AdminSalesPage() {
     sync: syncSales,
     ...getLiveSyncPollingOptions('salesRecords', settings.liveSync),
   })
+
+  const orderById = useMemo(() => {
+    const map = new Map<string, Order>()
+    orders.forEach((order) => map.set(order.id, order))
+    return map
+  }, [orders])
+
+  const getUiStatus = useCallback(
+    (orderId: string): SalesUiStatus => {
+      const order = orderById.get(orderId)
+      if (!order) {
+        return 'PAID'
+      }
+      if (order.status === 'CANCELLED') {
+        return 'CANCELLED'
+      }
+      if (order.status === 'PENDING_PAYMENT' || order.status === 'HOLD') {
+        return 'PENDING'
+      }
+      if (order.audit_log.some((entry) => entry.action === 'VOID')) {
+        return 'VOIDED'
+      }
+      return 'PAID'
+    },
+    [orderById],
+  )
 
   const toLocalDayStart = (value: string) => {
     const date = new Date(`${value}T00:00:00`)
@@ -55,7 +129,11 @@ function AdminSalesPage() {
     const start = startDate ? toLocalDayStart(startDate) : null
     const end = endDate ? toLocalDayEnd(endDate) : null
     return records.filter((record) => {
+      const uiStatus = getUiStatus(record.orderId)
       if (methodFilter !== 'ALL' && record.paymentMethod !== methodFilter) {
+        return false
+      }
+      if (statusFilter !== 'ALL' && uiStatus !== statusFilter) {
         return false
       }
       if (start || end) {
@@ -75,104 +153,7 @@ function AdminSalesPage() {
         record.processedBy?.name.toLowerCase().includes(trimmed)
       )
     })
-  }, [endDate, methodFilter, query, records, startDate])
-
-  const metrics = useMemo(() => {
-    const totalsByMethod: Record<PaymentMethod, number> = {
-      CASH: 0,
-      CARD: 0,
-      GCASH: 0,
-      OTHER: 0,
-    }
-    const countByMethod: Record<PaymentMethod, number> = {
-      CASH: 0,
-      CARD: 0,
-      GCASH: 0,
-      OTHER: 0,
-    }
-    let total = 0
-    let cogs = 0
-    filtered.forEach((record) => {
-      total += record.total
-      totalsByMethod[record.paymentMethod] += record.total
-      countByMethod[record.paymentMethod] += 1
-      cogs += record.cogs ?? 0
-    })
-    const avgTicket = filtered.length > 0 ? total / filtered.length : 0
-    const grossProfit = total - cogs
-    const grossMargin = total > 0 ? grossProfit / total : 0
-    return {
-      total,
-      avgTicket,
-      totalsByMethod,
-      countByMethod,
-      cogs,
-      grossProfit,
-      grossMargin,
-    }
-  }, [filtered])
-
-  const dailySummary = useMemo(() => {
-    const byDay = new Map<string, { total: number; count: number }>()
-    filtered.forEach((record) => {
-      const day = new Date(record.paidAt).toLocaleDateString()
-      const entry = byDay.get(day) ?? { total: 0, count: 0 }
-      entry.total += record.total
-      entry.count += 1
-      byDay.set(day, entry)
-    })
-    return Array.from(byDay.entries())
-      .map(([day, data]) => ({ day, ...data }))
-      .sort((a, b) => new Date(a.day).getTime() - new Date(b.day).getTime())
-      .slice(-7)
-  }, [filtered])
-
-  const categoryAllocation = useMemo(() => {
-    const categoryById = new Map(categories.map((category) => [category.id, category.name]))
-    const productCategory = new Map(products.map((product) => [product.id, product.categoryId]))
-    const totals = new Map<string, { revenue: number; qty: number }>()
-
-    filtered.forEach((record) => {
-      record.items.forEach((item) => {
-        if (item.bundle_items && item.bundle_items.length > 0) {
-          item.bundle_items.forEach((bundleItem) => {
-            const categoryId = productCategory.get(bundleItem.id) ?? 'uncategorized'
-            const name = categoryById.get(categoryId) ?? 'Uncategorized'
-            const entry = totals.get(name) ?? { revenue: 0, qty: 0 }
-            entry.revenue += bundleItem.price * bundleItem.quantity
-            entry.qty += bundleItem.quantity
-            totals.set(name, entry)
-          })
-          return
-        }
-
-        const categoryId = productCategory.get(item.id) ?? 'uncategorized'
-        const name = categoryById.get(categoryId) ?? 'Uncategorized'
-        const entry = totals.get(name) ?? { revenue: 0, qty: 0 }
-        entry.revenue += item.price * item.quantity
-        entry.qty += item.quantity
-        totals.set(name, entry)
-      })
-    })
-
-    return Array.from(totals.entries())
-      .map(([name, data]) => ({ name, ...data }))
-      .sort((a, b) => b.revenue - a.revenue)
-  }, [filtered])
-
-  const topItems = useMemo(() => {
-    const counts = new Map<string, number>()
-    filtered.forEach((record) => {
-      record.items.forEach((item) => {
-        const current = counts.get(item.name) ?? 0
-        counts.set(item.name, current + item.quantity)
-      })
-    })
-    return Array.from(counts.entries())
-      .map(([name, qty]) => ({ name, qty }))
-      .sort((a, b) => b.qty - a.qty)
-      .slice(0, 8)
-  }, [filtered])
+  }, [endDate, getUiStatus, methodFilter, query, records, startDate, statusFilter])
 
   const sorted = useMemo(
     () =>
@@ -182,38 +163,78 @@ function AdminSalesPage() {
     [filtered],
   )
 
+  const metrics = useMemo(() => {
+    const totalsByMethod: Record<PaymentMethod, number> = {
+      CASH: 0,
+      CARD: 0,
+      GCASH: 0,
+      OTHER: 0,
+    }
+    let total = 0
+    let cogs = 0
+
+    filtered.forEach((record) => {
+      total += record.total
+      totalsByMethod[record.paymentMethod] += record.total
+      cogs += record.cogs ?? 0
+    })
+
+    const totalOrders = filtered.length
+    const avgTicket = totalOrders > 0 ? total / totalOrders : 0
+    const profit = total - cogs
+
+    return {
+      totalSales: total,
+      totalOrders,
+      profit,
+      avgTicket,
+      totalsByMethod,
+    }
+  }, [filtered])
+
+  const selectedRecord = useMemo(
+    () => sorted.find((record) => record.id === selectedRecordId) ?? null,
+    [selectedRecordId, sorted],
+  )
+
+  const printRecord = useMemo(
+    () => sorted.find((record) => record.id === printOrderId) ?? null,
+    [printOrderId, sorted],
+  )
+
+  const printOrder = useMemo(() => {
+    if (!printRecord) {
+      return null
+    }
+    const order = orderById.get(printRecord.orderId)
+    return order ?? toPrintableOrder(printRecord, 'PAID')
+  }, [orderById, printRecord])
+
   const handleExport = () => {
     const headers = [
-      'Order No',
-      'Paid At',
+      'Order ID',
+      'Date & Time',
+      'Cashier',
       'Payment Method',
-      'Subtotal',
-      'Tax',
       'Total',
       'COGS',
-      'Gross Profit',
-      'Gross Margin',
-      'Processed By',
-      'Order Type',
-      'Source',
+      'Profit',
+      'Status',
     ]
     const rows = sorted.map((record) => [
       record.orderNo,
       new Date(record.paidAt).toISOString(),
+      record.processedBy?.name ?? '',
       record.paymentMethod,
-      record.subtotal.toFixed(2),
-      record.tax.toFixed(2),
       record.total.toFixed(2),
       (record.cogs ?? 0).toFixed(2),
       (record.grossProfit ?? record.total - (record.cogs ?? 0)).toFixed(2),
-      `${Math.round((record.grossMargin ?? 0) * 100)}%`,
-      record.processedBy?.name ?? '',
-      record.orderType,
-      record.source,
+      getUiStatus(record.orderId),
     ])
     const csv = [headers, ...rows]
       .map((row) => row.map((value) => `"${String(value).replace(/"/g, '""')}"`).join(','))
       .join('\n')
+
     const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' })
     const url = URL.createObjectURL(blob)
     const link = document.createElement('a')
@@ -223,211 +244,268 @@ function AdminSalesPage() {
     URL.revokeObjectURL(url)
   }
 
+  const handlePrint = async (recordId: string) => {
+    setPrintOrderId(recordId)
+    requestAnimationFrame(() => {
+      void triggerNativePrint({ silent: true })
+    })
+  }
+
+  const handleVoid = (orderId: string) => {
+    const order = orderById.get(orderId)
+    if (!order) {
+      dispatch(
+        pushToast({
+          title: 'Order not found',
+          description: 'This sale is already archived and cannot be voided here.',
+          variant: 'warning',
+        }),
+      )
+      return
+    }
+
+    if (order.status !== 'PENDING_PAYMENT' && order.status !== 'HOLD') {
+      dispatch(
+        pushToast({
+          title: 'Void blocked',
+          description: 'Only pending or on-hold orders can be voided.',
+          variant: 'warning',
+        }),
+      )
+      return
+    }
+
+    const reason = 'Voided from sales records'
+    dispatch(cancelOrder({ id: order.id, reason }))
+    void dispatch(syncOrderCancellation({ id: order.id, reason }))
+    dispatch(
+      pushToast({
+        title: 'Order voided',
+        description: `${order.order_no} was cancelled.`,
+        variant: 'success',
+      }),
+    )
+  }
+
   return (
     <div className="page admin-page">
       <div className="page-header">
         <div>
           <h2>Sales Records</h2>
-          <p className="muted">Paid orders captured from cashier and kiosk.</p>
+          <p className="muted">Track payments, profit, and cashier performance.</p>
         </div>
       </div>
 
-      <div className="admin-toolbar admin-toolbar-surface">
+      <div className="admin-toolbar admin-toolbar-surface sales-filter-bar">
         <Input
-          label="Search order or cashier"
-          placeholder="Search by order number or staff"
+          label="Search"
+          placeholder="Order ID or cashier"
           value={query}
           onChange={(event) => setQuery(event.target.value)}
           name="salesSearch"
         />
         <Select
-          label="Payment method"
+          label="Payment Method"
           value={methodFilter}
           options={methodOptions}
           onChange={(event) => setMethodFilter(event.target.value)}
         />
+        <Select
+          label="Status"
+          value={statusFilter}
+          options={statusOptions}
+          onChange={(event) => setStatusFilter(event.target.value)}
+        />
         <Input
-          label="Start date"
+          label="Date From"
           type="date"
           value={startDate}
           onChange={(event) => setStartDate(event.target.value)}
           name="salesStartDate"
         />
         <Input
-          label="End date"
+          label="Date To"
           type="date"
           value={endDate}
           onChange={(event) => setEndDate(event.target.value)}
           name="salesEndDate"
         />
         <Button variant="outline" onClick={handleExport} icon="download">
-          Export CSV
+          Export
         </Button>
       </div>
 
       <div className="admin-stats">
-        <div className="admin-stat-card panel">
-          <span className="muted">Total Sales</span>
-          <h3>{formatCurrency(metrics.total)}</h3>
-          <p className="muted">{filtered.length} records</p>
-        </div>
-        <div className="admin-stat-card panel">
-          <span className="muted">COGS</span>
-          <h3>{formatCurrency(metrics.cogs)}</h3>
-          <p className="muted">Ingredient cost</p>
-        </div>
-        <div className="admin-stat-card panel">
-          <span className="muted">Gross Profit</span>
-          <h3>{formatCurrency(metrics.grossProfit)}</h3>
-          <p className="muted">{Math.round(metrics.grossMargin * 100)}% margin</p>
-        </div>
-        <div className="admin-stat-card panel">
-          <span className="muted">Average Ticket</span>
-          <h3>{formatCurrency(metrics.avgTicket)}</h3>
-          <p className="muted">Per paid order</p>
-        </div>
-        <div className="admin-stat-card panel">
-          <span className="muted">Cash</span>
-          <h3>{formatCurrency(metrics.totalsByMethod.CASH)}</h3>
-          <p className="muted">{metrics.countByMethod.CASH} orders</p>
-        </div>
-        <div className="admin-stat-card panel">
-          <span className="muted">Card</span>
-          <h3>{formatCurrency(metrics.totalsByMethod.CARD)}</h3>
-          <p className="muted">{metrics.countByMethod.CARD} orders</p>
-        </div>
-        <div className="admin-stat-card panel">
-          <span className="muted">GCash</span>
-          <h3>{formatCurrency(metrics.totalsByMethod.GCASH)}</h3>
-          <p className="muted">{metrics.countByMethod.GCASH} orders</p>
-        </div>
-        <div className="admin-stat-card panel">
-          <span className="muted">Other</span>
-          <h3>{formatCurrency(metrics.totalsByMethod.OTHER)}</h3>
-          <p className="muted">{metrics.countByMethod.OTHER} orders</p>
+        <AdminStatCard label="Total Sales" value={formatCurrency(metrics.totalSales)} icon="monitoring" />
+        <AdminStatCard label="Total Orders" value={String(metrics.totalOrders)} icon="receipt_long" />
+        <AdminStatCard label="Profit" value={formatCurrency(metrics.profit)} icon="trending_up" />
+        <AdminStatCard label="Average Ticket" value={formatCurrency(metrics.avgTicket)} icon="point_of_sale" />
+        <div className="panel admin-stat-card sales-payment-breakdown">
+          <span className="material-symbols-rounded stat-icon" aria-hidden="true">
+            account_balance_wallet
+          </span>
+          <span className="muted">Payment Breakdown</span>
+          <div className="sales-payment-lines">
+            <p>Cash: <strong>{formatCurrency(metrics.totalsByMethod.CASH)}</strong></p>
+            <p>GCash: <strong>{formatCurrency(metrics.totalsByMethod.GCASH)}</strong></p>
+            <p>Card: <strong>{formatCurrency(metrics.totalsByMethod.CARD)}</strong></p>
+          </div>
         </div>
       </div>
 
-      <div className="admin-grid admin-analytics-grid">
-        <div className="panel admin-card">
-          <div className="admin-card-header">
-            <h3>Daily Summary</h3>
-            <span className="muted">Last {dailySummary.length} days</span>
+      <div className="panel admin-card">
+        <div className="admin-table admin-table-sales-records">
+          <div className="admin-table-head sales-records">
+            <span>Order ID</span>
+            <span>Date & Time</span>
+            <span>Cashier</span>
+            <span>Payment Method</span>
+            <span>Total</span>
+            <span>Tax</span>
+            <span>COGS</span>
+            <span>Profit</span>
+            <span>Status</span>
+            <span>Actions</span>
           </div>
-          <ul className="admin-list">
-            {dailySummary.length > 0 ? (
-              dailySummary.map((day) => (
-                <li key={day.day}>
-                  <span>{day.day}</span>
-                  <strong>
-                    {formatCurrency(day.total)} · {day.count} orders
-                  </strong>
-                </li>
-              ))
-            ) : (
-              <li>
-                <span>No data</span>
-                <span className="muted">Add paid orders</span>
-              </li>
-            )}
-          </ul>
-        </div>
 
-        <div className="panel admin-card">
-          <div className="admin-card-header">
-            <h3>Top Items Sold</h3>
-            <span className="muted">{topItems.length} items</span>
-          </div>
-          <ul className="admin-list">
-            {topItems.length > 0 ? (
-              topItems.map((item) => (
-                <li key={item.name}>
-                  <span>{item.name}</span>
-                  <strong>{item.qty}</strong>
-                </li>
-              ))
-            ) : (
-              <li>
-                <span>No sales yet</span>
-                <span className="muted">Waiting on payments</span>
-              </li>
-            )}
-          </ul>
-        </div>
-
-        <div className="panel admin-card">
-          <div className="admin-card-header">
-            <h3>Category Allocation</h3>
-            <span className="muted">{categoryAllocation.length} categories</span>
-          </div>
-          <ul className="admin-list">
-            {categoryAllocation.length > 0 ? (
-              categoryAllocation.map((category) => (
-                <li key={category.name}>
-                  <span>{category.name}</span>
-                  <strong>
-                    {formatCurrency(category.revenue)} · {category.qty} items
-                  </strong>
-                </li>
-              ))
-            ) : (
-              <li>
-                <span>No allocation data</span>
-                <span className="muted">Waiting on sales</span>
-              </li>
-            )}
-          </ul>
-        </div>
-      </div>
-
-      <div className="admin-table">
-        <div className="admin-table-head sales">
-          <span>Order</span>
-          <span>Paid At</span>
-          <span>Method</span>
-          <span>Subtotal</span>
-          <span>Tax</span>
-          <span>Total</span>
-          <span>COGS</span>
-          <span>Profit</span>
-          <span>Margin</span>
-          <span>Processed By</span>
-        </div>
-        {sorted.length === 0 ? (
-          <div className="panel empty-state">
-            <h3>No sales yet</h3>
-            <p className="muted">Captured payments will appear here.</p>
-          </div>
-        ) : (
-          sorted.map((record) => (
-            <div key={record.id} className="admin-table-row sales">
-              {(() => {
-                const cogs = record.cogs ?? 0
-                const grossProfit = record.grossProfit ?? record.total - cogs
-                const grossMargin =
-                  record.grossMargin ?? (record.total > 0 ? grossProfit / record.total : 0)
-                return (
-                  <>
-              <div className="admin-cell-title">
-                <strong>{record.orderNo}</strong>
-                <span className="muted">{record.source}</span>
-              </div>
-              <span>{new Date(record.paidAt).toLocaleString()}</span>
-              <span>{record.paymentMethod}</span>
-              <span className="admin-price">{formatCurrency(record.subtotal)}</span>
-              <span className="admin-price">{formatCurrency(record.tax)}</span>
-              <span className="admin-price">{formatCurrency(record.total)}</span>
-              <span className="admin-price">{formatCurrency(cogs)}</span>
-              <span className="admin-price">{formatCurrency(grossProfit)}</span>
-              <span className="admin-count">{Math.round(grossMargin * 100)}%</span>
-              <span>{record.processedBy?.name ?? '—'}</span>
-                  </>
-                )
-              })()}
+          {sorted.length === 0 ? (
+            <div className="empty-state">
+              <h3>No sales found</h3>
+              <p className="muted">Try adjusting your filters.</p>
             </div>
-          ))
-        )}
+          ) : (
+            sorted.map((record) => {
+              const cogs = record.cogs ?? 0
+              const profit = record.grossProfit ?? record.total - cogs
+              const status = getUiStatus(record.orderId)
+
+              return (
+                <div
+                  key={record.id}
+                  className="admin-table-row sales-records"
+                  role="button"
+                  tabIndex={0}
+                  onClick={() => setSelectedRecordId(record.id)}
+                  onKeyDown={(event) => {
+                    if (event.key === 'Enter' || event.key === ' ') {
+                      event.preventDefault()
+                      setSelectedRecordId(record.id)
+                    }
+                  }}
+                >
+                  <div className="admin-cell-title">
+                    <strong>{record.orderNo}</strong>
+                  </div>
+                  <span>{new Date(record.paidAt).toLocaleString()}</span>
+                  <span>{record.processedBy?.name ?? '—'}</span>
+                  <span>{record.paymentMethod}</span>
+                  <span className="admin-price">{formatCurrency(record.total)}</span>
+                  <span className="admin-price">{formatCurrency(record.tax)}</span>
+                  <span className="admin-price">{formatCurrency(cogs)}</span>
+                  <span className="admin-price">{formatCurrency(profit)}</span>
+                  <span className={`sales-status-pill sales-status-pill--${status.toLowerCase()}`}>
+                    {status}
+                  </span>
+                  <div
+                    className="admin-row-actions sales-row-actions"
+                    onClick={(event) => event.stopPropagation()}
+                  >
+                    <Button
+                      variant="outline"
+                      className="sales-action-btn sales-action-view"
+                      onClick={() => setSelectedRecordId(record.id)}
+                      icon="visibility"
+                    >
+                      View
+                    </Button>
+                    <Button
+                      variant="outline"
+                      className="sales-action-btn sales-action-print"
+                      onClick={() => handlePrint(record.id)}
+                      icon="print"
+                    >
+                      Print
+                    </Button>
+                    <Button
+                      variant="outline"
+                      className="sales-action-btn sales-action-void"
+                      onClick={() => handleVoid(record.orderId)}
+                      icon="cancel"
+                    >
+                      Void
+                    </Button>
+                  </div>
+                </div>
+              )
+            })
+          )}
+        </div>
       </div>
+
+      <Modal
+        isOpen={Boolean(selectedRecord)}
+        title="Order Details"
+        onClose={() => setSelectedRecordId(null)}
+        footer={
+          <div className="modal-actions">
+            <Button variant="ghost" onClick={() => setSelectedRecordId(null)}>
+              Close
+            </Button>
+            {selectedRecord ? (
+              <Button variant="outline" onClick={() => handlePrint(selectedRecord.id)} icon="print">
+                Print
+              </Button>
+            ) : null}
+          </div>
+        }
+      >
+        {selectedRecord ? (
+          <div className="sales-order-modal">
+            <div className="sales-order-meta">
+              <p><strong>Order:</strong> {selectedRecord.orderNo}</p>
+              <p><strong>Cashier:</strong> {selectedRecord.processedBy?.name ?? '—'}</p>
+              <p><strong>Paid At:</strong> {new Date(selectedRecord.paidAt).toLocaleString()}</p>
+            </div>
+            <div className="sales-order-items">
+              {selectedRecord.items.map((item) => (
+                <div key={`${selectedRecord.id}-${item.id}-${item.name}`} className="sales-order-item">
+                  <div>
+                    <strong>{item.name}</strong>
+                    {item.modifiers && item.modifiers.length > 0 ? (
+                      <p className="muted">{item.modifiers.join(', ')}</p>
+                    ) : null}
+                  </div>
+                  <span>{item.quantity}</span>
+                  <span>{formatCurrency(item.price)}</span>
+                  <span>{formatCurrency(item.price * item.quantity)}</span>
+                </div>
+              ))}
+            </div>
+            <div className="sales-order-summary">
+              <div className="summary-row">
+                <span>Subtotal</span>
+                <span>{formatCurrency(selectedRecord.subtotal)}</span>
+              </div>
+              <div className="summary-row">
+                <span>Tax</span>
+                <span>{formatCurrency(selectedRecord.tax)}</span>
+              </div>
+              <div className="summary-row">
+                <span>Discount</span>
+                <span>{formatCurrency(selectedRecord.discount ?? 0)}</span>
+              </div>
+              <div className="summary-total">
+                <span>Total</span>
+                <span>{formatCurrency(selectedRecord.total)}</span>
+              </div>
+            </div>
+          </div>
+        ) : null}
+      </Modal>
+
+      {printOrder ? (
+        <OrderReceiptSheet order={printOrder} variant="receipt" />
+      ) : null}
     </div>
   )
 }

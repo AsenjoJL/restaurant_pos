@@ -255,12 +255,17 @@ textarea {
 
 .product-chip {
   background: rgba(255, 255, 255, 0.8);
-  padding: 4px 8px;
+  padding: 5px 10px;
   border-radius: 999px;
-  font-size: 0.7rem;
-  text-transform: uppercase;
-  letter-spacing: 0.1em;
-  font-weight: 700;
+  font-size: 0.68rem;
+  text-transform: none;
+  letter-spacing: 0.02em;
+  line-height: 1.2;
+  font-weight: 600;
+  max-width: 82%;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
   position: relative;
   z-index: 1;
 }
@@ -269,6 +274,11 @@ textarea {
   position: absolute;
   top: 10px;
   right: 10px;
+}
+
+.product-media.has-image .availability-badge + .product-chip {
+  top: 40px;
+  max-width: calc(100% - 20px);
 }
 
 .product-image-fallback {
@@ -752,6 +762,7 @@ textarea {
   padding: 16px;
   display: grid;
   gap: 12px;
+  grid-template-rows: auto auto auto 1fr auto;
 }
 
 .kds-header {
@@ -772,6 +783,88 @@ textarea {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 10px;
+  align-items: center;
+  justify-items: stretch;
+  margin-top: 10px;
+}
+
+/* Cashier + Kitchen typography tuning for better readability */
+.cashier-page .page-header h2,
+.kitchen-page .page-header h2 {
+  font-size: 2rem;
+  line-height: 1.1;
+}
+
+.cashier-page .page-header .muted,
+.kitchen-page .page-header .muted {
+  font-size: 1.08rem;
+}
+
+.cashier-page .cashier-queue-header h3,
+.cashier-page .cashier-detail-header h3 {
+  font-size: 1.35rem;
+}
+
+.cashier-page .cashier-card {
+  font-size: 1.02rem;
+}
+
+.cashier-page .cashier-card-head h3,
+.cashier-page .cashier-detail-header h3 {
+  font-size: 1.32rem;
+}
+
+.cashier-page .cashier-card-meta,
+.cashier-page .cashier-note,
+.cashier-page .cashier-item-row,
+.cashier-page .cashier-total-box,
+.cashier-page .cashier-tools,
+.cashier-page .input,
+.cashier-page .select,
+.cashier-page .textarea,
+.cashier-page .btn {
+  font-size: 1rem;
+}
+
+.cashier-page .chip,
+.cashier-page .badge,
+.cashier-page .input-helper,
+.cashier-page .input-error-text,
+.cashier-page .input-label {
+  font-size: 0.92rem;
+}
+
+.kitchen-page .kds-metric strong {
+  font-size: 1.9rem;
+}
+
+.kitchen-page .kds-metric .muted,
+.kitchen-page .kds-filter .muted,
+.kitchen-page .kds-station-summary .muted {
+  font-size: 1.02rem;
+}
+
+.kitchen-page .kds-filter-btn,
+.kitchen-page .station-chip,
+.kitchen-page .station-pill {
+  font-size: 0.95rem;
+}
+
+.kitchen-page .kds-card {
+  font-size: 1rem;
+}
+
+.kitchen-page .kds-header h3 {
+  font-size: 1.35rem;
+  line-height: 1.2;
+}
+
+.kitchen-page .kds-header .muted,
+.kitchen-page .kds-meta,
+.kitchen-page .kds-item-row .muted,
+.kitchen-page .kds-bundle,
+.kitchen-page .btn {
+  font-size: 1rem;
 }
 
 .cashier-sections {
@@ -839,12 +932,17 @@ textarea {
   display: grid;
   grid-template-columns: minmax(0, 1fr) 360px;
   gap: 20px;
+  align-items: start;
 }
 
 .cashier-queue {
   padding: 16px;
   display: grid;
   gap: 16px;
+  align-self: start;
+  max-height: calc(100vh - 220px);
+  overflow-y: auto;
+  overscroll-behavior: contain;
 }
 
 .cashier-queue-header {
@@ -895,6 +993,10 @@ textarea {
   padding: 16px;
   display: grid;
   gap: 16px;
+  align-self: start;
+  max-height: calc(100vh - 220px);
+  overflow-y: auto;
+  overscroll-behavior: contain;
 }
 
 .cashier-detail-header {
@@ -1461,10 +1563,6 @@ textarea {
 }
 
 @media (max-width: 1200px) {
-  .pos-screen {
-    grid-template-columns: 240px minmax(0, 1fr) 300px;
-  }
-
   .kiosk-menu {
     grid-template-columns: 1fr;
   }
@@ -1472,17 +1570,15 @@ textarea {
   .cashier-grid {
     grid-template-columns: 1fr;
   }
+
+  .cashier-queue,
+  .cashier-detail {
+    max-height: none;
+    overflow: visible;
+  }
 }
 
 @media (max-width: 1024px) {
-  .pos-screen {
-    grid-template-columns: 1fr;
-    grid-template-areas:
-      'sidebar'
-      'products'
-      'cart';
-  }
-
   .cart-list {
     max-height: none;
   }

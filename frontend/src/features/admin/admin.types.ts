@@ -10,9 +10,12 @@ export type AdminCategory = {
 
 export type AdminProduct = {
   id: string
+  sku: string
   name: string
   description: string
   price: number
+  baseCost: number
+  productClass: 'RAW' | 'NON_RAW'
   categoryId: string
   isActive: boolean
 }

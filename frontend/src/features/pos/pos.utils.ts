@@ -178,6 +178,7 @@ export const buildDraftFromOrder = (
       }
     }),
     discount: order.discount ?? 0,
+    promoCode: null,
     serviceCharge: order.service_charge ?? 0,
     taxRate: 0.0825,
     status: 'draft',

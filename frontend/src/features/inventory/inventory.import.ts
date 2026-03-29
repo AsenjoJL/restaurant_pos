@@ -9,11 +9,20 @@ type ParsedIngredientImport =
       status: 'ok'
       payload: Pick<
         Ingredient,
-        'name' | 'category' | 'baseUnit' | 'onHand' | 'reorderLevel' | 'unitCost'
+        | 'inventoryId'
+        | 'ingredientType'
+        | 'name'
+        | 'category'
+        | 'baseUnit'
+        | 'onHand'
+        | 'reorderLevel'
+        | 'unitCost'
       >
     }
 
 export const INVENTORY_IMPORT_HEADERS = [
+  'inventory id',
+  'ingredient type',
   'name',
   'category',
   'base unit',
@@ -26,6 +35,8 @@ export const INVENTORY_IMPORT_HEADERS = [
 ] as const
 
 export const INVENTORY_IMPORT_SAMPLE = {
+  'inventory id': 'ING-0001',
+  'ingredient type': 'RAW',
   name: 'Chicken (raw)',
   category: 'Meat & Poultry',
   'base unit': 'g',
@@ -62,6 +73,20 @@ const parseNumber = (value: unknown) => {
     return Number.NaN
   }
   return Number(cleaned)
+}
+
+const normalizeIngredientType = (value: unknown) => {
+  const normalized = String(value).toLowerCase().replace(/[\s_-]+/g, '').trim()
+  if (!normalized) {
+    return undefined
+  }
+  if (['nonraw', 'nonrawitem', 'finished', 'packaged', 'readytoeat'].includes(normalized)) {
+    return 'NON_RAW' as const
+  }
+  if (['raw', 'rawitem', 'ingredient'].includes(normalized)) {
+    return 'RAW' as const
+  }
+  return undefined
 }
 
 export const parseSheetRows = (
@@ -108,15 +133,17 @@ export const parseSheetRows = (
 
   const buildFromPositions = () =>
     rows.map((row) => ({
-      name: row[0] ?? '',
-      category: row[1] ?? '',
-      baseUnit: row[2] ?? '',
-      onHand: row[3] ?? '',
-      reorderLevel: row[4] ?? '',
-      unitCost: row[5] ?? '',
-      bulkQty: row[6] ?? '',
-      bulkUnit: row[7] ?? '',
-      bulkPrice: row[8] ?? '',
+      inventoryId: row[0] ?? '',
+      ingredientType: row[1] ?? '',
+      name: row[2] ?? '',
+      category: row[3] ?? '',
+      baseUnit: row[4] ?? '',
+      onHand: row[5] ?? '',
+      reorderLevel: row[6] ?? '',
+      unitCost: row[7] ?? '',
+      bulkQty: row[8] ?? '',
+      bulkUnit: row[9] ?? '',
+      bulkPrice: row[10] ?? '',
     }))
 
   const headerIndex = findHeaderIndex()
@@ -181,7 +208,13 @@ export const parseIngredientImportRow = (row: ImportRow): ParsedIngredientImport
   const name = String(
     getRowValue(row, ['name', 'ingredient', 'ingredientname', 'item', 'ingredientitem']),
   ).trim()
-  const category = String(getRowValue(row, ['category', 'cat', 'type'])).trim()
+  const inventoryId = String(
+    getRowValue(row, ['inventoryid', 'inventory id', 'ingredientid', 'ingredient id', 'id']),
+  ).trim()
+  const ingredientType = normalizeIngredientType(
+    getRowValue(row, ['ingredienttype', 'ingredient type', 'type', 'itemtype', 'item type']),
+  )
+  const category = String(getRowValue(row, ['category', 'cat'])).trim()
   const baseUnitRaw = String(getRowValue(row, ['baseunit', 'base unit', 'unit', 'uom'])).trim()
 
   if (!name && !category && !baseUnitRaw) {
@@ -260,6 +293,8 @@ export const parseIngredientImportRow = (row: ImportRow): ParsedIngredientImport
     status: 'ok',
     payload: {
       name,
+      inventoryId: inventoryId || undefined,
+      ingredientType,
       category,
       baseUnit,
       onHand,

@@ -5,6 +5,7 @@ import LoginPage from '../../features/auth/pages/LoginPage'
 import PosPage from '../../features/pos/pages/PosPage'
 import OrdersPage from '../../features/orders/pages/OrdersPage'
 import KitchenDisplayPage from '../../features/kitchen/pages/KitchenDisplayPage'
+import KitchenQueueBoardPage from '../../features/kitchen/pages/KitchenQueueBoardPage'
 import AdminLayout from '../../features/admin/components/AdminLayout'
 import AdminDashboardPage from '../../features/admin/pages/AdminDashboardPage'
 import AdminSalesPage from '../../features/sales/pages/AdminSalesPage'
@@ -17,12 +18,11 @@ import AdminUsersPage from '../../features/admin/pages/AdminUsersPage'
 import AdminSettingsPage from '../../features/admin/pages/AdminSettingsPage'
 import AdminInventoryPage from '../../features/inventory/pages/AdminInventoryPage'
 import AdminRecipesPage from '../../features/inventory/pages/AdminRecipesPage'
+import OrderAndInventoryDashboard from '../../features/inventory/pages/OrderAndInventoryDashboard'
 import KioskShell from '../../features/kiosk/components/KioskShell'
 import KioskWelcomePage from '../../features/kiosk/pages/KioskWelcomePage'
 import KioskOrderTypePage from '../../features/kiosk/pages/KioskOrderTypePage'
 import KioskMenuPage from '../../features/kiosk/pages/KioskMenuPage'
-import KioskCartPage from '../../features/kiosk/pages/KioskCartPage'
-import KioskConfirmPage from '../../features/kiosk/pages/KioskConfirmPage'
 import KioskSuccessPage from '../../features/kiosk/pages/KioskSuccessPage'
 import KioskPrintSlipPage from '../../features/kiosk/pages/KioskPrintSlipPage'
 
@@ -37,12 +37,14 @@ function AppRouter() {
       <Routes>
         <Route path="/" element={<Navigate to="/kiosk" replace />} />
         <Route path="/login" element={<LoginPage />} />
+        <Route path="/KDS" element={<KitchenQueueBoardPage />} />
+        <Route path="/kds-board" element={<Navigate to="/KDS" replace />} />
         <Route path="/kiosk" element={<KioskShell />}>
           <Route index element={<KioskWelcomePage />} />
           <Route path="order-type" element={<KioskOrderTypePage />} />
           <Route path="menu" element={<KioskMenuPage />} />
-          <Route path="cart" element={<KioskCartPage />} />
-          <Route path="confirm" element={<KioskConfirmPage />} />
+          <Route path="cart" element={<Navigate to="/kiosk/menu" replace />} />
+          <Route path="confirm" element={<Navigate to="/kiosk/menu" replace />} />
           <Route path="success/:orderNo" element={<KioskSuccessPage />} />
           <Route path="print/:orderNo" element={<KioskPrintSlipPage />} />
         </Route>
@@ -88,6 +90,7 @@ function AppRouter() {
         >
           <Route index element={<Navigate to="dashboard" replace />} />
           <Route path="dashboard" element={<AdminDashboardPage />} />
+          <Route path="orders-dashboard" element={<OrderAndInventoryDashboard />} />
           <Route path="sales" element={<AdminSalesPage />} />
           <Route path="products" element={<AdminProductsPage />} />
           <Route path="categories" element={<AdminCategoriesPage />} />

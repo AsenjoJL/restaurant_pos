@@ -15,9 +15,10 @@ import {
   updateIngredient,
 } from '../inventory.store'
 import {
+  selectInventoryAdjustments,
   selectInventoryIngredients,
 } from '../inventory.selectors'
-import type { Ingredient, IngredientBaseUnit } from '../inventory.types'
+import type { Ingredient, IngredientBaseUnit, IngredientType } from '../inventory.types'
 import { formatIngredientQty } from '../inventory.logic'
 import {
   calculateUnitCostFromBulk,
@@ -28,6 +29,7 @@ import {
 } from '../inventory.import'
 
 type IngredientFormState = {
+  ingredientType: IngredientType
   name: string
   category: string
   baseUnit: IngredientBaseUnit
@@ -62,9 +64,11 @@ type AdjustErrors = {
   ingredientId?: string
   qty?: string
   reason?: string
+  reference?: string
 }
 
 const emptyIngredientForm: IngredientFormState = {
+  ingredientType: 'RAW',
   name: '',
   category: '',
   baseUnit: 'pcs',
@@ -92,11 +96,36 @@ const unitOptions = [
   { value: 'ml', label: 'ml' },
 ]
 
+const reasonTypeDefaultReason: Record<AdjustFormState['reasonType'], string> = {
+  MANUAL: 'Manual adjustment',
+  RESTOCK: 'Supplier restock',
+  WASTE: 'Waste / spoilage',
+  VARIANCE: 'Stock count variance',
+}
+
+const buildRestockReference = (existingAdjustments: { reference?: string }[]) => {
+  const now = new Date()
+  const datePart = `${now.getFullYear()}${String(now.getMonth() + 1).padStart(2, '0')}${String(
+    now.getDate(),
+  ).padStart(2, '0')}`
+  const prefix = `RST-${datePart}-`
+  const used = existingAdjustments
+    .map((item) => item.reference?.trim().toUpperCase() ?? '')
+    .filter((value) => value.startsWith(prefix))
+    .map((value) => Number(value.slice(prefix.length)))
+    .filter((value) => Number.isFinite(value))
+  const next = (used.length > 0 ? Math.max(...used) : 0) + 1
+  return `${prefix}${String(next).padStart(3, '0')}`
+}
+
 function AdminInventoryPage() {
   const dispatch = useAppDispatch()
   const ingredients = useAppSelector(selectInventoryIngredients)
+  const adjustments = useAppSelector(selectInventoryAdjustments)
   const [query, setQuery] = useState('')
   const [categoryFilter, setCategoryFilter] = useState('all')
+  const [ingredientTypeFilter, setIngredientTypeFilter] = useState<'all' | IngredientType>('all')
+  const [statusFilter, setStatusFilter] = useState<'all' | 'low' | 'ok'>('all')
   const [isIngredientModalOpen, setIsIngredientModalOpen] = useState(false)
   const [isAdjustModalOpen, setIsAdjustModalOpen] = useState(false)
   const [editing, setEditing] = useState<Ingredient | null>(null)
@@ -123,12 +152,41 @@ function AdminInventoryPage() {
     return map
   }, [ingredients])
 
+  const ingredientByInventoryId = useMemo(() => {
+    const map = new Map<string, Ingredient>()
+    ingredients.forEach((ingredient) => {
+      const key = ingredient.inventoryId?.trim().toUpperCase()
+      if (key) {
+        map.set(key, ingredient)
+      }
+    })
+    return map
+  }, [ingredients])
+
   const categoryOptions = useMemo(
     () => [
       { value: 'all', label: 'All categories' },
       ...categories.map((category) => ({ value: category, label: category })),
     ],
     [categories],
+  )
+
+  const statusOptions = useMemo(
+    () => [
+      { value: 'all', label: 'All status' },
+      { value: 'low', label: 'Low stock' },
+      { value: 'ok', label: 'Healthy stock' },
+    ],
+    [],
+  )
+
+  const ingredientTypeOptions = useMemo(
+    () => [
+      { value: 'all', label: 'All types' },
+      { value: 'RAW', label: 'Raw' },
+      { value: 'NON_RAW', label: 'Non-raw' },
+    ],
+    [],
   )
 
   const ingredientCategoryOptions = useMemo(
@@ -144,7 +202,7 @@ function AdminInventoryPage() {
       { value: '', label: 'Select ingredient' },
       ...ingredients.map((item) => ({
         value: item.id,
-        label: item.name,
+        label: item.inventoryId ? `${item.inventoryId} - ${item.name}` : item.name,
       })),
     ],
     [ingredients],
@@ -161,31 +219,97 @@ function AdminInventoryPage() {
     }
   }, [categories.length, ingredients])
 
+  const alerts = useMemo(() => {
+    const lowStockItems = ingredients
+      .filter((item) => item.onHand <= item.reorderLevel)
+      .sort((a, b) => a.onHand - b.onHand)
+
+    const nearReorderItems = ingredients
+      .filter(
+        (item) =>
+          item.onHand > item.reorderLevel &&
+          item.reorderLevel > 0 &&
+          item.onHand <= item.reorderLevel * 1.25,
+      )
+      .sort((a, b) => a.onHand - b.onHand)
+
+    const reorderSuggestions = lowStockItems.slice(0, 8).map((item) => {
+      const targetLevel = Math.max(item.reorderLevel * 2, item.reorderLevel + 1)
+      const suggestedQty = Math.max(0, Math.ceil(targetLevel - item.onHand))
+      return {
+        ...item,
+        suggestedQty,
+      }
+    })
+
+    const sevenDaysAgo = Date.now() - 7 * 24 * 60 * 60 * 1000
+    const wasteMap = new Map<string, number>()
+
+    adjustments.forEach((adjustment) => {
+      if (adjustment.reasonType !== 'WASTE') {
+        return
+      }
+      const timestamp = new Date(adjustment.at).getTime()
+      if (!Number.isFinite(timestamp) || timestamp < sevenDaysAgo) {
+        return
+      }
+      const current = wasteMap.get(adjustment.ingredientId) ?? 0
+      wasteMap.set(adjustment.ingredientId, current + adjustment.qty)
+    })
+
+    const expiryRiskItems = Array.from(wasteMap.entries())
+      .map(([ingredientId, wasteQty]) => {
+        const ingredient = ingredients.find((item) => item.id === ingredientId)
+        if (!ingredient) {
+          return null
+        }
+        return { ingredient, wasteQty }
+      })
+      .filter((item): item is { ingredient: Ingredient; wasteQty: number } => Boolean(item))
+      .sort((a, b) => b.wasteQty - a.wasteQty)
+      .slice(0, 6)
+
+    return {
+      lowStockItems,
+      nearReorderItems,
+      reorderSuggestions,
+      expiryRiskItems,
+    }
+  }, [adjustments, ingredients])
+
   const filteredIngredients = useMemo(() => {
     const normalized = query.trim().toLowerCase()
     return ingredients.filter((ingredient) => {
       if (categoryFilter !== 'all' && ingredient.category !== categoryFilter) {
         return false
       }
+      if (
+        ingredientTypeFilter !== 'all' &&
+        (ingredient.ingredientType ?? 'RAW') !== ingredientTypeFilter
+      ) {
+        return false
+      }
+      const isLow = ingredient.onHand <= ingredient.reorderLevel
+      if (statusFilter === 'low' && !isLow) {
+        return false
+      }
+      if (statusFilter === 'ok' && isLow) {
+        return false
+      }
       if (!normalized) {
         return true
       }
-      return ingredient.name.toLowerCase().includes(normalized)
+      return (
+        ingredient.name.toLowerCase().includes(normalized) ||
+        ingredient.inventoryId?.toLowerCase().includes(normalized) === true
+      )
     })
-  }, [categoryFilter, ingredients, query])
-
-  const openAddModal = () => {
-    setEditing(null)
-    setForm(emptyIngredientForm)
-    setErrors({})
-    setFormError('')
-    setIsUnitCostManual(false)
-    setIsIngredientModalOpen(true)
-  }
+  }, [categoryFilter, ingredientTypeFilter, ingredients, query, statusFilter])
 
   const openEditModal = (ingredient: Ingredient) => {
     setEditing(ingredient)
     setForm({
+      ingredientType: ingredient.ingredientType ?? 'RAW',
       name: ingredient.name,
       category: ingredient.category,
       baseUnit: ingredient.baseUnit,
@@ -202,15 +326,20 @@ function AdminInventoryPage() {
     setIsIngredientModalOpen(true)
   }
 
-  const openAdjustModal = (ingredientId?: string) => {
+  const openAdjustModal = (
+    ingredientId?: string,
+    mode: 'manual' | 'restock' = 'manual',
+  ) => {
+    const nextReference = buildRestockReference(adjustments)
+    const isRestock = mode === 'restock'
     setAdjustForm({
       ingredientId: ingredientId ?? '',
-      type: 'IN',
-      reasonType: 'MANUAL',
+      type: isRestock ? 'IN' : 'IN',
+      reasonType: isRestock ? 'RESTOCK' : 'MANUAL',
       qty: '',
-      reason: '',
+      reason: isRestock ? 'Supplier restock' : '',
       countedQty: '',
-      reference: '',
+      reference: isRestock ? nextReference : nextReference,
     })
     setAdjustErrors({})
     setIsAdjustModalOpen(true)
@@ -342,6 +471,7 @@ function AdminInventoryPage() {
     }
 
     const payload = {
+      ingredientType: form.ingredientType,
       name: form.name.trim(),
       category: form.category.trim(),
       baseUnit: form.baseUnit,
@@ -392,6 +522,22 @@ function AdminInventoryPage() {
     if (!adjustForm.reason.trim()) {
       nextErrors.reason = 'Reason is required.'
     }
+    const normalizedReference = adjustForm.reference.trim().toUpperCase()
+    if (adjustForm.reasonType === 'RESTOCK') {
+      if (!normalizedReference) {
+        nextErrors.reference = 'Restock reference is required.'
+      } else {
+        const duplicate = adjustments.some((adjustment) => {
+          if (adjustment.reasonType !== 'RESTOCK') {
+            return false
+          }
+          return (adjustment.reference?.trim().toUpperCase() ?? '') === normalizedReference
+        })
+        if (duplicate) {
+          nextErrors.reference = 'Reference already exists. Use a unique restock reference.'
+        }
+      }
+    }
     if (adjustForm.reasonType === 'VARIANCE') {
       const countedValue = Number(adjustForm.countedQty)
       if (!Number.isFinite(countedValue) || countedValue < 0) {
@@ -399,14 +545,14 @@ function AdminInventoryPage() {
       }
     }
     setAdjustErrors(nextErrors)
-    return { nextErrors, qtyValue }
+    return { nextErrors, qtyValue, normalizedReference }
   }
 
   const handleAdjustStock = () => {
     if (isSaving) {
       return
     }
-    const { nextErrors, qtyValue } = validateAdjustment()
+    const { nextErrors, qtyValue, normalizedReference } = validateAdjustment()
     if (Object.keys(nextErrors).length > 0) {
       dispatch(
         pushToast({
@@ -473,7 +619,7 @@ function AdminInventoryPage() {
         reasonType: adjustForm.reasonType,
         qty: nextQty,
         reason: adjustForm.reason.trim(),
-        reference: adjustForm.reference.trim() || undefined,
+        reference: normalizedReference || undefined,
         countedQty:
           adjustForm.reasonType === 'VARIANCE'
             ? Number(adjustForm.countedQty)
@@ -487,7 +633,7 @@ function AdminInventoryPage() {
         reasonType: adjustForm.reasonType,
         qty: nextQty,
         reason: adjustForm.reason.trim(),
-        reference: adjustForm.reference.trim() || undefined,
+        reference: normalizedReference || undefined,
         countedQty:
           adjustForm.reasonType === 'VARIANCE' ? Number(adjustForm.countedQty) : undefined,
       }),
@@ -540,7 +686,11 @@ function AdminInventoryPage() {
 
         const payload = result.payload
 
-        const existing = ingredientByName.get(payload.name.toLowerCase())
+        const importInventoryId = payload.inventoryId?.trim().toUpperCase()
+        const existingByInventoryId = importInventoryId
+          ? ingredientByInventoryId.get(importInventoryId)
+          : undefined
+        const existing = existingByInventoryId ?? ingredientByName.get(payload.name.toLowerCase())
         if (existing) {
           dispatch(updateIngredient({ id: existing.id, ...payload }))
           void dispatch(syncUpsertIngredient({ id: existing.id, ...payload }))
@@ -578,9 +728,27 @@ function AdminInventoryPage() {
   const handleDownloadTemplate = async () => {
     try {
       const XLSX = await import('xlsx')
-      const worksheet = XLSX.utils.json_to_sheet([INVENTORY_IMPORT_SAMPLE], {
+      const worksheet = XLSX.utils.json_to_sheet(
+        [
+          INVENTORY_IMPORT_SAMPLE,
+          {
+            'inventory id': 'ING-0002',
+            'ingredient type': 'NON_RAW',
+            name: 'Paper bag',
+            category: 'Packaging & Service Items',
+            'base unit': 'pcs',
+            'on hand': 1000,
+            'reorder level': 250,
+            'unit cost': 1.5,
+            'bulk qty': 100,
+            'bulk unit': 'pcs',
+            'bulk price': 150,
+          },
+        ],
+        {
         header: [...INVENTORY_IMPORT_HEADERS],
-      })
+      },
+      )
       XLSX.utils.sheet_add_aoa(worksheet, [[...INVENTORY_IMPORT_HEADERS]], {
         origin: 'A1',
       })
@@ -624,12 +792,6 @@ function AdminInventoryPage() {
           >
             {isImporting ? 'Importing...' : 'Import Excel'}
           </Button>
-          <Button variant="outline" onClick={() => openAdjustModal()} icon="sync">
-            Stock Adjustment
-          </Button>
-          <Button variant="primary" onClick={openAddModal} icon="add">
-            Add Ingredient
-          </Button>
         </div>
       </div>
 
@@ -639,10 +801,125 @@ function AdminInventoryPage() {
         <AdminStatCard label="Categories" value={String(stats.categories)} icon="category" />
       </div>
 
+      <div className="panel admin-card inventory-alert-center">
+        <div className="inventory-alert-center__header">
+          <div>
+            <h3>Inventory Alerts Center</h3>
+            <p className="muted">
+              Low stock alerts, waste/expiry risk signals, and reorder guidance.
+            </p>
+          </div>
+          <span className="inventory-alert-center__badge">
+            {alerts.lowStockItems.length} active alert
+            {alerts.lowStockItems.length === 1 ? '' : 's'}
+          </span>
+        </div>
+
+        <div className="inventory-alert-center__stats">
+          <div className="inventory-alert-kpi">
+            <span className="muted">Critical Low</span>
+            <strong>{alerts.lowStockItems.length}</strong>
+          </div>
+          <div className="inventory-alert-kpi">
+            <span className="muted">Near Reorder</span>
+            <strong>{alerts.nearReorderItems.length}</strong>
+          </div>
+          <div className="inventory-alert-kpi">
+            <span className="muted">Waste Risk (7 days)</span>
+            <strong>{alerts.expiryRiskItems.length}</strong>
+          </div>
+        </div>
+
+        <div className="inventory-alert-center__grid">
+          <section className="inventory-alert-card">
+            <div className="inventory-alert-card__head">
+              <h4>Low Stock Alerts</h4>
+            </div>
+            <div className="inventory-alert-list">
+              {alerts.lowStockItems.length === 0 ? (
+                <p className="muted">No low-stock items right now.</p>
+              ) : (
+                alerts.lowStockItems.slice(0, 6).map((item) => (
+                  <div key={item.id} className="inventory-alert-row">
+                    <div>
+                      <strong>{item.name}</strong>
+                      <p className="muted">{item.category}</p>
+                    </div>
+                    <div className="inventory-alert-values">
+                      <span className="inventory-stock inventory-stock--low">
+                        {formatIngredientQty(item.onHand, item.baseUnit)}
+                      </span>
+                      <small className="muted">
+                        Reorder: {formatIngredientQty(item.reorderLevel, item.baseUnit)}
+                      </small>
+                    </div>
+                  </div>
+                ))
+              )}
+            </div>
+          </section>
+
+          <section className="inventory-alert-card">
+            <div className="inventory-alert-card__head">
+              <h4>Expiry/Waste Risk Signals</h4>
+            </div>
+            <div className="inventory-alert-list">
+              {alerts.expiryRiskItems.length === 0 ? (
+                <p className="muted">No recent waste activity in the last 7 days.</p>
+              ) : (
+                alerts.expiryRiskItems.map(({ ingredient, wasteQty }) => (
+                  <div key={ingredient.id} className="inventory-alert-row">
+                    <div>
+                      <strong>{ingredient.name}</strong>
+                      <p className="muted">{ingredient.category}</p>
+                    </div>
+                    <div className="inventory-alert-values">
+                      <span className="inventory-waste-risk">
+                        {formatIngredientQty(wasteQty, ingredient.baseUnit)}
+                      </span>
+                      <small className="muted">Waste in last 7 days</small>
+                    </div>
+                  </div>
+                ))
+              )}
+            </div>
+          </section>
+        </div>
+
+        <section className="inventory-alert-reorder">
+          <div className="inventory-alert-card__head">
+            <h4>Reorder Suggestions</h4>
+          </div>
+          <div className="inventory-reorder-list">
+            {alerts.reorderSuggestions.length === 0 ? (
+              <p className="muted">No reorder suggestions yet.</p>
+            ) : (
+              alerts.reorderSuggestions.map((item) => (
+                <div key={item.id} className="inventory-reorder-row">
+                  <div>
+                    <strong>{item.name}</strong>
+                    <p className="muted">{item.category}</p>
+                  </div>
+                  <div className="inventory-reorder-meta">
+                    <span>
+                      Suggested reorder:{' '}
+                      <strong>{formatIngredientQty(item.suggestedQty, item.baseUnit)}</strong>
+                    </span>
+                    <small className="muted">
+                      Current: {formatIngredientQty(item.onHand, item.baseUnit)}
+                    </small>
+                  </div>
+                </div>
+              ))
+            )}
+          </div>
+        </section>
+      </div>
+
       <div className="admin-toolbar admin-toolbar-surface">
         <Input
           label="Search"
-          placeholder="Search ingredients"
+          placeholder="Search by ID or ingredient"
           value={query}
           onChange={(event) => setQuery(event.target.value)}
         />
@@ -652,58 +929,119 @@ function AdminInventoryPage() {
           onChange={(event) => setCategoryFilter(event.target.value)}
           options={categoryOptions}
         />
+        <Select
+          label="Type"
+          value={ingredientTypeFilter}
+          onChange={(event) =>
+            setIngredientTypeFilter(event.target.value as 'all' | IngredientType)
+          }
+          options={ingredientTypeOptions}
+        />
+        <Select
+          label="Status"
+          value={statusFilter}
+          onChange={(event) =>
+            setStatusFilter(event.target.value as 'all' | 'low' | 'ok')
+          }
+          options={statusOptions}
+        />
+      </div>
+
+      <div className="inventory-toolbar-meta">
+        <p className="muted">
+          Showing <strong>{filteredIngredients.length}</strong> of{' '}
+          <strong>{ingredients.length}</strong> ingredients
+        </p>
       </div>
 
       <div className="panel admin-card">
         <div className="admin-table admin-table-inventory">
-        <div className="admin-table-head admin-table-row inventory">
-          <span>Ingredient</span>
-          <span>Category</span>
-          <span>Base Unit</span>
-          <span>On Hand</span>
-          <span>Reorder</span>
-          <span>Unit Cost</span>
-          <span>Status</span>
-          <span>Actions</span>
-        </div>
-        {filteredIngredients.map((ingredient) => {
-          const isLow = ingredient.onHand <= ingredient.reorderLevel
-          return (
-            <div key={ingredient.id} className="admin-table-row inventory">
-              <div className="inventory-meta">
-                <strong>{ingredient.name}</strong>
-              </div>
-              <span>{ingredient.category}</span>
-              <span className="inventory-unit">{ingredient.baseUnit}</span>
-              <span
-                className={`inventory-stock${isLow ? ' inventory-stock--low' : ''}`}
-              >
-                {formatIngredientQty(ingredient.onHand, ingredient.baseUnit)}
-              </span>
-              <span>{formatIngredientQty(ingredient.reorderLevel, ingredient.baseUnit)}</span>
-              <span>{formatCurrency(ingredient.unitCost ?? 0)}</span>
-              <span
-                className={`inventory-badge ${
-                  isLow ? 'inventory-badge--low' : 'inventory-badge--ok'
-                }`}
+          <div className="admin-table-head admin-table-row inventory">
+            <span>Inventory ID</span>
+            <span>Ingredient</span>
+            <span>Type</span>
+            <span>Category</span>
+            <span>Base Unit</span>
+            <span>On Hand</span>
+            <span>Reorder</span>
+            <span>Unit Cost</span>
+            <span>Status</span>
+            <span>Actions</span>
+          </div>
+          {filteredIngredients.length === 0 ? (
+            <div className="inventory-empty-state">
+              <h4>No ingredients found</h4>
+              <p className="muted">
+                Try changing your search, category, or status filter.
+              </p>
+            </div>
+          ) : (
+            filteredIngredients.map((ingredient) => {
+              const isLow = ingredient.onHand <= ingredient.reorderLevel
+              return (
+                <div
+                  key={ingredient.id}
+                  className={`admin-table-row inventory${isLow ? ' inventory-row--critical' : ''}`}
                 >
-                  {isLow ? 'Low' : 'OK'}
-                </span>
-                <div className="admin-row-actions">
-                  <Button variant="ghost" onClick={() => openEditModal(ingredient)} icon="edit">
-                    Edit
-                  </Button>
-                  <Button
-                    variant="outline"
-                    onClick={() => openAdjustModal(ingredient.id)}
-                    icon="sync"
+                  <span className="inventory-code">{ingredient.inventoryId ?? '-'}</span>
+                  <div className="inventory-meta">
+                    <strong>{ingredient.name}</strong>
+                  </div>
+                  <span
+                    className={`inventory-type-badge ${
+                      (ingredient.ingredientType ?? 'RAW') === 'NON_RAW'
+                        ? 'inventory-type-badge--non-raw'
+                        : 'inventory-type-badge--raw'
+                    }`}
                   >
-                    Adjust
-                  </Button>
+                    {(ingredient.ingredientType ?? 'RAW') === 'NON_RAW' ? 'Non-raw' : 'Raw'}
+                  </span>
+                  <span>{ingredient.category}</span>
+                  <span className="inventory-unit">{ingredient.baseUnit}</span>
+                  <span
+                    className={`inventory-stock${isLow ? ' inventory-stock--low' : ''}`}
+                  >
+                    {formatIngredientQty(ingredient.onHand, ingredient.baseUnit)}
+                  </span>
+                  <span>{formatIngredientQty(ingredient.reorderLevel, ingredient.baseUnit)}</span>
+                  <span>{formatCurrency(ingredient.unitCost ?? 0)}</span>
+                  <span
+                    className={`inventory-badge ${
+                      isLow ? 'inventory-badge--low' : 'inventory-badge--ok'
+                    }`}
+                  >
+                    {isLow ? 'Low' : 'OK'}
+                  </span>
+                  <div className="admin-row-actions inventory-row-actions">
+                    <Button
+                      variant="outline"
+                      className="inventory-action-btn inventory-action-edit"
+                      onClick={() => openEditModal(ingredient)}
+                      icon="edit"
+                    >
+                      Edit
+                    </Button>
+                    <Button
+                      variant="outline"
+                      className="inventory-action-btn inventory-action-restock"
+                      onClick={() => openAdjustModal(ingredient.id, 'restock')}
+                      icon="add"
+                    >
+                      Restock
+                    </Button>
+                    <Button
+                      variant="outline"
+                      className="inventory-action-btn inventory-action-adjust"
+                      onClick={() => openAdjustModal(ingredient.id)}
+                      icon="sync"
+                    >
+                      Adjust
+                    </Button>
+                  </div>
                 </div>
-              </div>
-            )
-          })}
+              )
+            })
+          )}
         </div>
       </div>
 
@@ -731,6 +1069,20 @@ function AdminInventoryPage() {
           error={errors.name}
         />
         <Select
+          label="Ingredient type"
+          value={form.ingredientType}
+          onChange={(event) =>
+            setForm({
+              ...form,
+              ingredientType: event.target.value as IngredientType,
+            })
+          }
+          options={[
+            { value: 'RAW', label: 'Raw ingredient' },
+            { value: 'NON_RAW', label: 'Non-raw / finished stock' },
+          ]}
+        />
+        <Select
           label="Category"
           value={form.category}
           onChange={(event) => setForm({ ...form, category: event.target.value })}
@@ -753,7 +1105,11 @@ function AdminInventoryPage() {
         <Input
           label="On hand"
           placeholder="0"
+          type="number"
+          min={0}
+          step="any"
           inputMode="decimal"
+          autoComplete="new-password"
           value={form.onHand}
           onChange={(event) => setForm({ ...form, onHand: event.target.value })}
           error={errors.onHand}
@@ -761,7 +1117,11 @@ function AdminInventoryPage() {
         <Input
           label="Reorder level"
           placeholder="0"
+          type="number"
+          min={0}
+          step="any"
           inputMode="decimal"
+          autoComplete="new-password"
           value={form.reorderLevel}
           onChange={(event) => setForm({ ...form, reorderLevel: event.target.value })}
           error={errors.reorderLevel}
@@ -769,7 +1129,11 @@ function AdminInventoryPage() {
         <Input
           label="Unit cost"
           placeholder="0.00"
+          type="number"
+          min={0}
+          step="any"
           inputMode="decimal"
+          autoComplete="new-password"
           value={form.unitCost}
           onChange={(event) => {
             const nextValue = event.target.value
@@ -783,7 +1147,11 @@ function AdminInventoryPage() {
           <Input
             label="Bulk quantity (optional)"
             placeholder="0"
+            type="number"
+            min={0}
+            step="any"
             inputMode="decimal"
+            autoComplete="new-password"
             value={form.bulkQty}
             onChange={(event) =>
               setForm({ ...form, bulkQty: event.target.value })
@@ -803,7 +1171,11 @@ function AdminInventoryPage() {
           <Input
             label="Bulk price (optional)"
             placeholder="0.00"
+            type="number"
+            min={0}
+            step="any"
             inputMode="decimal"
+            autoComplete="new-password"
             value={form.bulkPrice}
             onChange={(event) => setForm({ ...form, bulkPrice: event.target.value })}
             helperText={
@@ -870,6 +1242,11 @@ function AdminInventoryPage() {
                 ...prev,
                 reasonType: nextReason,
                 type: nextType,
+                reason: reasonTypeDefaultReason[nextReason],
+                reference:
+                  nextReason === 'RESTOCK'
+                    ? prev.reference || buildRestockReference(adjustments)
+                    : prev.reference,
               }
             })
           }
@@ -884,7 +1261,11 @@ function AdminInventoryPage() {
           <Input
             label="Counted quantity"
             placeholder="0"
+            type="number"
+            min={0}
+            step="any"
             inputMode="decimal"
+            autoComplete="new-password"
             value={adjustForm.countedQty}
             onChange={(event) =>
               setAdjustForm({ ...adjustForm, countedQty: event.target.value })
@@ -893,9 +1274,13 @@ function AdminInventoryPage() {
           />
         ) : (
           <Input
-            label="Quantity"
+            label={adjustForm.reasonType === 'RESTOCK' ? 'Restock amount' : 'Quantity'}
             placeholder="0"
+            type="number"
+            min={0}
+            step="any"
             inputMode="decimal"
+            autoComplete="new-password"
             value={adjustForm.qty}
             onChange={(event) => setAdjustForm({ ...adjustForm, qty: event.target.value })}
             error={adjustErrors.qty}
@@ -910,10 +1295,11 @@ function AdminInventoryPage() {
         />
         {adjustForm.reasonType === 'RESTOCK' ? (
           <Input
-            label="Supplier reference (optional)"
-            placeholder="Supplier or invoice reference"
+            label="Restock reference"
+            placeholder="RST-YYYYMMDD-###"
             value={adjustForm.reference}
             onChange={(event) => setAdjustForm({ ...adjustForm, reference: event.target.value })}
+            error={adjustErrors.reference}
           />
         ) : null}
       </Modal>

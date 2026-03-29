@@ -1,3 +1,4 @@
+import { useEffect, useState } from 'react'
 import { useAppDispatch, useAppSelector } from '../../../app/store/hooks'
 import { tables } from '../../../mock/data'
 import { formatCurrency } from '../../../shared/lib/format'
@@ -12,6 +13,8 @@ import {
   openModifierModal,
   openPaymentModal,
   setDiscount,
+  setPromoCode,
+  clearPromoCode,
   setItemNote,
   setItemQuantity,
   setOrderNotes,
@@ -20,7 +23,12 @@ import {
   stopEditingOrder,
 } from '../pos.store'
 import { selectAuthUser } from '../../auth/auth.selectors'
-import { selectDraft, selectEditingOrderId, selectTotals } from '../pos.selectors'
+import {
+  selectDraft,
+  selectEditingOrderId,
+  selectPromoEvaluation,
+  selectTotals,
+} from '../pos.selectors'
 import CartItemRow from './cart/CartItemRow'
 import { buildStaffOrder, generateStaffOrderNumber, mapDraftItemsToOrderItems } from '../pos.utils'
 import {
@@ -30,13 +38,16 @@ import {
   updatePendingOrder,
 } from '../../orders/orders.store'
 import { pushToast } from '../../../shared/store/ui.store'
+import { evaluatePromoCode, normalizePromoCode } from '../promo.engine'
 
 function CartPanel() {
   const dispatch = useAppDispatch()
   const draft = useAppSelector(selectDraft)
   const totals = useAppSelector(selectTotals)
+  const promo = useAppSelector(selectPromoEvaluation)
   const editingOrderId = useAppSelector(selectEditingOrderId)
   const user = useAppSelector(selectAuthUser)
+  const [promoInput, setPromoInput] = useState(draft.promoCode ?? '')
   const { isLocked: isPaying, withLock: withPayLock } = useCommandLock('pos.pay')
 
   const tableOptions = [
@@ -46,6 +57,63 @@ function CartPanel() {
 
   const isEditing = Boolean(editingOrderId)
   const discountValue = draft.discount > 0 ? String(draft.discount) : ''
+  const promoDiscount = promo?.isValid ? promo.discount : 0
+
+  useEffect(() => {
+    setPromoInput(draft.promoCode ?? '')
+  }, [draft.promoCode])
+
+  const handleApplyPromo = () => {
+    const normalized = normalizePromoCode(promoInput)
+    if (!normalized) {
+      dispatch(
+        pushToast({
+          title: 'Promo required',
+          description: 'Enter a promo code first.',
+          variant: 'error',
+        }),
+      )
+      return
+    }
+
+    const evaluation = evaluatePromoCode({
+      code: normalized,
+      subtotal: totals.subtotal,
+      orderType: draft.orderType,
+    })
+
+    if (!evaluation || !evaluation.isValid) {
+      dispatch(
+        pushToast({
+          title: 'Promo not applied',
+          description: evaluation?.reason ?? 'Promo is invalid.',
+          variant: 'error',
+        }),
+      )
+      return
+    }
+
+    dispatch(setPromoCode(normalized))
+    dispatch(
+      pushToast({
+        title: 'Promo applied',
+        description: `${evaluation.label} (-${formatCurrency(evaluation.discount)})`,
+        variant: 'success',
+      }),
+    )
+  }
+
+  const handleRemovePromo = () => {
+    dispatch(clearPromoCode())
+    setPromoInput('')
+    dispatch(
+      pushToast({
+        title: 'Promo removed',
+        description: 'Discount code was removed from this order.',
+        variant: 'info',
+      }),
+    )
+  }
 
   const handleCheckout = () => {
     if (draft.items.length === 0) {
@@ -204,6 +272,35 @@ function CartPanel() {
         helperText="Apply promo or manual discount (optional)"
       />
 
+      <div className="promo-block">
+        <Input
+          label="Promo Code"
+          placeholder="e.g. WELCOME10"
+          value={promoInput}
+          onChange={(event) => setPromoInput(event.target.value)}
+          helperText={
+            promo
+              ? promo.isValid
+                ? `${promo.label} applied`
+                : promo.reason ?? 'Promo is invalid.'
+              : 'Enter a promo code and click Apply.'
+          }
+          error={promo && !promo.isValid ? promo.reason : undefined}
+        />
+        <div className="promo-actions">
+          <Button variant="outline" onClick={handleApplyPromo}>
+            Apply Promo
+          </Button>
+          <Button
+            variant="ghost"
+            onClick={handleRemovePromo}
+            disabled={!draft.promoCode}
+          >
+            Remove Promo
+          </Button>
+        </div>
+      </div>
+
       <div className="cart-list">
         {draft.items.length === 0 ? (
           <div className="cart-empty">
@@ -248,9 +345,15 @@ function CartPanel() {
           <span>Subtotal</span>
           <span>{formatCurrency(totals.subtotal)}</span>
         </div>
+        {promoDiscount > 0 ? (
+          <div className="summary-row">
+            <span>Promo ({promo?.code})</span>
+            <span>- {formatCurrency(promoDiscount)}</span>
+          </div>
+        ) : null}
         <div className="summary-row">
           <span>Discount</span>
-          <span>- {formatCurrency(totals.discount)}</span>
+          <span>- {formatCurrency(draft.discount)}</span>
         </div>
         <div className="summary-row">
           <span>Service</span>
