@@ -25,27 +25,33 @@ function CartItemRow({
   return (
     <div className="cart-item">
       <div className="cart-item-info">
-        <div>
-          <h4>{item.product.name}</h4>
-          <p className="muted">{formatCurrency(unitPrice)} each</p>
-          {isBundle && item.bundleSelections?.length ? (
-            <div className="bundle-summary">
-              {item.bundleSelections.map((selection) => (
-                <span key={`${selection.groupId}-${selection.productId}`}>
-                  {selection.groupLabel}: {selection.name}
-                </span>
-              ))}
-            </div>
-          ) : null}
-          {item.selectedModifiers.length > 0 ? (
-            <p className="muted modifier-list">
-              Mods: {item.selectedModifiers.map((mod) => mod.name).join(', ')}
-            </p>
-          ) : null}
+        <div className="cart-item-copy">
+          <span className="cart-item-qty-badge">{item.quantity}</span>
+          <div className="cart-item-copy-body">
+            <h4>{item.product.name}</h4>
+            <p className="muted">{formatCurrency(unitPrice)} each</p>
+            {isBundle && item.bundleSelections?.length ? (
+              <div className="bundle-summary">
+                {item.bundleSelections.map((selection) => (
+                  <span key={`${selection.groupId}-${selection.productId}`}>
+                    {selection.groupLabel}: {selection.name}
+                  </span>
+                ))}
+              </div>
+            ) : null}
+            {item.selectedModifiers.length > 0 ? (
+              <p className="muted modifier-list">
+                Mods: {item.selectedModifiers.map((mod) => mod.name).join(', ')}
+              </p>
+            ) : null}
+          </div>
         </div>
-        <button type="button" className="link-btn" onClick={onVoid}>
-          Void
-        </button>
+        <div className="cart-item-inline-actions">
+          <span className="line-total">{formatCurrency(unitPrice * item.quantity)}</span>
+          <button type="button" className="link-btn" onClick={onVoid}>
+            Void
+          </button>
+        </div>
       </div>
       <div className="cart-item-actions">
         <div className="qty-control">
@@ -57,19 +63,16 @@ function CartItemRow({
             +
           </button>
         </div>
-        <span className="line-total">
-          {formatCurrency(unitPrice * item.quantity)}
-        </span>
-      </div>
-      <div className="cart-item-meta">
         <button
           type="button"
-          className="btn btn-outline"
+          className="btn btn-outline cart-item-modifiers-btn"
           onClick={onOpenModifiers}
           disabled={!hasModifiers}
         >
           Modifiers
         </button>
+      </div>
+      <div className="cart-item-meta">
         <label className="note-field">
           <span className="input-label">Note</span>
           <textarea

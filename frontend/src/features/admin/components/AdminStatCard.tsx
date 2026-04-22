@@ -9,8 +9,8 @@ function AdminStatCard({ label, value, helper, icon }: AdminStatCardProps) {
   return (
     <div className="panel admin-stat-card">
       {icon ? (
-        <span className="material-symbols-rounded stat-icon" aria-hidden="true">
-          {icon}
+        <span className="stat-icon" aria-hidden="true">
+          <img className="admin-stat-icon-img" src={icon} alt="" />
         </span>
       ) : null}
       <span className="muted">{label}</span>

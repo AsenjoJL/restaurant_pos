@@ -15,8 +15,6 @@ const parsePositiveFloat = (value: string | undefined, fallback: number) => {
 }
 
 export const env = {
-  apiBaseUrl: import.meta.env.VITE_API_BASE_URL ?? '/api/v1',
-  dataMode: (import.meta.env.VITE_DATA_MODE ?? 'mock') as 'mock' | 'api',
   syncKitchenMs: parsePositiveInt(import.meta.env.VITE_SYNC_KITCHEN_MS, 5000),
   syncSalesMs: parsePositiveInt(import.meta.env.VITE_SYNC_SALES_MS, 5000),
   syncOrdersMs: parsePositiveInt(import.meta.env.VITE_SYNC_ORDERS_MS, 5000),

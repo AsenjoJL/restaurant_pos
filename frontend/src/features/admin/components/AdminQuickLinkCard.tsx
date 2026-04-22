@@ -11,8 +11,8 @@ function AdminQuickLinkCard({ title, description, to, icon }: AdminQuickLinkCard
   return (
     <Link className="admin-quick-link" to={to}>
       {icon ? (
-        <span className="material-symbols-rounded link-icon" aria-hidden="true">
-          {icon}
+        <span className="link-icon" aria-hidden="true">
+          <img className="admin-quick-link-icon-img" src={icon} alt="" />
         </span>
       ) : null}
       <h4>{title}</h4>

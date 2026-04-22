@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import Button from '../../../shared/components/ui/Button'
-import { useKiosk } from '../kiosk.context'
+import { useKiosk } from '../useKiosk'
 import type { OrderType } from '../../pos/pos.types'
 
 function KioskOrderTypePage() {
@@ -28,8 +28,8 @@ function KioskOrderTypePage() {
     <section className="kiosk-page">
       <div className="page-header">
         <div>
-          <h2>How would you like your order?</h2>
-          <p className="muted">Choose dine-in or takeout to get started.</p>
+          <h2 className="kiosk-order-type-heading">How would you like your order?</h2>
+          <p className="kiosk-order-type-copy">Choose dine-in or takeout to get started.</p>
         </div>
       </div>
 
@@ -39,8 +39,8 @@ function KioskOrderTypePage() {
           className={`kiosk-choice${selected === 'dine-in' ? ' is-selected' : ''}`}
           onClick={() => handleSelect('dine-in')}
         >
-          <span className="material-symbols-rounded choice-icon" aria-hidden="true">
-            restaurant
+          <span className="choice-icon" aria-hidden="true">
+            <img src="/dine-in.png" alt="" className="choice-icon-image" />
           </span>
           <h3>Dine-in</h3>
           <p className="muted">Eat at the restaurant.</p>
@@ -50,8 +50,8 @@ function KioskOrderTypePage() {
           className={`kiosk-choice${selected === 'takeout' ? ' is-selected' : ''}`}
           onClick={() => handleSelect('takeout')}
         >
-          <span className="material-symbols-rounded choice-icon" aria-hidden="true">
-            takeout_dining
+          <span className="choice-icon" aria-hidden="true">
+            <img src="/take-out.png" alt="" className="choice-icon-image" />
           </span>
           <h3>Takeout</h3>
           <p className="muted">Pick up and go.</p>

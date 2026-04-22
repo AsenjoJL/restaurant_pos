@@ -19,7 +19,22 @@ export const kitchenRepositoryMock: KitchenRepository = {
   async updateOrderStatus(orderId: string, payload: KitchenStatusUpdateInput) {
     const target = kitchenOrdersState.find((order) => order.id === orderId)
     if (!target) {
-      throw new Error('Order not found')
+      const next: Order = {
+        id: orderId,
+        order_no: orderId,
+        source: 'STAFF',
+        status: payload.status,
+        order_type: 'TAKEOUT',
+        table: null,
+        items: [],
+        subtotal: 0,
+        tax: 0,
+        total: 0,
+        placed_at: new Date().toISOString(),
+        audit_log: [],
+      }
+      kitchenOrdersState.unshift(next)
+      return structuredClone(next)
     }
     target.status = payload.status
     return structuredClone(target)
@@ -30,7 +45,16 @@ export const kitchenRepositoryMock: KitchenRepository = {
   ) {
     const target = replacementTicketsState.find((ticket) => ticket.id === ticketId)
     if (!target) {
-      throw new Error('Replacement ticket not found')
+      const next: ReplacementTicket = {
+        id: ticketId,
+        orderId: 'unknown',
+        orderNo: ticketId,
+        items: [],
+        status: payload.status,
+        createdAt: new Date().toISOString(),
+      }
+      replacementTicketsState.unshift(next)
+      return structuredClone(next)
     }
     target.status = payload.status
     return structuredClone(target)

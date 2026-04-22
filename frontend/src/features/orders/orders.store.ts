@@ -1,5 +1,4 @@
 import { createAsyncThunk, createSlice, nanoid } from '@reduxjs/toolkit'
-import { orders as initialOrders } from '../../mock/data'
 import type { RootState } from '../../app/store/store'
 import type {
   AuditAction,
@@ -15,9 +14,9 @@ import { ordersRepository } from './api'
 import { kitchenRepository } from '../kitchen/api'
 import type { CapturePaymentInput, CreateOrderInput, UpdateOrderInput } from './types/contracts'
 
-export const ORDERS_STORAGE_KEY = 'pos.orders.v1'
+export const ORDERS_STORAGE_KEY = 'pos.orders.v2'
 
-type OrdersState = {
+export type OrdersState = {
   list: Order[]
   replacementRequests: ReplacementRequest[]
   replacementTickets: ReplacementTicket[]
@@ -32,25 +31,54 @@ const loadStoredOrders = () => {
     if (!raw) {
       return null
     }
-    const parsed = JSON.parse(raw)
-    return Array.isArray(parsed) ? (parsed as Order[]) : null
+    const parsed = JSON.parse(raw) as unknown
+    if (Array.isArray(parsed)) {
+      return {
+        list: parsed as Order[],
+        replacementRequests: [],
+        replacementTickets: [],
+      } satisfies OrdersState
+    }
+    if (
+      typeof parsed === 'object' &&
+      parsed !== null &&
+      'list' in parsed &&
+      Array.isArray((parsed as OrdersState).list) &&
+      'replacementRequests' in parsed &&
+      Array.isArray((parsed as OrdersState).replacementRequests) &&
+      'replacementTickets' in parsed &&
+      Array.isArray((parsed as OrdersState).replacementTickets)
+    ) {
+      return parsed as OrdersState
+    }
+    return null
   } catch {
     return null
   }
 }
 
 const initialState: OrdersState = {
-  list: loadStoredOrders() ?? initialOrders,
-  replacementRequests: [],
-  replacementTickets: [],
+  ...(loadStoredOrders() ?? {
+    list: [],
+    replacementRequests: [],
+    replacementTickets: [],
+  }),
 }
 
 const toCreateOrderInput = (order: Order): CreateOrderInput => ({
+  id: order.id,
+  orderNo: order.order_no,
   source: order.source,
   orderType: order.order_type,
   table: order.table,
   note: order.note,
   items: order.items,
+  subtotal: order.subtotal,
+  discount: order.discount ?? 0,
+  serviceCharge: order.service_charge ?? 0,
+  tax: order.tax,
+  total: order.total,
+  placedAt: order.placed_at,
 })
 
 const toUpdateOrderInput = (order: Order): UpdateOrderInput => ({
@@ -58,6 +86,11 @@ const toUpdateOrderInput = (order: Order): UpdateOrderInput => ({
   note: order.note,
   table: order.table,
   status: order.status,
+  subtotal: order.subtotal,
+  discount: order.discount,
+  service_charge: order.service_charge,
+  tax: order.tax,
+  total: order.total,
 })
 
 export const hydrateOrdersFromRepository = createAsyncThunk(
@@ -89,6 +122,13 @@ export const syncOrderCancellation = createAsyncThunk<
   { id: string; reason: string }
 >('orders/syncCancel', async ({ id, reason }) => {
   await ordersRepository.cancel(id, reason)
+})
+
+export const syncOrderVoid = createAsyncThunk<
+  void,
+  { id: string; reason: string }
+>('orders/syncVoid', async ({ id, reason }) => {
+  await ordersRepository.void(id, { reason })
 })
 
 export const syncCapturedPayment = createAsyncThunk<
@@ -240,6 +280,11 @@ const ordersSlice = createSlice({
     setOrders: (state, action: { payload: Order[] }) => {
       state.list = action.payload
     },
+    setOrdersState: (state, action: { payload: OrdersState }) => {
+      state.list = action.payload.list
+      state.replacementRequests = action.payload.replacementRequests
+      state.replacementTickets = action.payload.replacementTickets
+    },
     addOrder: (state, action: { payload: Order }) => {
       const exists = state.list.some((order) => order.id === action.payload.id)
       if (exists) {
@@ -353,6 +398,17 @@ const ordersSlice = createSlice({
       }
       setStatus(order, 'CANCELLED')
       addAuditEntry(order, 'CANCEL', action.payload.reason)
+    },
+    voidOrder: (state, action: { payload: { id: string; reason: string } }) => {
+      const order = state.list.find((item) => item.id === action.payload.id)
+      if (
+        !order ||
+        order.status === 'CANCELLED' ||
+        order.audit_log.some((entry) => entry.action === 'VOID')
+      ) {
+        return
+      }
+      addAuditEntry(order, 'VOID', action.payload.reason)
     },
     updateOrderNote: (state, action: { payload: { id: string; note: string } }) => {
       const order = state.list.find((item) => item.id === action.payload.id)
@@ -519,6 +575,7 @@ const ordersSlice = createSlice({
 
 export const {
   setOrders,
+  setOrdersState,
   addOrder,
   capturePaymentAndSend,
   capturePaymentAndPrepare,
@@ -528,6 +585,7 @@ export const {
   markReady,
   closeOrder,
   cancelOrder,
+  voidOrder,
   updateOrderNote,
   updatePendingOrder,
   createReplacementRequest,

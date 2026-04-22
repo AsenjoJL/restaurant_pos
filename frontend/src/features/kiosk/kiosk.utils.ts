@@ -15,7 +15,7 @@ export type KioskTotals = {
   itemCount: number
 }
 
-export const KIOSK_TAX_RATE = 0.0825
+export const KIOSK_TAX_RATE = 0.12
 
 export const calculateKioskTotals = (
   items: KioskCartItem[],
@@ -40,8 +40,12 @@ export const calculateKioskTotals = (
 const ORDER_PREFIX = 'A'
 
 export const generateOrderNumber = () => {
-  const number = Math.floor(100 + Math.random() * 900)
-  return `${ORDER_PREFIX}-${number}`
+  const timePart = Date.now().toString(36).toUpperCase()
+  const randomPart = Math.floor(Math.random() * 1296)
+    .toString(36)
+    .toUpperCase()
+    .padStart(2, '0')
+  return `${ORDER_PREFIX}-${timePart}-${randomPart}`
 }
 
 export const toSharedOrderType = (orderType: OrderType): Order['order_type'] => {

@@ -13,6 +13,7 @@ import {
 import {
   ORDERS_STORAGE_KEY,
   setOrders,
+  setOrdersState,
 } from '../../features/orders/orders.store'
 import {
   SALES_STORAGE_KEY,
@@ -24,6 +25,7 @@ import {
 } from '../../shared/store/audit.store'
 
 type OrdersPayload = Parameters<typeof setOrders>[0]
+type OrdersStatePayload = Parameters<typeof setOrdersState>[0]
 type CashPayload = Parameters<typeof hydrateCashState>[0]
 type InventoryPayload = Parameters<typeof setInventoryState>[0]
 type AuditPayload = Parameters<typeof setAuditEntries>[0]
@@ -31,7 +33,11 @@ type SalesPayload = Parameters<typeof setSalesRecords>[0]
 type AdminPayload = Parameters<typeof setAdminState>[0]
 
 type StoreStateShape = {
-  orders: { list: unknown[] }
+  orders: {
+    list: unknown[]
+    replacementRequests: unknown[]
+    replacementTickets: unknown[]
+  }
   inventory: unknown
   cashAdjustments: unknown
   sales: { records: unknown[] }
@@ -60,19 +66,58 @@ const isRecord = (value: unknown): value is Record<string, unknown> =>
   typeof value === 'object' && value !== null
 
 export const setupStorePersistence = (store: AppStoreLike) =>
-  store.subscribe(() => {
-    try {
-      const state = store.getState()
-      localStorage.setItem(ORDERS_STORAGE_KEY, JSON.stringify(state.orders.list))
-      localStorage.setItem(INVENTORY_STORAGE_KEY, JSON.stringify(state.inventory))
-      localStorage.setItem(CASH_STORAGE_KEY, JSON.stringify(state.cashAdjustments))
-      localStorage.setItem(SALES_STORAGE_KEY, JSON.stringify(state.sales.records))
-      localStorage.setItem(AUDIT_STORAGE_KEY, JSON.stringify(state.audit))
-      localStorage.setItem(ADMIN_STORAGE_KEY, JSON.stringify(state.admin))
-    } catch {
-      // ignore storage errors
+  (() => {
+    // Persisting on every store update gets expensive as the app grows. Batch writes
+    // to the next idle/tick so multiple rapid dispatches coalesce into one write.
+    let scheduled = false
+    let latest: StoreStateShape | null = null
+
+    const flush = () => {
+      scheduled = false
+      const state = latest
+      latest = null
+      if (!state) {
+        return
+      }
+      try {
+        localStorage.setItem(ORDERS_STORAGE_KEY, JSON.stringify(state.orders))
+        localStorage.setItem(INVENTORY_STORAGE_KEY, JSON.stringify(state.inventory))
+        localStorage.setItem(CASH_STORAGE_KEY, JSON.stringify(state.cashAdjustments))
+        localStorage.setItem(SALES_STORAGE_KEY, JSON.stringify(state.sales.records))
+        localStorage.setItem(AUDIT_STORAGE_KEY, JSON.stringify(state.audit))
+        localStorage.setItem(ADMIN_STORAGE_KEY, JSON.stringify(state.admin))
+      } catch {
+        // ignore storage errors
+      }
     }
-  })
+
+    const scheduleFlush = () => {
+      if (scheduled) {
+        return
+      }
+      scheduled = true
+      const maybeRequestIdleCallback = (
+        globalThis as unknown as {
+          requestIdleCallback?: (cb: () => void, options?: { timeout: number }) => void
+        }
+      ).requestIdleCallback
+
+      if (typeof maybeRequestIdleCallback === 'function') {
+        maybeRequestIdleCallback(flush, { timeout: 500 })
+        return
+      }
+      setTimeout(flush, 0)
+    }
+
+    return store.subscribe(() => {
+      try {
+        latest = store.getState()
+        scheduleFlush()
+      } catch {
+        // ignore storage errors
+      }
+    })
+  })()
 
 export const setupStoreCrossTabSync = (store: AppStoreLike) => {
   const handleStorage = (event: StorageEvent) => {
@@ -80,6 +125,16 @@ export const setupStoreCrossTabSync = (store: AppStoreLike) => {
       const parsed = safeParse(event.newValue)
       if (Array.isArray(parsed)) {
         store.dispatch(setOrders(parsed as OrdersPayload))
+      } else if (
+        isRecord(parsed) &&
+        'list' in parsed &&
+        Array.isArray(parsed.list) &&
+        'replacementRequests' in parsed &&
+        Array.isArray(parsed.replacementRequests) &&
+        'replacementTickets' in parsed &&
+        Array.isArray(parsed.replacementTickets)
+      ) {
+        store.dispatch(setOrdersState(parsed as OrdersStatePayload))
       }
       return
     }

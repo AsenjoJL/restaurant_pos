@@ -7,6 +7,7 @@
 
 /* Root-level browser defaults and typography baseline */
 :root {
+  font-size: var(--font-size-base, 12px);
   color-scheme: light;
   font-family: var(--font-body, 'Manrope', 'Segoe UI', sans-serif);
   line-height: 1.5;
@@ -196,6 +197,13 @@ textarea {
   gap: 6px;
 }
 
+.segmented.segmented-vertical {
+  flex-direction: column;
+  border-radius: var(--radius-lg);
+  padding: 8px;
+  align-items: stretch;
+}
+
 .segmented-button {
   border: none;
   background: transparent;
@@ -204,6 +212,13 @@ textarea {
   min-height: 44px;
   font-weight: 600;
   cursor: pointer;
+}
+
+.segmented.segmented-vertical .segmented-button {
+  border-radius: var(--radius-lg);
+  padding: 8px 12px;
+  min-height: 36px;
+  justify-content: space-between;
 }
 
 .segmented-button.is-active {
@@ -365,8 +380,8 @@ textarea {
   gap: 8px;
   border-radius: 14px;
   border: 1px solid transparent;
-  padding: 12px 18px;
-  min-height: 48px;
+  padding: 6px 12px;
+  min-height: 34px;
   font-weight: 600;
   cursor: pointer;
   transition: transform 0.15s ease, box-shadow 0.15s ease;
@@ -628,6 +643,13 @@ textarea {
   min-height: 100vh;
 }
 
+.cashier-page,
+.kitchen-page,
+.admin-shell {
+  font-size: 0.92rem;
+  line-height: 1.38;
+}
+
 .app-header {
   display: grid;
   grid-template-columns: 1fr auto auto;
@@ -670,11 +692,15 @@ textarea {
   padding: 8px 14px;
   border-radius: 999px;
   background: var(--panel-muted);
+  border: 1px solid transparent;
+  box-sizing: border-box;
+  line-height: 1;
 }
 
 .nav-link.active {
   background: var(--accent);
   color: #ffffff;
+  border-color: var(--accent);
 }
 
 .user-chip {
@@ -782,10 +808,18 @@ textarea {
 .kds-actions {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 10px;
+  gap: 8px;
   align-items: center;
   justify-items: stretch;
-  margin-top: 10px;
+  margin-top: 6px;
+}
+
+.kds-actions .btn {
+  min-width: 100px;
+  padding: 0 10px;
+  min-height: 32px;
+  border-radius: 12px;
+  font-size: 0.85rem;
 }
 
 /* Cashier + Kitchen typography tuning for better readability */
@@ -798,6 +832,17 @@ textarea {
 .cashier-page .page-header .muted,
 .kitchen-page .page-header .muted {
   font-size: 1.08rem;
+}
+
+.kitchen-page .page-header {
+  position: sticky;
+  top: calc(var(--app-header-height, 64px) + 4px);
+  z-index: 6;
+  background: inherit;
+  padding-bottom: var(--space-sm);
+  padding-top: var(--space-sm);
+  backdrop-filter: blur(8px);
+  border-bottom: 1px solid var(--border);
 }
 
 .cashier-page .cashier-queue-header h3,
@@ -835,7 +880,7 @@ textarea {
 }
 
 .kitchen-page .kds-metric strong {
-  font-size: 1.9rem;
+  font-size: 1.5rem;
 }
 
 .kitchen-page .kds-metric .muted,
@@ -848,6 +893,30 @@ textarea {
 .kitchen-page .station-chip,
 .kitchen-page .station-pill {
   font-size: 0.95rem;
+}
+
+.kitchen-header-shell {
+  position: sticky;
+  top: var(--app-header-height, 64px);
+  z-index: 6;
+  background: #f5f6fb;
+  border-bottom: 1px solid var(--border);
+  padding-bottom: var(--space-sm);
+  padding-top: var(--space-sm);
+  margin-bottom: var(--space-md);
+  display: grid;
+  gap: var(--space-md);
+  box-shadow: 0 8px 18px rgba(15, 23, 42, 0.1);
+}
+.kitchen-page .kds-filter {
+  position: sticky;
+  top: calc(var(--app-header-height, 64px) + var(--space-lg));
+  z-index: 5;
+  background: linear-gradient(180deg, #ffffff 0%, #f6f8fb 80%);
+  padding: var(--space-sm) var(--space-md);
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--border);
+  margin-bottom: var(--space-md);
 }
 
 .kitchen-page .kds-card {
@@ -926,6 +995,31 @@ textarea {
 .cashier-order-items {
   display: grid;
   gap: 10px;
+}
+
+.cashier-layout {
+  display: grid;
+  grid-template-columns: 220px 1fr;
+  gap: var(--space-lg);
+  align-items: flex-start;
+}
+
+.cashier-sidebar {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: var(--space-lg);
+  box-shadow: var(--shadow-sm);
+  display: grid;
+  gap: var(--space-md);
+}
+
+.cashier-sidebar h3 {
+  margin: 0;
+  font-size: 1rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--text-muted);
 }
 
 .cashier-grid {
@@ -1441,16 +1535,21 @@ textarea {
 }
 
 .toast {
-  min-width: 220px;
-  padding: 12px 14px;
-  border-radius: 12px;
+  min-width: 280px;
+  max-width: 360px;
+  padding: 14px 16px;
+  border-radius: 0;
   background: #ffffff;
   border: 1px solid var(--border);
   box-shadow: var(--shadow);
   display: flex;
   justify-content: space-between;
   align-items: flex-start;
-  gap: 12px;
+  gap: 14px;
+}
+
+.toast-auto-dismiss {
+  animation: toast-fade-out 5s ease forwards;
 }
 
 .toast-success {
@@ -1467,6 +1566,87 @@ textarea {
 
 .toast-warning {
   border-left: 4px solid var(--accent-2);
+}
+
+.toast-body {
+  min-width: 0;
+  display: grid;
+  gap: 6px;
+  flex: 1;
+}
+
+.toast-title-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.toast-indicator {
+  width: 10px;
+  height: 10px;
+  border-radius: 999px;
+  flex-shrink: 0;
+}
+
+.toast-indicator-success {
+  background: var(--accent);
+}
+
+.toast-indicator-error {
+  background: var(--danger);
+}
+
+.toast-indicator-info {
+  background: #2b6cb0;
+}
+
+.toast-indicator-warning {
+  background: var(--accent-2);
+}
+
+.toast h4 {
+  margin: 0;
+  font-size: 0.98rem;
+  font-weight: 800;
+  color: var(--text);
+  line-height: 1.2;
+  letter-spacing: -0.01em;
+}
+
+.toast p {
+  margin: 0 0 0 20px;
+  font-size: 0.9rem;
+  line-height: 1.45;
+  color: var(--muted);
+}
+
+.toast-close-btn.icon-btn {
+  width: 34px;
+  height: 34px;
+  border-radius: 0;
+  flex-shrink: 0;
+  border-color: var(--border);
+  color: var(--text);
+  font-size: 18px;
+  font-weight: 500;
+}
+
+.toast-close-btn.icon-btn:hover {
+  border-color: var(--text);
+  color: var(--text);
+  background: #f6f3ee;
+}
+
+@keyframes toast-fade-out {
+  0%,
+  84% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(8px);
+  }
 }
 
 .badge {

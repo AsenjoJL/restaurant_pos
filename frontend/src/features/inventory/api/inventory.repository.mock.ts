@@ -21,11 +21,17 @@ export const inventoryRepositoryMock: InventoryRepository = {
   async upsertIngredient(payload: UpsertIngredientInput) {
     if (payload.id) {
       const existing = ingredientsState.find((item) => item.id === payload.id)
-      if (!existing) {
-        throw new Error('Ingredient not found')
+      if (existing) {
+        Object.assign(existing, payload)
+        return structuredClone(existing)
       }
-      Object.assign(existing, payload)
-      return structuredClone(existing)
+
+      const created: Ingredient = {
+        ...payload,
+        id: payload.id,
+      }
+      ingredientsState = [created, ...ingredientsState]
+      return structuredClone(created)
     }
     const created: Ingredient = {
       ...payload,
@@ -63,6 +69,11 @@ export const inventoryRepositoryMock: InventoryRepository = {
       at: new Date().toISOString(),
     }
     adjustmentsState = [created, ...adjustmentsState]
+    const target = ingredientsState.find((ingredient) => ingredient.id === payload.ingredientId)
+    if (target) {
+      const delta = payload.type === 'IN' ? payload.qty : -payload.qty
+      target.onHand = Math.max(0, target.onHand + delta)
+    }
     return structuredClone(created)
   },
 }

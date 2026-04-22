@@ -69,6 +69,9 @@ export const mergeMenuProductsWithAdmin = (
           description: product.description || seeded.description,
           price: fallbackPrice,
           categoryId: product.categoryId || seeded.categoryId,
+          image: product.imageUrl || seeded.image,
+          // Admin-managed products should start available; inventory rules can still downgrade.
+          availability: 'AVAILABLE' as const,
         }
       }
 
@@ -79,7 +82,7 @@ export const mergeMenuProductsWithAdmin = (
         price: fallbackPrice,
         categoryId: product.categoryId || 'all',
         tone: deriveTone(product.id),
-        image: adminImageByName[product.name.trim().toLowerCase()],
+        image: product.imageUrl || adminImageByName[product.name.trim().toLowerCase()],
         availability: 'AVAILABLE' as const,
       }
     })

@@ -1,24 +1,20 @@
-# Frontend Architecture (Frontend-Only, API-Ready)
+# Frontend Architecture
 
-This project currently runs in `mock` mode (no backend dependency).
-The goal is to keep current UI behavior while preparing an easy switch to Laravel API later.
+This frontend runs as a standalone app backed by mock repositories and local persistence.
 
-## Data mode switch
+## Runtime config
 
-- `VITE_DATA_MODE=mock` uses local/mock repositories.
-- `VITE_DATA_MODE=api` uses HTTP repositories.
+- The app defaults to mock mode.
 - Config files:
   - `src/app/config/env.ts`
-  - `src/app/config/data-mode.ts`
 
 ## Repository pattern
 
 Each core module now has:
 
 - `api/<module>.repository.ts` (interface contract)
-- `api/<module>.repository.mock.ts` (frontend-only implementation)
-- `api/<module>.repository.http.ts` (Laravel-ready placeholder)
-- `api/index.ts` (mock/api switch)
+- `api/<module>.repository.mock.ts` (mock implementation)
+- `api/index.ts` (repository export)
 
 Modules scaffolded:
 
@@ -28,22 +24,6 @@ Modules scaffolded:
 - `inventory`
 - `sales`
 - `admin`
-
-## Mock seed source of truth
-
-Central seed exports are under:
-
-- `src/mock/seed/index.ts`
-
-Seed files:
-
-- `users.seed.ts`
-- `categories.seed.ts`
-- `products.seed.ts`
-- `tables.seed.ts`
-- `orders.seed.ts`
-- `ingredients.seed.ts`
-- `recipes.seed.ts`
 
 ## Practical separation rules
 
@@ -66,4 +46,3 @@ Move these out of components first:
 5. Order status transition rules
 
 Keep components focused on rendering and user interaction only.
-

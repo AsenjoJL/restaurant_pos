@@ -1,5 +1,4 @@
 import { createAsyncThunk, createSlice, nanoid, type PayloadAction } from '@reduxjs/toolkit'
-import { ingredients as initialIngredients, recipes as initialRecipes } from '../../mock/data'
 import type { RootState } from '../../app/store/store'
 import type {
   Ingredient,
@@ -13,7 +12,7 @@ import type {
 } from './inventory.types'
 import { inventoryRepository } from './api'
 
-export const INVENTORY_STORAGE_KEY = 'pos.inventory.v1'
+export const INVENTORY_STORAGE_KEY = 'pos.inventory.v2'
 
 type IngredientPayload = {
   inventoryId?: string
@@ -190,8 +189,8 @@ const loadStoredInventory = () => {
 
 const initialState: InventoryState =
   loadStoredInventory() ?? {
-    ingredients: normalizeIngredients(initialIngredients),
-    recipes: initialRecipes,
+    ingredients: [],
+    recipes: [],
     adjustments: [],
   }
 
@@ -337,21 +336,6 @@ const inventorySlice = createSlice({
       )
       if (!target) {
         return
-      }
-      if (action.payload.reasonType === 'RESTOCK') {
-        const nextReference = action.payload.reference?.trim().toUpperCase()
-        if (!nextReference) {
-          return
-        }
-        const duplicate = state.adjustments.some((adjustment) => {
-          if (adjustment.reasonType !== 'RESTOCK') {
-            return false
-          }
-          return (adjustment.reference?.trim().toUpperCase() ?? '') === nextReference
-        })
-        if (duplicate) {
-          return
-        }
       }
       const delta = action.payload.type === 'IN' ? action.payload.qty : -action.payload.qty
       const beforeQty = target.onHand

@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 import type { MenuProduct } from '../../pos/pos.types'
 import Button from '../../../shared/components/ui/Button'
 import { formatCurrency } from '../../../shared/lib/format'
@@ -17,22 +17,17 @@ const buildModifierList = (groups: ModifierGroup[], selected: Record<string, str
     (selected[group.id] ?? []).map((option) => `${group.name}: ${option}`),
   )
 
-function KioskItemModal({ product, isOpen, onClose, onAdd }: KioskItemModalProps) {
+type KioskItemModalContentProps = {
+  product: MenuProduct
+  onClose: () => void
+  onAdd: (payload: { product: MenuProduct; quantity: number; modifiers: string[] }) => void
+}
+
+function KioskItemModalContent({ product, onClose, onAdd }: KioskItemModalContentProps) {
   const [quantity, setQuantity] = useState(1)
   const [selected, setSelected] = useState<Record<string, string[]>>({})
 
-  const modifierGroups = product ? getModifierGroupsForCategory(product.categoryId) : []
-
-  useEffect(() => {
-    if (product) {
-      setQuantity(1)
-      setSelected({})
-    }
-  }, [product?.id])
-
-  if (!isOpen || !product) {
-    return null
-  }
+  const modifierGroups = getModifierGroupsForCategory(product.categoryId)
 
   const handleToggle = (groupId: string, option: string, selection: 'single' | 'multi') => {
     setSelected((prev) => {
@@ -127,6 +122,14 @@ function KioskItemModal({ product, isOpen, onClose, onAdd }: KioskItemModalProps
       </div>
     </div>
   )
+}
+
+function KioskItemModal({ product, isOpen, onClose, onAdd }: KioskItemModalProps) {
+  if (!isOpen || !product) {
+    return null
+  }
+
+  return <KioskItemModalContent key={product.id} product={product} onClose={onClose} onAdd={onAdd} />
 }
 
 export default KioskItemModal

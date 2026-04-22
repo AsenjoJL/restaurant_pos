@@ -3,9 +3,9 @@ import { useAppDispatch, useAppSelector } from '../../../../app/store/hooks'
 import Button from '../../../../shared/components/ui/Button'
 import Modal from '../../../../shared/components/ui/Modal'
 import { formatCurrency } from '../../../../shared/lib/format'
-import { products } from '../../../../mock/data'
 import { selectPosUi } from '../../pos.selectors'
 import { addBundleItem, closeBundleModal } from '../../pos.store'
+import { selectRuntimeMenuProducts } from '../../menu.selectors'
 import type { BundleGroup, BundleSelection, MenuProduct } from '../../pos.types'
 
 type SelectionMap = Record<string, string[]>
@@ -41,9 +41,10 @@ const isGroupValid = (group: BundleGroup, selections: SelectionMap) => {
 function BundleBuilderModal() {
   const dispatch = useAppDispatch()
   const ui = useAppSelector(selectPosUi)
+  const products = useAppSelector(selectRuntimeMenuProducts)
   const bundleProduct = useMemo(
     () => products.find((item) => item.id === ui.bundleTargetId) ?? null,
-    [ui.bundleTargetId],
+    [products, ui.bundleTargetId],
   )
 
   const [selectionMap, setSelectionMap] = useState<BundleSelectionMap>({})

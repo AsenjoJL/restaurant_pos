@@ -1,10 +1,9 @@
 import { useMemo, useState } from 'react'
 import { useAppDispatch, useAppSelector } from '../../../../app/store/hooks'
 import Button from '../../../../shared/components/ui/Button'
-import Input from '../../../../shared/components/ui/Input'
 import Modal from '../../../../shared/components/ui/Modal'
-import { formatCurrency } from '../../../../shared/lib/format'
 import { isPaymentCaptured } from '../../../../shared/lib/orders'
+import { formatCurrency } from '../../../../shared/lib/format'
 import { pushToast } from '../../../../shared/store/ui.store'
 import OrderReceiptPreview from '../../../../shared/components/receipt/OrderReceiptPreview'
 import OrderReceiptSheet from '../../../../shared/components/receipt/OrderReceiptSheet'
@@ -24,10 +23,12 @@ import {
   validateInventoryForOrder,
 } from '../../../inventory/inventory.logic'
 import { buildAuditUser, logAuditEvent } from '../../../../shared/lib/audit'
-import { triggerPrint as triggerNativePrint } from '../../../../shared/lib/print'
+import { useScheduledPrint } from '../../../../shared/hooks/useScheduledPrint'
 import type { PaymentMethod } from '../../../../shared/types/order'
 import { selectAuthUser } from '../../../auth/auth.selectors'
 import { addSalesRecord, syncSalesRecord } from '../../../sales/sales.store'
+import { buildPaymentPayload, derivePaymentInputs } from '../../payment/payment.utils'
+import PaymentFormPanel from '../payment/PaymentFormPanel'
 
 function PaymentModal() {
   const dispatch = useAppDispatch()
@@ -52,39 +53,23 @@ function PaymentModal() {
   const [walletRefMap, setWalletRefMap] = useState<Record<string, string>>({})
   const [walletPayerMap, setWalletPayerMap] = useState<Record<string, string>>({})
   const [isProcessing, setIsProcessing] = useState(false)
-  const [printOrderId, setPrintOrderId] = useState<string | null>(null)
+  const {
+    printId: printOrderId,
+    schedulePrint: scheduleReceiptPrint,
+    clear: clearReceiptPrint,
+  } = useScheduledPrint()
 
-  const amountReceived = activeOrderId ? amountReceivedMap[activeOrderId] ?? '' : ''
-  const total = order?.total ?? totals.total
-  const paymentCaptured = order ? isPaymentCaptured(order) : false
-
-  const paymentMethod =
-    order?.payment_method ??
-    (activeOrderId ? methodMap[activeOrderId] ?? 'CASH' : 'CASH')
-  const cardReference =
-    order?.payment_reference ?? (activeOrderId ? cardRefMap[activeOrderId] ?? '' : '')
-  const walletReference =
-    order?.payment_reference ?? (activeOrderId ? walletRefMap[activeOrderId] ?? '' : '')
-  const walletPayer =
-    order?.payment_payer ?? (activeOrderId ? walletPayerMap[activeOrderId] ?? '' : '')
-
-  const amountNumber = Number(amountReceived)
-  const hasAmount = amountReceived.trim().length > 0
-  const isAmountValid = hasAmount && !Number.isNaN(amountNumber)
-  const change = isAmountValid ? amountNumber - total : 0
-  const isCash = paymentMethod === 'CASH'
-  const requiresReference = paymentMethod === 'GCASH' || paymentMethod === 'OTHER'
-  const isInsufficient = isCash ? !isAmountValid || change < 0 : false
-  const missingReference =
-    !paymentCaptured && requiresReference && walletReference.trim().length === 0
-
-  const triggerPrint = (orderId: string) => {
-    setPrintOrderId(orderId)
-    window.setTimeout(() => {
-      void triggerNativePrint({ silent: true })
-    }, 300)
-    window.setTimeout(() => setPrintOrderId(null), 900)
-  }
+  const derived = derivePaymentInputs({
+    activeOrderId,
+    order,
+    fallbackTotal: totals.total,
+    amountReceivedMap,
+    methodMap,
+    cardRefMap,
+    walletRefMap,
+    walletPayerMap,
+    isPaymentCaptured,
+  })
 
   const handleClose = () => {
     if (activeOrderId) {
@@ -95,7 +80,7 @@ function PaymentModal() {
       setWalletPayerMap((prev) => ({ ...prev, [activeOrderId]: '' }))
     }
     setIsProcessing(false)
-    setPrintOrderId(null)
+    clearReceiptPrint()
     dispatch(closePaymentModal())
   }
 
@@ -120,7 +105,7 @@ function PaymentModal() {
       )
       return
     }
-    if (isInsufficient) {
+    if (derived.isInsufficient) {
       dispatch(
         pushToast({
           title: 'Insufficient amount',
@@ -130,7 +115,7 @@ function PaymentModal() {
       )
       return
     }
-    if (missingReference) {
+    if (derived.missingReference) {
       dispatch(
         pushToast({
           title: 'Reference required',
@@ -177,19 +162,17 @@ function PaymentModal() {
       )
     }
 
-    const paymentAmount = isCash ? amountNumber : total
-    const paymentPayload = {
-      method: paymentMethod,
-      amount: paymentAmount,
-      change: isCash ? Math.max(change, 0) : undefined,
-      reference:
-        paymentMethod === 'CARD'
-          ? cardReference.trim() || undefined
-          : requiresReference
-            ? walletReference.trim() || undefined
-            : undefined,
-      payer: requiresReference ? walletPayer.trim() || undefined : undefined,
-    }
+    const paymentPayload = buildPaymentPayload({
+      paymentMethod: derived.paymentMethod,
+      isCash: derived.isCash,
+      amountNumber: derived.amountNumber,
+      total: derived.total,
+      change: derived.change,
+      cardReference: derived.cardReference,
+      requiresReference: derived.requiresReference,
+      walletReference: derived.walletReference,
+      walletPayer: derived.walletPayer,
+    })
 
     setIsProcessing(true)
     const paidAt = new Date().toISOString()
@@ -249,7 +232,7 @@ function PaymentModal() {
         variant: 'success',
       }),
     )
-    triggerPrint(order.id)
+    scheduleReceiptPrint(order.id)
     if (order.source === 'STAFF') {
       dispatch(clearDraft())
     }
@@ -261,16 +244,23 @@ function PaymentModal() {
       isOpen={ui.isPaymentOpen}
       title="Payment"
       onClose={handleClose}
+      className="pos-modal pos-payment-modal"
+      bodyClassName="pos-modal-body"
+      footerClassName="pos-modal-footer"
       footer={
         <div className="modal-actions">
           <Button variant="ghost" onClick={handleClose}>
-            {paymentCaptured ? 'Done' : 'Cancel'}
+            {derived.paymentCaptured ? 'Done' : 'Cancel'}
           </Button>
-          {paymentCaptured && order ? null : (
+          {derived.paymentCaptured && order ? null : (
             <Button
               variant="primary"
               disabled={
-                !order || !canProcessPayment || isProcessing || isInsufficient || missingReference
+                !order ||
+                !canProcessPayment ||
+                isProcessing ||
+                derived.isInsufficient ||
+                derived.missingReference
               }
               onClick={handleConfirm}
               icon="payments"
@@ -287,113 +277,58 @@ function PaymentModal() {
           <p className="muted">Close and retry checkout.</p>
         </div>
       ) : (
-        <>
-          <div className="payment-panel">
-            <div className="payment-methods">
-              {(['CASH', 'CARD', 'GCASH', 'OTHER'] as PaymentMethod[]).map((method) => (
-                <button
-                  key={method}
-                  type="button"
-                  className={`payment-method${paymentMethod === method ? ' is-active' : ''}`}
-                  onClick={() => {
-                    if (!activeOrderId) return
-                    setMethodMap((prev) => ({ ...prev, [activeOrderId]: method }))
-                  }}
-                  disabled={paymentCaptured}
-                >
-                  {method === 'CASH'
-                    ? 'Cash'
-                    : method === 'CARD'
-                      ? 'Card'
-                      : method === 'GCASH'
-                        ? 'GCash'
-                        : 'Other'}
-                </button>
-              ))}
+        <div className="pos-payment-layout">
+          <div className="pos-payment-summary">
+            <p className="pos-modal-eyebrow">Order summary</p>
+            <div className="pos-payment-summary-row">
+              <span>Order</span>
+              <strong>{order.order_no}</strong>
             </div>
-            <div className="payment-row">
-              <span className="payment-label">Order total</span>
-              <strong>{formatCurrency(total)}</strong>
+            <div className="pos-payment-summary-row">
+              <span>Source</span>
+              <strong>{order.source}</strong>
             </div>
-            {isCash ? (
-              <>
-                <Input
-                  label="Amount Received"
-                  placeholder="0.00"
-                  value={amountReceived}
-                  onChange={(event) => {
-                    if (!activeOrderId) return
-                    setAmountReceivedMap((prev) => ({
-                      ...prev,
-                      [activeOrderId]: event.target.value,
-                    }))
-                  }}
-                  inputMode="decimal"
-                  disabled={paymentCaptured}
-                />
-                <div className="payment-row payment-change">
-                  <span>Change</span>
-                  <span>{formatCurrency(Math.max(change, 0))}</span>
-                </div>
-                {hasAmount && change < 0 ? (
-                  <div className="payment-error">Insufficient amount</div>
-                ) : null}
-              </>
-            ) : null}
-            {paymentMethod === 'CARD' ? (
-              <Input
-                label="Card reference (optional)"
-                placeholder="Terminal ref or last 4 digits"
-                value={cardReference}
-                onChange={(event) => {
-                  if (!activeOrderId) return
-                  setCardRefMap((prev) => ({
-                    ...prev,
-                    [activeOrderId]: event.target.value,
-                  }))
-                }}
-                disabled={paymentCaptured}
-              />
-            ) : null}
-            {paymentMethod === 'GCASH' || paymentMethod === 'OTHER' ? (
-              <>
-                <Input
-                  label="Reference number"
-                  placeholder="Payment reference"
-                  value={walletReference}
-                  onChange={(event) => {
-                    if (!activeOrderId) return
-                    setWalletRefMap((prev) => ({
-                      ...prev,
-                      [activeOrderId]: event.target.value,
-                    }))
-                  }}
-                  disabled={paymentCaptured}
-                  error={missingReference ? 'Reference is required.' : undefined}
-                />
-                <Input
-                  label="Payer name (optional)"
-                  placeholder="Customer name"
-                  value={walletPayer}
-                  onChange={(event) => {
-                    if (!activeOrderId) return
-                    setWalletPayerMap((prev) => ({
-                      ...prev,
-                      [activeOrderId]: event.target.value,
-                    }))
-                  }}
-                  disabled={paymentCaptured}
-                />
-              </>
-            ) : null}
+            <div className="pos-payment-summary-row">
+              <span>Items</span>
+              <strong>{order.items.length}</strong>
+            </div>
+            <div className="pos-payment-summary-row pos-payment-summary-total">
+              <span>Total due</span>
+              <strong>{formatCurrency(derived.total)}</strong>
+            </div>
           </div>
 
-          {paymentCaptured ? (
+          <PaymentFormPanel
+            activeOrderId={activeOrderId}
+            derived={derived}
+            onMethodChange={(method) => {
+              if (!activeOrderId) return
+              setMethodMap((prev) => ({ ...prev, [activeOrderId]: method }))
+            }}
+            onAmountReceivedChange={(value) => {
+              if (!activeOrderId) return
+              setAmountReceivedMap((prev) => ({ ...prev, [activeOrderId]: value }))
+            }}
+            onCardReferenceChange={(value) => {
+              if (!activeOrderId) return
+              setCardRefMap((prev) => ({ ...prev, [activeOrderId]: value }))
+            }}
+            onWalletReferenceChange={(value) => {
+              if (!activeOrderId) return
+              setWalletRefMap((prev) => ({ ...prev, [activeOrderId]: value }))
+            }}
+            onWalletPayerChange={(value) => {
+              if (!activeOrderId) return
+              setWalletPayerMap((prev) => ({ ...prev, [activeOrderId]: value }))
+            }}
+          />
+
+          {derived.paymentCaptured ? (
             <div className="payment-receipt">
               <OrderReceiptPreview order={order} variant="receipt" />
             </div>
           ) : null}
-        </>
+        </div>
       )}
 
       {printOrderId && order ? (

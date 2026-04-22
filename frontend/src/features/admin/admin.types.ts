@@ -17,6 +17,7 @@ export type AdminProduct = {
   baseCost: number
   productClass: 'RAW' | 'NON_RAW'
   categoryId: string
+  imageUrl?: string | null
   isActive: boolean
 }
 

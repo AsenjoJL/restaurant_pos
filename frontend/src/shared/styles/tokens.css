@@ -1,12 +1,6 @@
-/* ============================================
-   TOKENS STYLESHEET - DESIGN TOKEN SOURCE
-   Purpose:
-   - Centralizes typography, color, spacing, radius, and shadow tokens
-   - Provides the shared visual system consumed by all style layers
-   ============================================ */
-
 /* Global CSS custom properties (design tokens) */
 :root {
+  --font-size-base: 12px;
   --font-body: 'Manrope', 'Segoe UI', sans-serif;
   --font-display: 'Sora', 'Segoe UI', sans-serif;
   --font-mono: 'JetBrains Mono', 'Courier New', monospace;
@@ -42,6 +36,15 @@
   --space-5: 24px;
   --space-6: 32px;
   --space-7: 40px;
+
+  /* Cross-feature UI scale tokens */
+  --ui-gap-sm: 12px;
+  --ui-gap-md: 16px;
+  --ui-text-xs: 1.20rem;
+  --ui-text-sm: 1.30rem;
+  --ui-text-md: 2.1rem;
+  --ui-text-lg: 3.2rem;
+  --ui-title-md: 1.7rem;
 
   --transition-fast: 150ms ease;
   --transition-base: 220ms ease;

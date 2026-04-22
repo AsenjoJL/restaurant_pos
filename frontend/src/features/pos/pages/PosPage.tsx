@@ -17,6 +17,12 @@ import {
   setConfirmReason,
   setStaff,
 } from '../pos.store'
+import {
+  confirmTitleMap,
+  confirmDescriptionMap,
+  confirmLabelMap,
+  requiresReason,
+} from '../pos.confirmDialog.config'
 
 function PosPage() {
   const dispatch = useAppDispatch()
@@ -27,26 +33,7 @@ function PosPage() {
     dispatch(setStaff(user?.id ?? null))
   }, [dispatch, user?.id])
 
-  const confirmTitleMap = {
-    'void-item': 'Void Item',
-    'clear-cart': 'Clear Cart',
-    'cancel-order': 'Cancel Order',
-  }
-
-  const confirmDescriptionMap = {
-    'void-item': 'Provide a reason for voiding this item.',
-    'clear-cart': 'This will remove all items from the cart.',
-    'cancel-order': 'Provide a reason for cancelling this order.',
-  }
-
-  const confirmLabelMap = {
-    'void-item': 'Void Item',
-    'clear-cart': 'Clear Cart',
-    'cancel-order': 'Cancel Order',
-  }
-
-  const requireReason =
-    ui.confirm.intent === 'void-item' || ui.confirm.intent === 'cancel-order'
+  const requireReason = ui.confirm.intent ? requiresReason(ui.confirm.intent) : false
 
   const handleConfirm = () => {
     if (!ui.confirm.intent) {

@@ -6,7 +6,7 @@ import PrintPortal from '../../../shared/components/receipt/PrintPortal'
 import { triggerPrint } from '../../../shared/lib/print'
 import { selectOrders } from '../../orders/orders.selectors'
 import SlipTemplate from '../components/SlipTemplate'
-import { useKiosk } from '../kiosk.context'
+import { useKiosk } from '../useKiosk'
 
 const AUTO_RETURN_MS = 7000
 const PRINT_DELAY_MS = 250
@@ -58,10 +58,10 @@ function KioskPrintSlipPage() {
 
   if (!order) {
     return (
-      <section className="kiosk-print-page">
-        <div className="panel kiosk-print-fallback">
-          <h2>Slip not available</h2>
-          <p className="muted">
+      <section className="min-h-screen grid place-items-center bg-cream px-6 py-8">
+        <div className="w-full max-w-[500px] bg-paper border border-divider rounded-[8px] p-6 grid gap-4 text-center">
+          <h2 className="text-body text-[20px] font-semibold">Slip not available</h2>
+          <p className="text-muted text-[12px]">
             We could not find that order. Please return to the kiosk or ask staff for help.
           </p>
           <Button variant="primary" onClick={() => navigate('/kiosk', { replace: true })}>
@@ -73,19 +73,25 @@ function KioskPrintSlipPage() {
   }
 
   return (
-    <section className="kiosk-print-page">
-      <div className="kiosk-print-content">
+    <section className="min-h-screen grid place-items-center bg-cream px-6 py-8">
+      <div className="grid gap-3 justify-items-center max-h-[calc(100vh-64px)] overflow-y-auto pr-1">
         <SlipTemplate order={order} />
-        <div className="kiosk-print-actions">
+        <div className="kiosk-print-actions grid gap-2 justify-items-center text-center">
           {autoPrinted ? (
-            <Button variant="outline" onClick={() => void triggerPrint({ silent: true })}>
+            <Button
+              variant="outline"
+              className="kiosk-slip-reprint-btn"
+              onClick={() => void triggerPrint({ silent: true })}
+            >
               Reprint Slip
             </Button>
           ) : null}
-          <Button variant="primary" onClick={handleDone}>
+          <Button variant="primary" className="kiosk-slip-done-btn" onClick={handleDone}>
             Done
           </Button>
-          <p className="muted">Returning to your order summary shortly...</p>
+          <p className="font-mono text-[10px] text-muted tracking-[.06em]">
+            Returning to your order summary shortly...
+          </p>
         </div>
       </div>
 

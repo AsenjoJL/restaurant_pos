@@ -1,5 +1,4 @@
 import { useMemo, useState } from 'react'
-import { categories, products } from '../../../mock/data'
 import { useAppDispatch, useAppSelector } from '../../../app/store/hooks'
 import { selectAdminProducts } from '../../admin/admin.selectors'
 import { selectActiveCategory, selectSearchTerm } from '../pos.selectors'
@@ -18,24 +17,23 @@ import {
   buildCategoryNameMap,
   filterMenuProducts,
   getCategoryName,
-  mergeMenuProductsWithAdmin,
 } from '../menu.utils'
+import { selectRuntimeMenuCategories, selectRuntimeMenuProducts } from '../menu.selectors'
+
+const cardTags = ['Best Seller', 'Popular', 'New'] as const
 
 function ProductGrid() {
   const dispatch = useAppDispatch()
   const activeCategoryId = useAppSelector(selectActiveCategory)
   const searchTerm = useAppSelector(selectSearchTerm)
   const adminProducts = useAppSelector(selectAdminProducts)
+  const categories = useAppSelector(selectRuntimeMenuCategories)
+  const runtimeProducts = useAppSelector(selectRuntimeMenuProducts)
   const ingredients = useAppSelector(selectInventoryIngredients)
   const recipes = useAppSelector(selectInventoryRecipes)
   const [brokenImages, setBrokenImages] = useState<Record<string, boolean>>({})
 
-  const categoryNameMap = useMemo(() => buildCategoryNameMap(categories), [])
-
-  const runtimeProducts = useMemo(
-    () => mergeMenuProductsWithAdmin(products, adminProducts),
-    [adminProducts],
-  )
+  const categoryNameMap = useMemo(() => buildCategoryNameMap(categories), [categories])
 
   const filteredProducts = useMemo(
     () =>
@@ -55,6 +53,14 @@ function ProductGrid() {
       ),
     [ingredients, recipes, runtimeProducts],
   )
+  const adminProductIds = useMemo(
+    () => new Set(adminProducts.map((product) => product.id)),
+    [adminProducts],
+  )
+  const recipeProductIds = useMemo(
+    () => new Set(recipes.map((recipe) => recipe.productId)),
+    [recipes],
+  )
 
   const activeCategoryName = getCategoryName(categoryNameMap, activeCategoryId)
 
@@ -63,9 +69,10 @@ function ProductGrid() {
       <div className="products-header">
         <div>
           <h2>Menu Items</h2>
-          <p className="muted">
-            {activeCategoryName} · {filteredProducts.length} items
-          </p>
+          <div className="products-header-meta">
+            <p className="muted">{activeCategoryName}</p>
+            <span className="products-count">{filteredProducts.length} items</span>
+          </div>
         </div>
       </div>
 
@@ -76,25 +83,33 @@ function ProductGrid() {
         </div>
       ) : (
         <div className="product-grid">
-          {filteredProducts.map((product) => {
-            const resolvedAvailability = resolveAvailability(
-              product.availability,
-              inventoryAvailability.get(product.id) ?? null,
-            )
+          {filteredProducts.map((product, productIndex) => {
+            const isAdminManaged = adminProductIds.has(product.id)
+            const hasRecipe = recipeProductIds.has(product.id)
+            const resolvedAvailability =
+              isAdminManaged && !hasRecipe
+                ? 'SOLD_OUT'
+                : resolveAvailability(
+                    product.availability,
+                    inventoryAvailability.get(product.id) ?? null,
+                  )
             const isBundle = product.type === 'BUNDLE'
             const canAdd = resolvedAvailability === 'AVAILABLE'
             const imageKey = product.image ?? ''
             const imageBroken = imageKey ? brokenImages[imageKey] : false
-            const categoryLabel = getCategoryName(
-              categoryNameMap,
-              product.categoryId,
-              product.categoryId,
-            )
-            const chipLabel = product.description || categoryLabel
+            const isFeatured = productIndex === 0
+            const cardTag =
+              resolvedAvailability === 'AVAILABLE' ? cardTags[productIndex % cardTags.length] : null
+            const stockLabel =
+              isAdminManaged && !hasRecipe
+                ? 'Unavailable'
+                : resolvedAvailability === 'LIMITED'
+                  ? 'Low stock'
+                  : 'Unavailable'
             return (
               <article
                 key={product.id}
-                className={`product-card tone-${product.tone} availability-${resolvedAvailability.toLowerCase()}`}
+                className={`product-card pos-product-card availability-${resolvedAvailability.toLowerCase()}${isFeatured ? ' is-featured' : ''}`}
                 role={!isBundle ? 'button' : undefined}
                 tabIndex={!isBundle ? 0 : undefined}
                 onClick={() => {
@@ -142,10 +157,11 @@ function ProductGrid() {
                     <span
                       className={`availability-badge availability-${resolvedAvailability.toLowerCase()}`}
                     >
-                      {resolvedAvailability === 'LIMITED' ? 'Limited' : 'Unavailable'}
+                      {stockLabel}
                     </span>
+                  ) : cardTag ? (
+                    <span className="product-chip">{cardTag}</span>
                   ) : null}
-                  <span className="product-chip">{chipLabel}</span>
                   {product.type === 'BUNDLE' ? <span className="product-badge">Combo</span> : null}
                 </div>
                 <div className="product-content">
@@ -158,14 +174,29 @@ function ProductGrid() {
                     {isBundle ? (
                       <Button
                         variant="ghost"
+                        className="product-add-btn"
                         onClick={() => dispatch(openBundleModal(product.id))}
                         icon="playlist_add"
                         disabled={!canAdd}
                       >
-                        Build Combo
+                        Build
                       </Button>
                     ) : (
-                      <span className="muted">Tap card to add</span>
+                      <button
+                        type="button"
+                        className="product-add-btn"
+                        disabled={!canAdd}
+                        onClick={(event) => {
+                          event.stopPropagation()
+                          if (!canAdd) {
+                            return
+                          }
+                          dispatch(addItem(product))
+                        }}
+                        aria-label={`Add ${product.name}`}
+                      >
+                        {canAdd ? '+ Add' : 'Unavailable'}
+                      </button>
                     )}
                   </div>
                 </div>

@@ -3,8 +3,9 @@ import { useNavigate, useParams } from 'react-router-dom'
 import { useAppSelector } from '../../../app/store/hooks'
 import Button from '../../../shared/components/ui/Button'
 import { formatCurrency } from '../../../shared/lib/format'
+import { formatEnumLabel } from '../../../shared/lib/orders'
 import { selectOrders } from '../../orders/orders.selectors'
-import { useKiosk } from '../kiosk.context'
+import { useKiosk } from '../useKiosk'
 
 function KioskSuccessPage() {
   const navigate = useNavigate()
@@ -23,6 +24,17 @@ function KioskSuccessPage() {
     reset()
     navigate('/kiosk', { replace: true })
   }
+
+  const placedAtLabel = useMemo(() => {
+    if (!order?.placed_at) {
+      return ''
+    }
+    const date = new Date(order.placed_at)
+    if (Number.isNaN(date.getTime())) {
+      return order.placed_at
+    }
+    return date.toLocaleString()
+  }, [order?.placed_at])
 
   if (!order) {
     return (
@@ -45,8 +57,19 @@ function KioskSuccessPage() {
   return (
     <section className="kiosk-page kiosk-hero">
       <div className="panel kiosk-success-card">
-        <span className="status-chip">Order placed</span>
-        <h2>Your order number</h2>
+        <div className="kiosk-success-head">
+          <div className="kiosk-success-brand">
+            <img src="/Resto.jpg" alt="Asenter Restaurant logo" />
+            <div>
+              <span className="status-chip">Order placed</span>
+              <p className="kiosk-success-branch">Urgello Branch</p>
+            </div>
+          </div>
+          <span className="kiosk-success-meta">
+            {placedAtLabel} • {formatEnumLabel(order.order_type)}
+          </span>
+        </div>
+        <h2>Queue number</h2>
         <div className="kiosk-success-number">{order.order_no}</div>
         <p className="muted">
           Proceed to the counter to pay and present this number.

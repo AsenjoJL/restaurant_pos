@@ -217,23 +217,34 @@ function ModifierModal() {
       isOpen={ui.isModifierOpen}
       title="Item Modifiers"
       onClose={() => dispatch(closeModifierModal())}
+      className="pos-modal pos-modifier-modal"
+      bodyClassName="pos-modal-body"
     >
       {item ? (
-        <ModifierModalContent
-          key={item.product.id}
-          item={item}
-          onCancel={() => dispatch(closeModifierModal())}
-          onSave={(modifiers, unitPrice) => {
-            dispatch(
-              setItemModifiers({
-                productId: item.product.id,
-                selectedModifiers: modifiers,
-                finalUnitPrice: unitPrice,
-              }),
-            )
-            dispatch(closeModifierModal())
-          }}
-        />
+        <div className="pos-modifier-layout">
+          <div className="pos-modifier-intro">
+            <p className="pos-modal-eyebrow">Customize item</p>
+            <h4>{item.product.name}</h4>
+            <p className="muted">
+              Choose the options you want before saving this menu item.
+            </p>
+          </div>
+          <ModifierModalContent
+            key={item.product.id}
+            item={item}
+            onCancel={() => dispatch(closeModifierModal())}
+            onSave={(modifiers, unitPrice) => {
+              dispatch(
+                setItemModifiers({
+                  productId: item.product.id,
+                  selectedModifiers: modifiers,
+                  finalUnitPrice: unitPrice,
+                }),
+              )
+              dispatch(closeModifierModal())
+            }}
+          />
+        </div>
       ) : (
         <div className="empty-state">
           <h4>No item selected</h4>

@@ -16,6 +16,9 @@ function ReceiptModal() {
       isOpen={ui.isReceiptOpen}
       title="Receipt Preview"
       onClose={() => dispatch(closeReceiptModal())}
+      className="pos-modal pos-receipt-modal"
+      bodyClassName="pos-modal-body"
+      footerClassName="pos-modal-footer"
       footer={
         <div className="modal-actions">
           <Button variant="ghost" onClick={() => dispatch(closeReceiptModal())}>
@@ -26,6 +29,7 @@ function ReceiptModal() {
       }
     >
       <div className="receipt-preview">
+        <p className="pos-modal-eyebrow">Customer copy</p>
         <div className="receipt-header">
           <h3>Restaurant POS</h3>
           <p className="muted">Order {draft.id}</p>

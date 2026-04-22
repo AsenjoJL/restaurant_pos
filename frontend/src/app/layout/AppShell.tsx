@@ -1,4 +1,4 @@
-import type { ReactNode } from 'react'
+import { useEffect, useRef, type ReactNode } from 'react'
 import { NavLink } from 'react-router-dom'
 import { useAppDispatch, useAppSelector } from '../store/hooks'
 import { selectAuthUser } from '../../features/auth/auth.selectors'
@@ -10,6 +10,13 @@ type AppShellProps = {
   children: ReactNode
 }
 
+const navIconMap = {
+  pos: '/pos.png',
+  cashier: '/cashier.png',
+  kitchen: '/kitchen.png',
+  admin: '/admin.png',
+} as const
+
 function AppShell({ children }: AppShellProps) {
   const dispatch = useAppDispatch()
   const user = useAppSelector(selectAuthUser)
@@ -17,6 +24,15 @@ function AppShell({ children }: AppShellProps) {
   const isAdmin = role === 'admin'
   const isCashier = role === 'cashier'
   const isKitchen = role === 'kitchen'
+  const headerRef = useRef<HTMLElement | null>(null)
+  const userInitials = user?.name
+    ? user.name
+        .split(/\s+/)
+        .filter(Boolean)
+        .slice(0, 2)
+        .map((part) => part[0]?.toUpperCase() ?? '')
+        .join('')
+    : '??'
 
   const handleLogout = () => {
     logAuditEvent(dispatch, {
@@ -28,12 +44,38 @@ function AppShell({ children }: AppShellProps) {
     dispatch(logout())
   }
 
+  useEffect(() => {
+    const el = headerRef.current
+    if (!el) {
+      return
+    }
+
+    const update = () => {
+      const next = Math.round(el.getBoundingClientRect().height)
+      // Used by sticky sidebars (Admin) and other layouts that need to offset below the top header.
+      document.documentElement.style.setProperty('--app-header-height', `${next}px`)
+    }
+
+    update()
+
+    const ro = 'ResizeObserver' in window ? new ResizeObserver(update) : null
+    ro?.observe(el)
+    window.addEventListener('resize', update)
+
+    return () => {
+      ro?.disconnect()
+      window.removeEventListener('resize', update)
+    }
+  }, [])
+
   return (
     <div className="app-shell">
-      <header className="app-header">
+      <header ref={headerRef} className="app-header">
         <div className="app-header-left">
           <div className="brand">
-            <span className="brand-mark">POS</span>
+            <span className="brand-mark">
+              <img src="/Resto.jpg" alt="Asenter Restaurant logo" />
+            </span>
             <div>
               <h1>Restaurant POS</h1>
               <p className="muted">Operations dashboard</p>
@@ -47,9 +89,8 @@ function AppShell({ children }: AppShellProps) {
                 to="/pos"
                 className={({ isActive }) => `nav-link${isActive ? ' active' : ''}`}
               >
-                <span className="material-symbols-rounded nav-icon" aria-hidden="true">
-                  point_of_sale
-                </span>
+                <span className="nav-active-dot" aria-hidden="true" />
+                <img className="nav-icon nav-icon-img" src={navIconMap.pos} alt="" aria-hidden="true" />
                 <span>POS</span>
               </NavLink>
             )}
@@ -58,9 +99,13 @@ function AppShell({ children }: AppShellProps) {
                 to="/orders"
                 className={({ isActive }) => `nav-link${isActive ? ' active' : ''}`}
               >
-                <span className="material-symbols-rounded nav-icon" aria-hidden="true">
-                  payments
-                </span>
+                <span className="nav-active-dot" aria-hidden="true" />
+                <img
+                  className="nav-icon nav-icon-img"
+                  src={navIconMap.cashier}
+                  alt=""
+                  aria-hidden="true"
+                />
                 <span>Cashier</span>
               </NavLink>
             )}
@@ -69,9 +114,13 @@ function AppShell({ children }: AppShellProps) {
                 to="/kitchen"
                 className={({ isActive }) => `nav-link${isActive ? ' active' : ''}`}
               >
-                <span className="material-symbols-rounded nav-icon" aria-hidden="true">
-                  local_dining
-                </span>
+                <span className="nav-active-dot" aria-hidden="true" />
+                <img
+                  className="nav-icon nav-icon-img"
+                  src={navIconMap.kitchen}
+                  alt=""
+                  aria-hidden="true"
+                />
                 <span>Kitchen</span>
               </NavLink>
             )}
@@ -80,19 +129,26 @@ function AppShell({ children }: AppShellProps) {
                 to="/admin/dashboard"
                 className={({ isActive }) => `nav-link${isActive ? ' active' : ''}`}
               >
-                <span className="material-symbols-rounded nav-icon" aria-hidden="true">
-                  admin_panel_settings
-                </span>
+                <span className="nav-active-dot" aria-hidden="true" />
+                <img
+                  className="nav-icon nav-icon-img"
+                  src={navIconMap.admin}
+                  alt=""
+                  aria-hidden="true"
+                />
                 <span>Admin</span>
               </NavLink>
             ) : null}
           </nav>
           <div className="user-chip">
+            <span className="user-avatar" aria-hidden="true">
+              {userInitials}
+            </span>
             <div>
               <span className="user-name">{user?.name ?? 'Unknown User'}</span>
               <span className="user-role">{user?.role ?? 'unknown'}</span>
             </div>
-            <Button variant="ghost" onClick={handleLogout}>
+            <Button variant="ghost" className="header-signout-btn" onClick={handleLogout}>
               Sign out
             </Button>
           </div>

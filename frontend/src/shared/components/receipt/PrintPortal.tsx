@@ -1,5 +1,5 @@
 import type { ReactNode } from 'react'
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 import { createPortal } from 'react-dom'
 
 const PRINT_ROOT_ID = 'print-root'
@@ -20,11 +20,9 @@ type PrintPortalProps = {
 }
 
 function PrintPortal({ children }: PrintPortalProps) {
-  const [container, setContainer] = useState<HTMLElement | null>(null)
-
-  useEffect(() => {
-    setContainer(ensurePrintRoot())
-  }, [])
+  const [container] = useState<HTMLElement | null>(() =>
+    typeof document === 'undefined' ? null : ensurePrintRoot(),
+  )
 
   if (!container) {
     return null

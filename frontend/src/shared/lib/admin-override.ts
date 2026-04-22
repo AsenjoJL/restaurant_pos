@@ -1,4 +1,4 @@
-type AdminOverrideScope = 'cashier' | 'kitchen'
+export type AdminOverrideScope = 'cashier' | 'kitchen'
 
 const KEY_PREFIX = 'pos.admin.override.v1'
 const DEFAULT_DURATION_MS = 15 * 60 * 1000

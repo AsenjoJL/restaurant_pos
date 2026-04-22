@@ -45,8 +45,9 @@ let productsState: AdminProduct[] = productsSeed.map((product, index) => ({
   description: product.description,
   price: product.price,
   baseCost: Math.max(product.price * 0.55, 1),
-  productClass: 'NON_RAW',
+  productClass: product.categoryId === 'raw-materials' ? 'RAW' : 'NON_RAW',
   categoryId: product.categoryId,
+  imageUrl: product.image ?? null,
   isActive: true,
 }))
 
@@ -74,6 +75,14 @@ export const adminRepositoryMock: AdminRepository = {
   async saveSettings(payload: AdminSettings) {
     settingsState = structuredClone(payload)
     return structuredClone(settingsState)
+  },
+  async changeUserPassword() {
+    return { updated: true }
+  },
+  async uploadProductImage(file: File) {
+    return {
+      imageUrl: URL.createObjectURL(file),
+    }
   },
   async listUsers() {
     return structuredClone(usersState)

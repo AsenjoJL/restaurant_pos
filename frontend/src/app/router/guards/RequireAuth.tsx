@@ -3,22 +3,11 @@ import { Navigate } from 'react-router-dom'
 import { useAppSelector } from '../../store/hooks'
 import { selectAuthStatus, selectAuthUser } from '../../../features/auth/auth.selectors'
 import type { Role } from '../../../features/auth/auth.types'
+import { getDefaultRouteForRole } from '../../../features/auth/auth.utils'
 
 type RequireAuthProps = {
   allowedRoles?: Role[]
   children: ReactNode
-}
-
-const getDefaultRoute = (role: Role) => {
-  switch (role) {
-    case 'admin':
-      return '/admin/dashboard'
-    case 'kitchen':
-      return '/kitchen'
-    case 'cashier':
-    default:
-      return '/pos'
-  }
 }
 
 function RequireAuth({ allowedRoles, children }: RequireAuthProps) {
@@ -41,7 +30,7 @@ function RequireAuth({ allowedRoles, children }: RequireAuthProps) {
   }
 
   if (allowedRoles && !allowedRoles.includes(user.role)) {
-    return <Navigate to={getDefaultRoute(user.role)} replace />
+    return <Navigate to={getDefaultRouteForRole(user.role)} replace />
   }
 
   return <>{children}</>

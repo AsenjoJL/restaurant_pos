@@ -17,6 +17,11 @@ export const getCashierHeaderLabel = (tab: CashierTab) => {
   return 'Completed Orders'
 }
 
+export const getCashierTabCounts = (orders: Order[]) => ({
+  pendingCount: orders.filter((order) => order.status === 'PENDING_PAYMENT').length,
+  readyCount: orders.filter((order) => order.status === 'READY_FOR_PICKUP').length,
+})
+
 export const filterCashierOrders = (orders: Order[], tab: CashierTab, query: string) => {
   const trimmed = query.trim().toUpperCase()
   return orders.filter((order) => {

@@ -19,17 +19,15 @@ I designed and built a Restaurant POS System specifically for small and growing 
 - **State Management**: Redux Toolkit + React Redux
 - **Routing**: React Router DOM
 - **Desktop Packaging (Kiosk)**: Electron + electron-builder (Windows NSIS)
-- **Data Access Pattern**: Repository pattern with `mock` / `api` mode switching
-- **API/HTTP Layer**: Custom `fetch` client (`httpClient`)
+- **Data Access Pattern**: Repository pattern with mock repositories
 - **Client Persistence**: localStorage + cross-tab sync (`storage` event)
 - **Styling**: Custom CSS architecture (`base.css`, `pos.css`, `admin.css`, `kiosk.css`, `tokens.css`)
 - **Reporting Utility**: `xlsx`
 - **Linting**: ESLint
 
-## Data Mode (Mock or API)
-- `VITE_DATA_MODE=mock` → runs frontend-only using repository mock implementations
-- `VITE_DATA_MODE=api` → uses HTTP repositories for Laravel API integration
-- `VITE_API_BASE_URL` controls the API base path (default `/api/v1`)
+## Data Mode
+- The app runs frontend-only with mock data
+- Store state is persisted locally in the browser via `localStorage`
 
 Copy `.env.example` to `.env` and set values per environment.
 
@@ -107,7 +105,7 @@ All key actions are logged (payments, replacements, cash drawer, auth) and can b
 - `/admin/settings`
 
 ## Local Storage Keys
-Data is UI‑first and persisted locally:
+The frontend persists parts of the UI/session state locally:
 - `pos.orders.v1` – orders
 - `pos.auth.v1` – user session
 - `pos.cash.v1` – cash drawer + adjustments
@@ -125,8 +123,8 @@ npm run build
 ```
 
 ## Notes
-- UI‑first only (no backend integration yet)
-- All data is mock/localStorage
+- This repository contains the frontend app only
+- The app runs with mock data only
 - Designed for speed + clarity in busy restaurant workflows
 
 ---
