@@ -1,6 +1,7 @@
-import Button from '../../../shared/components/ui/Button'
+import FileFormatAction from '../../../shared/components/ui/FileFormatAction'
 import Input from '../../../shared/components/ui/Input'
 import Select from '../../../shared/components/ui/Select'
+import type { SalesExportFileFormat } from '../sales.export'
 
 type SalesFilterBarProps = {
   query: string
@@ -8,6 +9,8 @@ type SalesFilterBarProps = {
   statusFilter: string
   startDate: string
   endDate: string
+  exportFormat: SalesExportFileFormat
+  exportFormatOptions: Array<{ value: SalesExportFileFormat; label: string }>
   methodOptions: Array<{ value: string; label: string }>
   statusOptions: Array<{ value: string; label: string }>
   onQueryChange: (value: string) => void
@@ -16,6 +19,7 @@ type SalesFilterBarProps = {
   onStartDateChange: (value: string) => void
   onEndDateChange: (value: string) => void
   onExport: () => void
+  onExportFormatChange: (format: SalesExportFileFormat) => void
 }
 
 function SalesFilterBar({
@@ -24,6 +28,8 @@ function SalesFilterBar({
   statusFilter,
   startDate,
   endDate,
+  exportFormat,
+  exportFormatOptions,
   methodOptions,
   statusOptions,
   onQueryChange,
@@ -32,6 +38,7 @@ function SalesFilterBar({
   onStartDateChange,
   onEndDateChange,
   onExport,
+  onExportFormatChange,
 }: SalesFilterBarProps) {
   return (
     <div className="admin-toolbar admin-toolbar-surface sales-filter-bar">
@@ -68,9 +75,13 @@ function SalesFilterBar({
         onChange={(event) => onEndDateChange(event.target.value)}
         name="salesEndDate"
       />
-      <Button variant="outline" onClick={onExport}>
-        Export
-      </Button>
+      <FileFormatAction
+        actionLabel="Export"
+        format={exportFormat}
+        options={exportFormatOptions}
+        onAction={onExport}
+        onFormatChange={onExportFormatChange}
+      />
     </div>
   )
 }

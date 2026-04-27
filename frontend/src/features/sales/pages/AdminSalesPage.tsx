@@ -10,6 +10,8 @@ import useAdminSalesPageController from '../useAdminSalesPageController'
 function AdminSalesPage() {
   const {
     endDate,
+    exportFormat,
+    exportFormatOptions,
     methodFilter,
     methodOptions,
     model,
@@ -23,6 +25,7 @@ function AdminSalesPage() {
     handleCloseDetails,
     handleEndDateChange,
     handleExport,
+    handleExportFormatChange,
     handleMethodFilterChange,
     handlePrint,
     handleQueryChange,
@@ -51,6 +54,8 @@ function AdminSalesPage() {
         statusFilter={statusFilter}
         startDate={startDate}
         endDate={endDate}
+        exportFormat={exportFormat}
+        exportFormatOptions={exportFormatOptions}
         methodOptions={methodOptions}
         statusOptions={statusOptions}
         onQueryChange={handleQueryChange}
@@ -59,6 +64,7 @@ function AdminSalesPage() {
         onStartDateChange={handleStartDateChange}
         onEndDateChange={handleEndDateChange}
         onExport={handleExport}
+        onExportFormatChange={handleExportFormatChange}
       />
 
       <SalesStatsCards metrics={model.metrics} formatCurrency={formatCurrency} />

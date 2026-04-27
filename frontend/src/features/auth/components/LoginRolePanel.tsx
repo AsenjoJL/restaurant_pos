@@ -12,7 +12,7 @@ function LoginRolePanel({
 }: LoginRolePanelProps) {
   return (
     <div className="mb-6">
-      <p className="mb-3 font-mono text-[10px] uppercase tracking-[0.22em] text-[#b2a28b]">
+      <p className="mb-3 font-sans text-[9px] font-semibold uppercase tracking-[0.2em] text-[#b2a28b]">
         Select your role
       </p>
       <div className="grid grid-cols-3 gap-2.5">
@@ -39,7 +39,7 @@ function LoginRolePanel({
                 }`}
               />
               <span
-                className={`text-[15px] leading-none ${
+                className={`text-[13px] leading-none ${
                   active ? 'text-white' : 'text-[#8f8068]'
                 }`}
               >

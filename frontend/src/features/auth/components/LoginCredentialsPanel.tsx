@@ -28,18 +28,18 @@ function LoginCredentialsPanel({
   return (
     <main className="animate-[fadeIn_0.5s_0.1s_ease_both]">
       <form onSubmit={onSubmit} className="grid">
-        <div className="mb-5 font-mono text-[10px] uppercase tracking-[0.22em] text-[#b2a28b]">
+        <div className="mb-5 font-sans text-[9px] font-semibold uppercase tracking-[0.2em] text-[#b2a28b]">
           {roleName}
         </div>
         <label
-          className="mb-2 font-mono text-[10px] uppercase tracking-[0.22em] text-[#b2a28b]"
+          className="mb-2 font-sans text-[9px] font-semibold uppercase tracking-[0.2em] text-[#b2a28b]"
           htmlFor="staff-username"
         >
           Username
         </label>
         <input
           id="staff-username"
-          className="mb-5 w-full rounded-[10px] border border-[#e0d2bc] bg-[#fcf8f2] px-4 py-3 text-[24px] text-[#17130f] outline-none placeholder:text-[#c4b59b] focus:border-[#c8ae73]"
+          className="mb-5 w-full rounded-[10px] border border-[#e0d2bc] bg-[#fcf8f2] px-4 py-3 text-[18px] text-[#17130f] outline-none placeholder:text-[#c4b59b] focus:border-[#c8ae73]"
           placeholder="Enter username"
           value={username}
           onChange={(event) => onUsernameChange(event.target.value)}
@@ -48,7 +48,7 @@ function LoginCredentialsPanel({
           disabled={isSubmitting}
         />
 
-        <p className="mb-2 font-mono text-[10px] uppercase tracking-[0.22em] text-[#b2a28b]">PIN</p>
+        <p className="mb-2 font-sans text-[9px] font-semibold uppercase tracking-[0.2em] text-[#b2a28b]">PIN</p>
         <div className={`mb-2 flex gap-2.5 ${isShaking ? 'animate-[shake_0.4s_ease]' : ''}`}>
           {[0, 1, 2, 3].map((index) => {
             const filled = pin[index] !== undefined
@@ -56,7 +56,7 @@ function LoginCredentialsPanel({
             return (
               <span
                 key={index}
-                className={`grid h-[46px] w-[46px] place-items-center rounded-[10px] border text-[22px] ${
+                className={`grid h-[46px] w-[46px] place-items-center rounded-[10px] border text-[18px] ${
                   filled ? 'border-[#c8ae73] text-[#17130f]' : 'border-[#e0d2bc] text-[#17130f]'
                 } ${active ? 'bg-[#f4ede2] border-[#c8ae73]' : 'bg-[#fbf7f0]'}`}
               >
@@ -65,7 +65,7 @@ function LoginCredentialsPanel({
             )
           })}
         </div>
-        <p className="mb-6 text-[11px] text-[#b2a28b]">
+        <p className="mb-6 text-[10px] text-[#b2a28b]">
           Use the credential set by your admin
         </p>
 
@@ -76,8 +76,8 @@ function LoginCredentialsPanel({
               <button
                 key={key}
                 type="button"
-                className={`rounded-[10px] border border-[#e0d2bc] bg-white py-3.5 text-center text-[16px] text-[#17130f] transition-colors hover:bg-[#faf5ec] hover:border-[#c9b99d] active:scale-[.98] ${
-                  isActionKey ? 'text-[15px] text-[#9f9078]' : ''
+                className={`rounded-[10px] border border-[#e0d2bc] bg-white py-3.5 text-center text-[14px] text-[#17130f] transition-colors hover:bg-[#faf5ec] hover:border-[#c9b99d] active:scale-[.98] ${
+                  isActionKey ? 'text-[13px] text-[#9f9078]' : ''
                 }`}
                 onClick={() => onNumpadPress(key)}
                 disabled={isSubmitting}
@@ -89,14 +89,14 @@ function LoginCredentialsPanel({
         </div>
 
         <button
-          className="w-full rounded-[10px] bg-[#17130f] py-3.5 text-[14px] uppercase tracking-[0.24em] text-white transition-colors hover:bg-[#231c16] active:scale-[.99] disabled:bg-[#d9ccb8] disabled:text-[#9a8b76]"
+          className="w-full rounded-[10px] bg-[#17130f] py-3.5 text-[12px] uppercase tracking-[0.2em] text-white transition-colors hover:bg-[#231c16] active:scale-[.99] disabled:bg-[#d9ccb8] disabled:text-[#9a8b76]"
           type="submit"
           disabled={!canSubmit}
         >
           {isVerifying ? 'Verifying…' : 'Sign In'}
         </button>
       </form>
-      <p className="mt-4 text-center text-[11px] text-[#b2a28b]">
+      <p className="mt-4 text-center text-[10px] text-[#b2a28b]">
         Need access? Contact your manager.
       </p>
     </main>

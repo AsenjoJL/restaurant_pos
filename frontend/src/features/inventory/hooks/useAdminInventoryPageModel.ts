@@ -5,10 +5,13 @@ import { hasValidationErrors } from '../../../shared/lib/validation'
 import type { Ingredient, IngredientType } from '../inventory.types'
 import {
   calculateUnitCostFromBulk,
-  INVENTORY_IMPORT_HEADERS,
-  INVENTORY_IMPORT_SAMPLE,
-  parseSheetRows,
+  parseInventoryImportFile,
 } from '../inventory.import'
+import {
+  downloadInventoryExport,
+  INVENTORY_FILE_FORMAT_OPTIONS,
+  type InventoryFileFormat,
+} from '../inventory.export'
 import { syncImportedIngredients } from '../inventory.import-sync'
 import {
   emptyAdjustForm,
@@ -70,6 +73,8 @@ export function useAdminInventoryPageModel() {
   const [isUnitCostManual, setIsUnitCostManual] = useState(false)
 
   const [isImporting, setIsImporting] = useState(false)
+  const [exportFormat, setExportFormat] = useState<InventoryFileFormat>('xlsx')
+  const [importFormat, setImportFormat] = useState<InventoryFileFormat>('xlsx')
   const fileInputRef = useRef<HTMLInputElement | null>(null)
   const openImportFilePicker = useCallback(() => {
     fileInputRef.current?.click()
@@ -362,15 +367,7 @@ export function useAdminInventoryPageModel() {
       }
       setIsImporting(true)
       try {
-        const XLSX = await import('xlsx')
-        const buffer = await file.arrayBuffer()
-        const workbook = XLSX.read(buffer, { type: 'array' })
-        const sheetName = workbook.SheetNames[0]
-        if (!sheetName) {
-          throw new Error('Missing worksheet')
-        }
-        const sheet = workbook.Sheets[sheetName]
-        const rows = parseSheetRows(XLSX, sheet)
+        const rows = await parseInventoryImportFile(file)
 
         const summary = await syncImportedIngredients({
           rows,
@@ -399,7 +396,7 @@ export function useAdminInventoryPageModel() {
           pushToast({
             title: 'Import failed',
             description:
-              'Could not read the Excel file. Use a .xlsx file with data on the first sheet.',
+              'Could not read the file. Use an Excel, CSV, or JSON inventory template.',
             variant: 'error',
           }),
         )
@@ -411,46 +408,29 @@ export function useAdminInventoryPageModel() {
     [dispatch, ingredientByInventoryId, ingredientByName],
   )
 
-  const handleDownloadTemplate = useCallback(async () => {
+  const handleExportInventory = useCallback(async () => {
     try {
-      const XLSX = await import('xlsx')
-      const worksheet = XLSX.utils.json_to_sheet(
-        [
-          INVENTORY_IMPORT_SAMPLE,
-          {
-            'inventory id': 'ING-0002',
-            'ingredient type': 'NON_RAW',
-            name: 'Paper bag',
-            category: 'Packaging & Service Items',
-            'base unit': 'pcs',
-            'on hand': 1000,
-            'reorder level': 250,
-            'unit cost': 1.5,
-            'bulk qty': 100,
-            'bulk unit': 'pcs',
-            'bulk price': 150,
-          },
-        ],
-        {
-          header: [...INVENTORY_IMPORT_HEADERS],
-        },
-      )
-      XLSX.utils.sheet_add_aoa(worksheet, [[...INVENTORY_IMPORT_HEADERS]], {
-        origin: 'A1',
+      await downloadInventoryExport({
+        format: exportFormat,
+        ingredients,
       })
-      const workbook = XLSX.utils.book_new()
-      XLSX.utils.book_append_sheet(workbook, worksheet, 'Ingredients')
-      XLSX.writeFile(workbook, 'inventory-import-template.xlsx')
+      dispatch(
+        pushToast({
+          title: 'Inventory exported',
+          description: `Exported ${ingredients.length} ingredient records.`,
+          variant: 'success',
+        }),
+      )
     } catch {
       dispatch(
         pushToast({
-          title: 'Download failed',
-          description: 'Could not generate the template file.',
+          title: 'Export failed',
+          description: 'Could not generate the inventory export file.',
           variant: 'error',
         }),
       )
     }
-  }, [dispatch])
+  }, [dispatch, exportFormat, ingredients])
 
   return {
     // data
@@ -498,11 +478,16 @@ export function useAdminInventoryPageModel() {
     closeAdjustModal,
     handleAdjustStock,
 
-    // import
+    // import/export
     isImporting,
     fileInputRef,
+    exportFormat,
+    setExportFormat,
+    importFormat,
+    setImportFormat,
+    fileFormatOptions: INVENTORY_FILE_FORMAT_OPTIONS,
     openImportFilePicker,
     handleImport,
-    handleDownloadTemplate,
+    handleExportInventory,
   } as const
 }

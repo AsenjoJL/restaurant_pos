@@ -44,34 +44,47 @@ function InventoryTable({
                 key={ingredient.id}
                 className={`admin-table-row inventory${isLow ? ' inventory-row--critical' : ''}`}
               >
-                <span className="inventory-code">{ingredient.inventoryId ?? '-'}</span>
-                <div className="inventory-meta">
+                <span className="inventory-code" data-label="Inventory ID">
+                  {ingredient.inventoryId ?? '-'}
+                </span>
+                <div className="inventory-meta" data-label="Ingredient">
                   <strong>{ingredient.name}</strong>
                 </div>
-                <span
-                  className={`inventory-type-badge ${
-                    (ingredient.ingredientType ?? 'RAW') === 'NON_RAW'
-                      ? 'inventory-type-badge--non-raw'
-                      : 'inventory-type-badge--raw'
-                  }`}
-                >
-                  {(ingredient.ingredientType ?? 'RAW') === 'NON_RAW' ? 'Non-raw' : 'Raw'}
+                <div className="inventory-table-field" data-label="Type">
+                  <span
+                    className={`inventory-type-badge ${
+                      (ingredient.ingredientType ?? 'RAW') === 'NON_RAW'
+                        ? 'inventory-type-badge--non-raw'
+                        : 'inventory-type-badge--raw'
+                    }`}
+                  >
+                    {(ingredient.ingredientType ?? 'RAW') === 'NON_RAW' ? 'Non-raw' : 'Raw'}
+                  </span>
+                </div>
+                <span data-label="Category">{ingredient.category}</span>
+                <span className="inventory-unit" data-label="Base Unit">
+                  {ingredient.baseUnit}
                 </span>
-                <span>{ingredient.category}</span>
-                <span className="inventory-unit">{ingredient.baseUnit}</span>
-                <span className={`inventory-stock${isLow ? ' inventory-stock--low' : ''}`}>
+                <span
+                  className={`inventory-stock${isLow ? ' inventory-stock--low' : ''}`}
+                  data-label="On Hand"
+                >
                   {formatIngredientQty(ingredient.onHand, ingredient.baseUnit)}
                 </span>
-                <span>{formatIngredientQty(ingredient.reorderLevel, ingredient.baseUnit)}</span>
-                <span>{formatCurrency(ingredient.unitCost ?? 0)}</span>
-                <span
-                  className={`inventory-badge ${
-                    isLow ? 'inventory-badge--low' : 'inventory-badge--ok'
-                  }`}
-                >
-                  {isLow ? 'Low' : 'OK'}
+                <span data-label="Reorder">
+                  {formatIngredientQty(ingredient.reorderLevel, ingredient.baseUnit)}
                 </span>
-                <div className="admin-row-actions inventory-row-actions">
+                <span data-label="Unit Cost">{formatCurrency(ingredient.unitCost ?? 0)}</span>
+                <div className="inventory-table-field" data-label="Status">
+                  <span
+                    className={`inventory-badge ${
+                      isLow ? 'inventory-badge--low' : 'inventory-badge--ok'
+                    }`}
+                  >
+                    {isLow ? 'Low' : 'OK'}
+                  </span>
+                </div>
+                <div className="admin-row-actions inventory-row-actions" data-label="Actions">
                   <Button
                     variant="outline"
                     className="inventory-action-btn inventory-action-edit"

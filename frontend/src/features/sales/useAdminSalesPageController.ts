@@ -7,7 +7,11 @@ import type { Order, OrderStatus } from '../../shared/types/order'
 import type { SalesRecord } from '../../shared/types/sales'
 import { SALES_METHOD_OPTIONS, SALES_STATUS_OPTIONS } from '../admin/admin.sales-center'
 import { selectOrders } from '../orders/orders.selectors'
-import { buildSalesExportWorkbook } from './sales.export'
+import {
+  downloadSalesExport,
+  SALES_EXPORT_FILE_FORMAT_OPTIONS,
+  type SalesExportFileFormat,
+} from './sales.export'
 import { selectSalesRecords } from './sales.selectors'
 import { useAdminSalesModel } from './useAdminSalesModel'
 
@@ -57,6 +61,7 @@ function useAdminSalesPageController() {
   const [statusFilter, setStatusFilter] = useState('ALL')
   const [startDate, setStartDate] = useState('')
   const [endDate, setEndDate] = useState('')
+  const [exportFormat, setExportFormat] = useState<SalesExportFileFormat>('xlsx')
   const [selectedRecordId, setSelectedRecordId] = useState<string | null>(null)
   const { printId: printOrderId, schedulePrint } = useScheduledPrint({
     startDelayMs: 0,
@@ -93,20 +98,25 @@ function useAdminSalesPageController() {
 
   const handleExport = async () => {
     try {
-      const workbook = await buildSalesExportWorkbook({
+      await downloadSalesExport({
+        format: exportFormat,
         records: model.sorted,
         getUiStatus: model.getUiStatus,
         summary: getSalesExportSummary(model.metrics),
         includeSummary: true,
       })
-
-      const XLSX = await import('xlsx')
-      XLSX.writeFile(workbook, `sales-records-${new Date().toISOString().slice(0, 10)}.xlsx`)
+      dispatch(
+        pushToast({
+          title: 'Sales exported',
+          description: `Exported ${model.sorted.length} sales records.`,
+          variant: 'success',
+        }),
+      )
     } catch {
       dispatch(
         pushToast({
           title: 'Export failed',
-          description: 'Could not generate the Excel file. Please try again.',
+          description: 'Could not generate the sales export file. Please try again.',
           variant: 'error',
         }),
       )
@@ -115,6 +125,8 @@ function useAdminSalesPageController() {
 
   return {
     endDate,
+    exportFormat,
+    exportFormatOptions: SALES_EXPORT_FILE_FORMAT_OPTIONS,
     methodFilter,
     methodOptions: SALES_METHOD_OPTIONS,
     model,
@@ -127,6 +139,7 @@ function useAdminSalesPageController() {
     handleBackToSales: () => navigate('/admin/sales-center'),
     handleEndDateChange: setEndDate,
     handleExport,
+    handleExportFormatChange: setExportFormat,
     handleMethodFilterChange: setMethodFilter,
     handlePrint: (recordId: string) => schedulePrint(recordId),
     handleQueryChange: setQuery,

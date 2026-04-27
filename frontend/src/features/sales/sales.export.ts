@@ -1,4 +1,14 @@
 import type { WorkBook, WorkSheet } from 'xlsx'
+import {
+  DATA_FILE_FORMAT_OPTIONS,
+  downloadBlob,
+  formatDateStamp,
+  normalizeExportValue,
+  rowsToCsv,
+  type CsvCellValue,
+  type CsvRow,
+  type DataFileFormat,
+} from '../../shared/lib/exportFiles'
 import type { SalesRecord } from '../../shared/types/sales'
 import type { SalesUiStatus } from './useAdminSalesModel'
 
@@ -14,6 +24,10 @@ type SalesExportColumn = {
   format?: 'currency' | 'date'
 }
 
+export type SalesExportFileFormat = DataFileFormat
+
+export const SALES_EXPORT_FILE_FORMAT_OPTIONS = DATA_FILE_FORMAT_OPTIONS
+
 export type SalesExportSummary = {
   totalSales: number
   totalOrders: number
@@ -27,6 +41,12 @@ type BuildSalesExportWorkbookInput = {
   summary: SalesExportSummary
   includeSummary?: boolean
 }
+
+type DownloadSalesExportInput = BuildSalesExportWorkbookInput & {
+  format: SalesExportFileFormat
+}
+
+type SalesExportRow = Record<string, CsvCellValue>
 
 const SALES_EXPORT_COLUMNS: SalesExportColumn[] = [
   {
@@ -131,6 +151,17 @@ const getExcelColumnLabel = (index: number) => {
 const buildSummaryRows = (summary: SalesExportSummary) =>
   SALES_EXPORT_SUMMARY_FIELDS.map((field) => [field.label, field.value(summary)])
 
+const buildSalesExportRows = (
+  records: SalesRecord[],
+  getUiStatus: (orderId: string) => SalesUiStatus,
+): SalesExportRow[] =>
+  records.map((record) =>
+    SALES_EXPORT_COLUMNS.reduce<SalesExportRow>((row, column) => {
+      row[column.header] = normalizeExportValue(column.value(record, getUiStatus))
+      return row
+    }, {}),
+  )
+
 export async function buildSalesExportWorkbook({
   records,
   getUiStatus,
@@ -189,4 +220,62 @@ export async function buildSalesExportWorkbook({
   XLSX.utils.book_append_sheet(workbook, sheet, SALES_EXPORT_SHEET_NAME)
 
   return workbook
+}
+
+export async function downloadSalesExport({
+  format,
+  records,
+  getUiStatus,
+  summary,
+  includeSummary = true,
+}: DownloadSalesExportInput) {
+  const dateStamp = formatDateStamp()
+
+  if (format === 'xlsx') {
+    const workbook = await buildSalesExportWorkbook({
+      records,
+      getUiStatus,
+      summary,
+      includeSummary,
+    })
+    const XLSX = await import('xlsx')
+    XLSX.writeFile(workbook, `sales-records-${dateStamp}.xlsx`)
+    return
+  }
+
+  const exportRows = buildSalesExportRows(records, getUiStatus)
+
+  if (format === 'json') {
+    downloadBlob(
+      `${JSON.stringify(
+        {
+          exportedAt: new Date().toISOString(),
+          ...(includeSummary ? { summary } : {}),
+          records: exportRows,
+        },
+        null,
+        2,
+      )}\n`,
+      'application/json;charset=utf-8',
+      `sales-records-${dateStamp}.json`,
+    )
+    return
+  }
+
+  const headers = SALES_EXPORT_COLUMNS.map((column) => column.header)
+  const csvRows: CsvRow[] = [[SALES_EXPORT_TITLE]]
+  if (includeSummary) {
+    csvRows.push([])
+    csvRows.push(['Summary'])
+    csvRows.push(...buildSummaryRows(summary))
+    csvRows.push([])
+  }
+  csvRows.push(headers)
+  csvRows.push(...exportRows.map((row) => headers.map((header) => row[header] ?? '')))
+
+  downloadBlob(
+    rowsToCsv(csvRows),
+    'text/csv;charset=utf-8',
+    `sales-records-${dateStamp}.csv`,
+  )
 }

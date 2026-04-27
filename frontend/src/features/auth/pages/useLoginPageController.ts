@@ -18,14 +18,11 @@ function useLoginPageController() {
   const users = useAppSelector(selectAdminUsers)
   const { isLocked, withLock } = useCommandLock('auth.login')
   const [selectedRole, setSelectedRole] = useState<Role>('cashier')
-  const [username, setUsername] = useState('')
+  const [customUsername, setCustomUsername] = useState<string | null>(null)
   const [pin, setPin] = useState('')
   const [isVerifying, setIsVerifying] = useState(false)
   const [isShaking, setIsShaking] = useState(false)
   const [clockLabel, setClockLabel] = useState(() => formatPosTime())
-
-  const isSubmitting = status === 'loading' || isLocked || isVerifying
-  const canSubmit = username.trim().length > 0 && pin.length === 4 && !isSubmitting
 
   const roleName = useMemo(() => ROLE_CARD_BY_ID[selectedRole].name, [selectedRole])
 
@@ -36,6 +33,10 @@ function useLoginPageController() {
     return new Map<Role, string>(entries)
   }, [users])
 
+  const username = customUsername ?? defaultUsernameByRole.get(selectedRole) ?? ''
+  const isSubmitting = status === 'loading' || isLocked || isVerifying
+  const canSubmit = username.trim().length > 0 && pin.length === 4 && !isSubmitting
+
   useEffect(() => {
     const tick = () => setClockLabel(formatPosTime())
     tick()
@@ -43,14 +44,9 @@ function useLoginPageController() {
     return () => window.clearInterval(timer)
   }, [])
 
-  useEffect(() => {
-    const defaultUsername = defaultUsernameByRole.get(selectedRole) ?? ''
-    setUsername(defaultUsername)
-  }, [defaultUsernameByRole, selectedRole])
-
   const handleRoleSelect = (role: Role) => {
     setSelectedRole(role)
-    setUsername(defaultUsernameByRole.get(role) ?? '')
+    setCustomUsername(null)
     setPin('')
     setIsShaking(false)
   }
@@ -128,7 +124,7 @@ function useLoginPageController() {
     pin,
     roleName,
     selectedRole,
-    setUsername,
+    setUsername: setCustomUsername,
     username,
   }
 }

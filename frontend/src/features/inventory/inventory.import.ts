@@ -48,6 +48,23 @@ export const INVENTORY_IMPORT_SAMPLE = {
   'bulk price': 1000,
 }
 
+export const INVENTORY_IMPORT_SAMPLE_ROWS = [
+  INVENTORY_IMPORT_SAMPLE,
+  {
+    'inventory id': 'ING-0002',
+    'ingredient type': 'NON_RAW',
+    name: 'Paper bag',
+    category: 'Packaging & Service Items',
+    'base unit': 'pcs',
+    'on hand': 1000,
+    'reorder level': 250,
+    'unit cost': 1.5,
+    'bulk qty': 100,
+    'bulk unit': 'pcs',
+    'bulk price': 150,
+  },
+] satisfies Array<Record<(typeof INVENTORY_IMPORT_HEADERS)[number], string | number>>
+
 const normalizeHeader = (value: string) =>
   value.toLowerCase().replace(/[\s_-]+/g, '').trim()
 
@@ -153,6 +170,52 @@ export const parseSheetRows = (
   }
 
   return buildFromPositions()
+}
+
+const getJsonRows = (value: unknown): Record<string, unknown>[] => {
+  if (Array.isArray(value)) {
+    return value.filter((row): row is Record<string, unknown> =>
+      typeof row === 'object' && row !== null && !Array.isArray(row),
+    )
+  }
+
+  if (typeof value !== 'object' || value === null || Array.isArray(value)) {
+    return []
+  }
+
+  const record = value as Record<string, unknown>
+  const candidateRows = record.ingredients ?? record.rows ?? record.data
+  return getJsonRows(candidateRows)
+}
+
+const getFileExtension = (filename: string) =>
+  filename.split('.').pop()?.trim().toLowerCase() ?? ''
+
+export const parseInventoryImportFile = async (file: File) => {
+  const extension = getFileExtension(file.name)
+
+  if (extension === 'json') {
+    return getJsonRows(JSON.parse(await file.text()))
+  }
+
+  const XLSX = await import('xlsx')
+
+  if (extension === 'csv' || extension === 'tsv') {
+    const workbook = XLSX.read(await file.text(), { type: 'string' })
+    const sheetName = workbook.SheetNames[0]
+    if (!sheetName) {
+      throw new Error('Missing worksheet')
+    }
+    return parseSheetRows(XLSX, workbook.Sheets[sheetName])
+  }
+
+  const buffer = await file.arrayBuffer()
+  const workbook = XLSX.read(buffer, { type: 'array' })
+  const sheetName = workbook.SheetNames[0]
+  if (!sheetName) {
+    throw new Error('Missing worksheet')
+  }
+  return parseSheetRows(XLSX, workbook.Sheets[sheetName])
 }
 
 export const normalizeBaseUnit = (value: string): IngredientBaseUnit | null => {

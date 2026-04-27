@@ -7,6 +7,17 @@ import { formatEnumLabel } from '../../../shared/lib/orders'
 import { selectOrders } from '../../orders/orders.selectors'
 import { useKiosk } from '../useKiosk'
 
+const formatPlacedAtLabel = (placedAt?: string) => {
+  if (!placedAt) {
+    return ''
+  }
+  const date = new Date(placedAt)
+  if (Number.isNaN(date.getTime())) {
+    return placedAt
+  }
+  return date.toLocaleString()
+}
+
 function KioskSuccessPage() {
   const navigate = useNavigate()
   const { orderNo } = useParams<{ orderNo: string }>()
@@ -25,16 +36,7 @@ function KioskSuccessPage() {
     navigate('/kiosk', { replace: true })
   }
 
-  const placedAtLabel = useMemo(() => {
-    if (!order?.placed_at) {
-      return ''
-    }
-    const date = new Date(order.placed_at)
-    if (Number.isNaN(date.getTime())) {
-      return order.placed_at
-    }
-    return date.toLocaleString()
-  }, [order?.placed_at])
+  const placedAtLabel = formatPlacedAtLabel(order?.placed_at)
 
   if (!order) {
     return (
