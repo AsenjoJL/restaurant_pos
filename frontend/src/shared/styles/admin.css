@@ -1221,7 +1221,7 @@
   background: var(--surface-elevated);
   border-radius: var(--radius-xl);
   box-shadow: var(--shadow-md);
-  border: 3px solid var(--border);
+  border: 1px solid var(--border);
 }
 
 .admin-shell .admin-main {
@@ -1240,7 +1240,7 @@
   background: var(--surface-elevated);
   border-radius: var(--radius-xl);
   box-shadow: var(--shadow-md);
-  border: 3px solid var(--border);
+  border: 1px solid var(--border);
 }
 
 .admin-shell .admin-header-title {
@@ -1287,7 +1287,7 @@
 .admin-shell .admin-header h1,
 .admin-shell .admin-header h2 {
   font-family: var(--font-display);
-  font-weight: 800;
+  font-weight: 400;
   font-size: 1.75rem;
   letter-spacing: -0.02em;
   color: var(--text-primary);
@@ -1310,7 +1310,7 @@
 .admin-shell .admin-nav-link {
   text-decoration: none;
   color: var(--text-secondary);
-  font-weight: 600;
+  font-weight: 400;
   font-size: 1.55rem;
   padding: calc(var(--space-lg) - 2px) calc(var(--space-lg) - 2px);
   border-radius: var(--radius-md);
@@ -1386,7 +1386,7 @@
 
 .admin-shell .page-header h2 {
   font-family: var(--font-display);
-  font-weight: 700;
+  font-weight: 400;
   font-size: 2.15rem;
   letter-spacing: -0.03em;
   color: var(--text-primary);
@@ -1397,7 +1397,7 @@
   color: var(--text-secondary);
   font-size: 1.8rem;
   margin: 0;
-  font-weight: 500;
+  font-weight: 400;
 }
 
 .admin-shell .admin-stats {
@@ -1410,7 +1410,7 @@
   padding: var(--space-lg);
   background: var(--surface-elevated);
   border-radius: var(--radius-lg);
-  border: 3px solid var(--border);
+  border: 1px solid var(--border);
   box-shadow: var(--shadow-sm);
   transition: all var(--transition-base);
   position: relative;
@@ -1444,7 +1444,7 @@
 
 .admin-shell .admin-stat-card > span.muted {
   font-size: 1.40rem;
-  font-weight: 600;
+  font-weight: 400;
   color: var(--text-secondary);
   text-transform: uppercase;
   letter-spacing: 0.05em;
@@ -1453,7 +1453,7 @@
 .admin-shell .admin-stat-card > h3 {
   font-family: var(--font-display);
   font-size: 1.30rem;
-  font-weight: 800;
+  font-weight: 400;
   color: var(--text-primary);
   letter-spacing: -0.03em;
   line-height: 1;
@@ -1462,7 +1462,7 @@
 .admin-shell .admin-stat-card > p.muted {
   font-size: 1.30rem;
   color: var(--text-muted);
-  font-weight: 500;
+  font-weight: 400;
 }
 
 .admin-shell .admin-quick-links {

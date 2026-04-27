@@ -27,7 +27,7 @@ function KioskWelcomeTickerCard({
     <button
       type="button"
       onClick={onSelect}
-      className={`bg-paper shrink-0 flex flex-col overflow-hidden cursor-pointer hover:bg-[#F0EAE0] transition-colors ${
+      className={`bg-paper shrink-0 flex flex-col overflow-hidden rounded-[8px] cursor-pointer hover:bg-[#F0EAE0] transition-colors ${
         item.wide ? 'w-[240px]' : 'w-[180px]'
       }`}
     >

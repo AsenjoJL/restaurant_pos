@@ -1001,7 +1001,7 @@
 }
 
 .kiosk-choice {
-  border-radius: 0;
+  border-radius: 10px;
   border: 1px solid #d8ceb8;
   background: #fffdfa;
   padding: 24px 24px 20px;
@@ -1024,7 +1024,7 @@
 .kiosk-choice .choice-icon {
   width: 72px;
   height: 72px;
-  border-radius: 0;
+  border-radius: 8px;
   display: grid;
   place-items: center;
   background: transparent;
@@ -1078,7 +1078,7 @@
 }
 
 .kiosk-order-type-modal.modal {
-  border-radius: 0;
+  border-radius: 12px;
 }
 
 .kiosk-order-type-modal__body > p,
@@ -1112,7 +1112,7 @@
   min-height: 44px;
   padding: 0 20px;
   border: 1px solid #d8ceb8;
-  border-radius: 0;
+  border-radius: 8px;
   background: #fffdfa;
   color: #2c2418;
   font-family: 'IBM Plex Sans', 'DM Sans', sans-serif;
@@ -2401,7 +2401,7 @@
 }
 
 .kiosk-print-actions .kiosk-slip-reprint-btn.btn {
-  border-radius: 0;
+  border-radius: 8px;
   min-width: 176px;
   min-height: 50px;
   padding: 0 28px;
@@ -2413,7 +2413,7 @@
   min-width: 220px;
   min-height: 46px;
   padding: 0 28px;
-  border-radius: 0;
+  border-radius: 8px;
   background: #1a3a2a;
   border-color: #1a3a2a;
   color: #f5edd6;

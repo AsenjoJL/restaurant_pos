@@ -455,6 +455,46 @@ textarea:focus {
   }
 }
 
+@keyframes kioskBubbleFloat {
+  0%,
+  100% {
+    transform: translate3d(0, 0, 0) scale(1);
+    opacity: 0.7;
+  }
+  50% {
+    transform: translate3d(0, -34px, 0) scale(1.12);
+    opacity: 0.28;
+  }
+}
+
+@keyframes kioskImageBubble {
+  0%,
+  100% {
+    transform: translate3d(0, 0, 0) scale(1);
+  }
+  25% {
+    transform: translate3d(14px, -14px, 0) scale(1.02);
+  }
+  50% {
+    transform: translate3d(0, -30px, 0) scale(1.04);
+  }
+  75% {
+    transform: translate3d(-14px, -14px, 0) scale(1.02);
+  }
+}
+
+@keyframes kioskBubbleDrift {
+  0%,
+  100% {
+    transform: translate3d(0, 0, 0) scale(1);
+    opacity: 0.62;
+  }
+  50% {
+    transform: translate3d(22px, -30px, 0) scale(1.16);
+    opacity: 0.22;
+  }
+}
+
 /* ============================================
    CASHIER REFRESH
    ============================================ */
@@ -522,9 +562,9 @@ textarea:focus {
 .cashier-sidebar {
   padding: 18px;
   border-radius: 24px;
-  border: 1px solid #e6ddca;
-  background: linear-gradient(180deg, rgba(250, 246, 238, 0.92) 0%, rgba(242, 236, 223, 0.96) 100%);
-  box-shadow: 0 10px 28px rgba(46, 36, 24, 0.06);
+  border: 1px solid #44536d;
+  background: linear-gradient(180deg, #33415a 0%, #2d3950 100%);
+  box-shadow: 0 10px 28px rgba(20, 29, 43, 0.18);
   gap: 14px;
 }
 
@@ -534,7 +574,7 @@ textarea:focus {
   font-weight: 600;
   letter-spacing: 0.18em;
   text-transform: uppercase;
-  color: #8f836c;
+  color: #d9c8a1;
 }
 
 .cashier-sidebar .segmented.segmented-vertical {
@@ -551,26 +591,26 @@ textarea:focus {
   min-height: 62px;
   padding: 14px 16px;
   border-radius: 18px;
-  border: 1px solid transparent;
-  background: transparent;
-  color: #3e3728;
+  border: 1px solid rgba(245, 236, 217, 0.18);
+  background: rgba(255, 255, 255, 0.04);
+  color: #f5ecd9;
   box-shadow: none;
 }
 
 .cashier-sidebar .segmented-button:hover {
-  background: rgba(255, 253, 249, 0.9);
-  border-color: #e4d9c3;
+  background: rgba(255, 255, 255, 0.1);
+  border-color: rgba(245, 236, 217, 0.34);
 }
 
 .cashier-sidebar .segmented-button.is-active {
-  background: #fffdf9;
-  border-color: #e3d7bf;
-  box-shadow: 0 8px 18px rgba(28, 26, 21, 0.08);
+  background: #c6aa72;
+  border-color: #c6aa72;
+  box-shadow: 0 8px 18px rgba(20, 29, 43, 0.18);
 }
 
 .cashier-sidebar .segmented-label {
   font-weight: 600;
-  color: #1c1a15;
+  color: #f5ecd9;
 }
 
 .cashier-sidebar .segmented-badge {
@@ -1160,7 +1200,7 @@ textarea:focus {
 .admin-shell .admin-sales-page .sales-payment-breakdown {
   background: #ffffff !important;
   color: #000000 !important;
-  border-radius: 0 !important;
+  border-radius: 10px !important;
   box-shadow: none !important;
 }
 
@@ -1181,7 +1221,7 @@ textarea:focus {
   width: 42px !important;
   height: 42px !important;
   padding: 0 !important;
-  border-radius: 0 !important;
+  border-radius: 8px !important;
   background: transparent !important;
   color: inherit !important;
 }
@@ -1199,7 +1239,7 @@ textarea:focus {
 .admin-shell .admin-sales-page .sales-filter-bar .select,
 .admin-shell .admin-sales-page .sales-filter-bar .btn,
 .admin-shell .admin-sales-page .sales-action-btn {
-  border-radius: 0 !important;
+  border-radius: 10px !important;
 }
 
 .admin-shell .admin-sales-page .sales-filter-bar .btn,
@@ -1227,7 +1267,7 @@ textarea:focus {
   justify-content: center !important;
   min-height: 36px !important;
   padding: 0 14px !important;
-  border-radius: 0 !important;
+  border-radius: 10px !important;
   border: 1px solid #285943 !important;
   background: #285943 !important;
   color: #ffffff !important;
@@ -1261,7 +1301,7 @@ textarea:focus {
 
 .admin-shell .admin-sales-page .sales-order-details-modal.modal {
   width: min(760px, calc(100vw - 48px)) !important;
-  border-radius: 0 !important;
+  border-radius: 12px !important;
   border: 1px solid #b8b8b8 !important;
   background: #ffffff !important;
   box-shadow: none !important;
@@ -1477,7 +1517,7 @@ textarea:focus {
 .admin-shell .admin-cash-adjustments-page .cash-adjustment-review-modal .modal-footer {
   background: #ffffff !important;
   color: #000000 !important;
-  border-radius: 0 !important;
+  border-radius: 10px !important;
   box-shadow: none !important;
 }
 
@@ -1518,7 +1558,7 @@ textarea:focus {
 
 .admin-shell .admin-cash-adjustments-page .chip,
 .admin-shell .admin-cash-adjustments-page .btn {
-  border-radius: 0 !important;
+  border-radius: 10px !important;
 }
 
 .admin-shell .admin-cash-adjustments-page .chip {
@@ -1563,7 +1603,7 @@ textarea:focus {
 .admin-shell .admin-cash-adjustments-page .cash-adjustment-review-modal .icon-btn {
   width: 44px !important;
   height: 44px !important;
-  border-radius: 0 !important;
+  border-radius: 8px !important;
   border: 1px solid #b8b8b8 !important;
   background: #ffffff !important;
   color: #000000 !important;
@@ -1611,7 +1651,7 @@ textarea:focus {
 
 .admin-shell .admin-cash-adjustments-page .cash-adjustment-review .input-shell,
 .admin-shell .admin-cash-adjustments-page .cash-adjustment-review .input {
-  border-radius: 0 !important;
+  border-radius: 10px !important;
 }
 
 .admin-shell .admin-order-deductions-page {
@@ -1628,7 +1668,7 @@ textarea:focus {
 .admin-shell .admin-order-deductions-page .order-history-deduction-row {
   background: #ffffff !important;
   color: #000000 !important;
-  border-radius: 0 !important;
+  border-radius: 10px !important;
   box-shadow: none !important;
 }
 
@@ -1641,7 +1681,7 @@ textarea:focus {
 
 .admin-shell .admin-order-deductions-page .admin-actions .btn {
   min-height: 46px !important;
-  border-radius: 0 !important;
+  border-radius: 10px !important;
   border: 1px solid #285943 !important;
   background: #285943 !important;
   color: #ffffff !important;
@@ -1768,7 +1808,7 @@ textarea:focus {
   border: 1px solid #285943 !important;
   background: #285943 !important;
   color: #ffffff !important;
-  border-radius: 0 !important;
+  border-radius: 10px !important;
   font-size: 11px !important;
   font-weight: 700 !important;
 }
@@ -1851,7 +1891,7 @@ textarea:focus {
 .admin-shell .admin-replacements-page .replacement-review-modal .modal-footer {
   background: #ffffff !important;
   color: #000000 !important;
-  border-radius: 0 !important;
+  border-radius: 10px !important;
   box-shadow: none !important;
 }
 
@@ -1894,7 +1934,7 @@ textarea:focus {
 .admin-shell .admin-replacements-page .chip,
 .admin-shell .admin-replacements-page .replacement-pill,
 .admin-shell .admin-replacements-page .btn {
-  border-radius: 0 !important;
+  border-radius: 10px !important;
 }
 
 .admin-shell .admin-replacements-page .chip,
@@ -2022,7 +2062,7 @@ textarea:focus {
 .admin-shell .admin-inventory-page .inventory-reorder-row {
   background: #ffffff !important;
   color: #000000 !important;
-  border-radius: 0 !important;
+  border-radius: 10px !important;
   box-shadow: none !important;
 }
 
@@ -2045,15 +2085,16 @@ textarea:focus {
   width: 42px !important;
   height: 42px !important;
   padding: 0 !important;
-  border-radius: 0 !important;
+  border-radius: 8px !important;
   background: transparent !important;
   color: inherit !important;
 }
 
 .admin-shell .admin-inventory-page .admin-row-actions .btn,
+.admin-shell .admin-inventory-page .admin-actions .btn,
 .admin-shell .admin-inventory-page .inventory-row-actions .btn {
   min-height: 44px !important;
-  border-radius: 0 !important;
+  border-radius: 10px !important;
   border: 1px solid #285943 !important;
   background: #285943 !important;
   color: #ffffff !important;
@@ -2061,6 +2102,7 @@ textarea:focus {
 }
 
 .admin-shell .admin-inventory-page .admin-row-actions .btn:hover:not(:disabled),
+.admin-shell .admin-inventory-page .admin-actions .btn:hover:not(:disabled),
 .admin-shell .admin-inventory-page .inventory-row-actions .btn:hover:not(:disabled) {
   background: #214c39 !important;
   border-color: #214c39 !important;
@@ -2071,13 +2113,15 @@ textarea:focus {
 .admin-shell .admin-inventory-page .admin-toolbar .select-shell,
 .admin-shell .admin-inventory-page .admin-toolbar .input,
 .admin-shell .admin-inventory-page .admin-toolbar .select {
-  border-radius: 0 !important;
+  border-radius: 10px !important;
 }
 
 .admin-shell .admin-inventory-page .inventory-toolbar-meta,
 .admin-shell .admin-inventory-page .inventory-toolbar-meta p,
+.admin-shell .admin-inventory-page .admin-table-head.inventory span,
 .admin-shell .admin-inventory-page .inventory-alert-center__header h3,
 .admin-shell .admin-inventory-page .inventory-alert-card__head h4,
+.admin-shell .admin-inventory-page .admin-table-row.inventory strong,
 .admin-shell .admin-inventory-page .inventory-alert-row strong,
 .admin-shell .admin-inventory-page .inventory-reorder-row strong,
 .admin-shell .admin-inventory-page .inventory-code,
@@ -2086,6 +2130,7 @@ textarea:focus {
 .admin-shell .admin-inventory-page .inventory-stock,
 .admin-shell .admin-inventory-page .inventory-empty-state h4 {
   color: #000000 !important;
+  font-weight: 400 !important;
 }
 
 .admin-shell .admin-inventory-page .inventory-alert-center__badge,
@@ -2118,7 +2163,7 @@ textarea:focus {
 .admin-shell .admin-inventory-page .inventory-adjustment-modal .modal-footer {
   background: #ffffff !important;
   color: #000000 !important;
-  border-radius: 0 !important;
+  border-radius: 10px !important;
   box-shadow: none !important;
 }
 
@@ -2153,10 +2198,19 @@ textarea:focus {
 .admin-shell .admin-inventory-page .inventory-adjustment-modal .icon-btn {
   width: 44px !important;
   height: 44px !important;
-  border-radius: 0 !important;
+  display: inline-grid !important;
+  place-items: center !important;
+  padding: 0 !important;
+  border-radius: 8px !important;
   border: 1px solid #b8b8b8 !important;
   background: #ffffff !important;
   color: #000000 !important;
+}
+
+.admin-shell .admin-inventory-page .inventory-ingredient-modal .icon-btn .material-symbols-rounded,
+.admin-shell .admin-inventory-page .inventory-adjustment-modal .icon-btn .material-symbols-rounded {
+  font-size: 24px !important;
+  line-height: 1 !important;
 }
 
 .admin-shell .admin-inventory-page .inventory-ingredient-modal .icon-btn:hover,
@@ -2180,7 +2234,7 @@ textarea:focus {
 .admin-shell .admin-inventory-page .inventory-adjustment-modal .select,
 .admin-shell .admin-inventory-page .inventory-ingredient-modal .admin-form-grid,
 .admin-shell .admin-inventory-page .inventory-adjustment-modal .admin-form-grid {
-  border-radius: 0 !important;
+  border-radius: 10px !important;
 }
 
 .admin-shell .admin-inventory-page .inventory-ingredient-modal .input-label,
@@ -2206,7 +2260,7 @@ textarea:focus {
 .admin-shell .admin-inventory-page .inventory-adjustment-modal-footer .modal-actions .btn {
   min-width: 130px !important;
   min-height: 46px !important;
-  border-radius: 0 !important;
+  border-radius: 10px !important;
   border: 1px solid #285943 !important;
   background: #285943 !important;
   color: #ffffff !important;
@@ -2225,7 +2279,7 @@ textarea:focus {
 .admin-shell .admin-administration-page .admin-quick-link .link-icon {
   background: #ffffff !important;
   color: #000000 !important;
-  border-radius: 0 !important;
+  border-radius: 10px !important;
   box-shadow: none !important;
 }
 
@@ -2300,7 +2354,7 @@ textarea:focus {
 .admin-shell .admin-settings-page .textarea {
   background: #ffffff !important;
   color: #000000 !important;
-  border-radius: 0 !important;
+  border-radius: 10px !important;
   box-shadow: none !important;
 }
 
@@ -2331,7 +2385,7 @@ textarea:focus {
   width: 42px !important;
   height: 42px !important;
   padding: 0 !important;
-  border-radius: 0 !important;
+  border-radius: 8px !important;
   background: transparent !important;
 }
 
@@ -2342,7 +2396,7 @@ textarea:focus {
 .admin-shell .admin-audit-page .admin-actions .btn,
 .admin-shell .admin-settings-page .admin-actions .btn {
   min-height: 46px !important;
-  border-radius: 0 !important;
+  border-radius: 10px !important;
   border: 1px solid #285943 !important;
   background: #285943 !important;
   color: #ffffff !important;
@@ -2360,7 +2414,7 @@ textarea:focus {
 
 .admin-shell .admin-users-page .chip,
 .admin-shell .admin-audit-page .chip {
-  border-radius: 0 !important;
+  border-radius: 10px !important;
   border: 1px solid #285943 !important;
   background: #285943 !important;
   color: #ffffff !important;
@@ -2397,7 +2451,7 @@ textarea:focus {
 .admin-shell .admin-users-page .admin-change-pin-modal .icon-btn {
   width: 44px !important;
   height: 44px !important;
-  border-radius: 0 !important;
+  border-radius: 8px !important;
   border: 1px solid #b8b8b8 !important;
   background: #ffffff !important;
   color: #000000 !important;
@@ -2420,7 +2474,7 @@ textarea:focus {
 .admin-shell .admin-users-page .admin-user-form-modal .select,
 .admin-shell .admin-users-page .admin-change-pin-modal .input-shell,
 .admin-shell .admin-users-page .admin-change-pin-modal .input {
-  border-radius: 0 !important;
+  border-radius: 10px !important;
 }
 
 .admin-shell .admin-users-page .admin-user-form-modal-footer,
@@ -2448,7 +2502,7 @@ textarea:focus {
 .admin-shell .admin-audit-page .admin-filters .select-shell,
 .admin-shell .admin-audit-page .admin-filters .input,
 .admin-shell .admin-audit-page .admin-filters .select {
-  border-radius: 0 !important;
+  border-radius: 10px !important;
 }
 
 .admin-shell .admin-audit-page .admin-table-head.admin-table-row {
@@ -2506,7 +2560,7 @@ textarea:focus {
 .cashier-page .badge,
 .cashier-page .input-label {
   color: #000000 !important;
-  font-weight: 700 !important;
+  font-weight: 400 !important;
 }
 
 .cashier-page,
@@ -2518,6 +2572,10 @@ textarea:focus {
 .cashier-page .cashier-total-box,
 .cashier-page .payment-receipt {
   background: #ffffff !important;
+}
+
+.cashier-page .cashier-sidebar {
+  background: linear-gradient(180deg, #33415a 0%, #2d3950 100%) !important;
 }
 
 .cashier-page .cashier-sidebar,
@@ -2533,12 +2591,12 @@ textarea:focus {
 .cashier-page .segmented-button,
 .cashier-page .chip,
 .cashier-page .badge {
-  border-radius: 0 !important;
+  border-radius: 10px !important;
   box-shadow: none !important;
 }
 
 .cashier-page .cashier-actions .btn {
-  border-radius: 0 !important;
+  border-radius: 10px !important;
 }
 
 .cashier-page .cashier-sidebar,
@@ -2567,10 +2625,28 @@ textarea:focus {
   color: #000000 !important;
 }
 
+.cashier-page .cashier-sidebar .segmented-button {
+  background: rgba(255, 255, 255, 0.04) !important;
+  color: #f5ecd9 !important;
+  border-color: rgba(245, 236, 217, 0.18) !important;
+}
+
 .cashier-page .segmented-button.is-active,
 .cashier-page .segmented-button:hover {
   background: #ffffff !important;
   border-color: #234d3b !important;
+}
+
+.cashier-page .cashier-sidebar .segmented-button.is-active {
+  background: #c6aa72 !important;
+  border-color: #c6aa72 !important;
+  color: #1d2638 !important;
+}
+
+.cashier-page .cashier-sidebar .segmented-button:hover {
+  background: rgba(255, 255, 255, 0.1) !important;
+  border-color: rgba(245, 236, 217, 0.34) !important;
+  color: #f5ecd9 !important;
 }
 
 .cashier-page .segmented-badge,
@@ -2581,6 +2657,16 @@ textarea:focus {
   background: #234d3b !important;
   border-color: #234d3b !important;
   color: #ffffff !important;
+}
+
+.cashier-page .cashier-sidebar h3,
+.cashier-page .cashier-sidebar .segmented-label {
+  color: #f5ecd9 !important;
+}
+
+.cashier-page .cashier-sidebar .segmented-button.is-active .segmented-label,
+.cashier-page .cashier-sidebar .segmented-button.is-active .segmented-badge {
+  color: #1d2638 !important;
 }
 
 .cashier-page .segmented-badge *,
@@ -2646,7 +2732,7 @@ textarea:focus {
 .kitchen-page .chip,
 .kitchen-page .badge {
   color: #000000 !important;
-  font-weight: 700 !important;
+  font-weight: 400 !important;
 }
 
 .kitchen-page .kitchen-kicker,
@@ -2673,7 +2759,22 @@ textarea:focus {
 
 .kitchen-page .kds-filter,
 .kitchen-page .kds-filter-btn {
-  border-radius: 0 !important;
+  border-radius: 10px !important;
+}
+
+.kitchen-page .kds-card,
+.kitchen-page .kds-item-row,
+.kitchen-page .kds-metric,
+.kitchen-page .kds-station-summary,
+.kitchen-page .station-chip,
+.kitchen-page .station-pill,
+.kitchen-page .kds-timer,
+.kitchen-page .kitchen-status-tag,
+.kitchen-page .chip,
+.kitchen-page .btn,
+.kitchen-page .kds-actions .btn,
+.kitchen-page .kitchen-tools .btn {
+  border-radius: 10px !important;
 }
 
 .kitchen-page .kds-filter-btn,
@@ -2772,7 +2873,7 @@ textarea:focus {
 .admin-shell .admin-dashboard-page .admin-trend-status,
 .admin-shell .admin-dashboard-page .admin-sparkline-axis {
   color: #000000 !important;
-  font-weight: 700 !important;
+  font-weight: 400 !important;
 }
 
 .admin-shell .admin-dashboard-page .admin-stats {
@@ -2789,7 +2890,7 @@ textarea:focus {
 .admin-shell .admin-dashboard-page .admin-chart-range-btn,
 .admin-shell .admin-dashboard-page .admin-trend-status {
   background: #ffffff !important;
-  border-radius: 0 !important;
+  border-radius: 10px !important;
   box-shadow: none !important;
 }
 
@@ -2802,7 +2903,7 @@ textarea:focus {
 .admin-shell .admin-dashboard-page .admin-chart-range,
 .admin-shell .admin-dashboard-page .admin-chart-range-btn,
 .admin-shell .admin-dashboard-page .admin-trend-status {
-  border-color: #b5b5b5 !important;
+  border: 1px solid #c9c9c9 !important;
 }
 
 .admin-shell .admin-dashboard-page .admin-stat-card::before {
@@ -2818,7 +2919,7 @@ textarea:focus {
 .admin-shell .admin-dashboard-page .admin-stat-card .stat-icon {
   width: 42px;
   height: 42px;
-  border-radius: 0 !important;
+  border-radius: 8px !important;
   background: transparent !important;
   color: inherit !important;
 }
@@ -2826,7 +2927,7 @@ textarea:focus {
 .admin-shell .admin-products-page .admin-stat-card .stat-icon {
   width: 42px;
   height: 42px;
-  border-radius: 0 !important;
+  border-radius: 8px !important;
   background: transparent !important;
   color: inherit !important;
 }
@@ -2834,13 +2935,13 @@ textarea:focus {
 .admin-shell .admin-categories-page .admin-stat-card .stat-icon {
   width: 42px;
   height: 42px;
-  border-radius: 0 !important;
+  border-radius: 8px !important;
   background: transparent !important;
   color: inherit !important;
 }
 
 .admin-shell .admin-dashboard-page .admin-trend-suite {
-  border: 1px solid #b5b5b5;
+  border: 1px solid #c9c9c9 !important;
   padding: 16px;
 }
 
@@ -2928,7 +3029,7 @@ textarea:focus {
 .admin-shell .admin-header,
 .admin-shell .admin-nav-link,
 .admin-shell .admin-sidebar-toggle {
-  border-radius: 0 !important;
+  border-radius: 10px !important;
   box-shadow: none !important;
 }
 
@@ -2936,6 +3037,11 @@ textarea:focus {
 .admin-shell .admin-header {
   background: #ffffff !important;
   border-color: #b5b5b5 !important;
+}
+
+.admin-shell .admin-sidebar {
+  background: #2d3950 !important;
+  border-color: #44536d !important;
 }
 
 .admin-shell .admin-header h1,
@@ -2948,14 +3054,30 @@ textarea:focus {
   font-weight: 700 !important;
 }
 
+.admin-shell .admin-sidebar .admin-nav-link,
+.admin-shell .admin-sidebar .admin-nav-link span,
+.admin-shell .admin-sidebar .admin-sidebar-toggle {
+  color: #f5ecd9 !important;
+}
+
 .admin-shell .admin-nav-link {
   background: #ffffff !important;
   border: 1px solid #b5b5b5 !important;
 }
 
+.admin-shell .admin-sidebar .admin-nav-link {
+  background: rgba(255, 255, 255, 0.04) !important;
+  border: 1px solid rgba(245, 236, 217, 0.18) !important;
+}
+
 .admin-shell .admin-nav-link:hover {
   background: #ffffff !important;
   border-color: #234d3b !important;
+}
+
+.admin-shell .admin-sidebar .admin-nav-link:hover {
+  background: rgba(255, 255, 255, 0.1) !important;
+  border-color: rgba(245, 236, 217, 0.34) !important;
 }
 
 .admin-shell .admin-nav-link.active {
@@ -2965,9 +3087,20 @@ textarea:focus {
   transform: none !important;
 }
 
+.admin-shell .admin-sidebar .admin-nav-link.active {
+  background: #c6aa72 !important;
+  border-color: #c6aa72 !important;
+  color: #1d2638 !important;
+}
+
 .admin-shell .admin-nav-link.active span,
 .admin-shell .admin-nav-link.active .nav-icon {
   color: #ffffff !important;
+}
+
+.admin-shell .admin-sidebar .admin-nav-link.active span,
+.admin-shell .admin-sidebar .admin-nav-link.active .nav-icon {
+  color: #1d2638 !important;
 }
 
 .admin-nav-icon-img {
@@ -2977,8 +3110,18 @@ textarea:focus {
   flex-shrink: 0;
 }
 
+.admin-shell .admin-sidebar .admin-nav-icon-img {
+  filter: brightness(0) saturate(100%) invert(92%) sepia(16%) saturate(351%) hue-rotate(338deg)
+    brightness(103%) contrast(93%);
+}
+
 .admin-shell .admin-nav-link.active .admin-nav-icon-img {
   filter: brightness(0) invert(1);
+}
+
+.admin-shell .admin-sidebar .admin-nav-link.active .admin-nav-icon-img {
+  filter: brightness(0) saturate(100%) invert(14%) sepia(18%) saturate(955%) hue-rotate(184deg)
+    brightness(95%) contrast(90%);
 }
 
 .admin-stat-icon-img {
@@ -3007,14 +3150,14 @@ textarea:focus {
 .admin-shell .admin-catalog-page .admin-quick-link h4,
 .admin-shell .admin-catalog-page .admin-quick-link p.muted {
   color: #000000 !important;
-  font-weight: 700 !important;
+  font-weight: 400 !important;
 }
 
 .admin-shell .admin-catalog-page .page-header,
 .admin-shell .admin-catalog-page .admin-quick-link,
 .admin-shell .admin-catalog-page .admin-actions .btn,
 .admin-shell .admin-catalog-page .admin-quick-link .link-icon {
-  border-radius: 0 !important;
+  border-radius: 10px !important;
   box-shadow: none !important;
 }
 
@@ -3074,14 +3217,14 @@ textarea:focus {
 .admin-shell .admin-sales-center-page .admin-quick-link h4,
 .admin-shell .admin-sales-center-page .admin-quick-link p.muted {
   color: #000000 !important;
-  font-weight: 700 !important;
+  font-weight: 400 !important;
 }
 
 .admin-shell .admin-sales-center-page .page-header,
 .admin-shell .admin-sales-center-page .admin-quick-link,
 .admin-shell .admin-sales-center-page .admin-actions .btn,
 .admin-shell .admin-sales-center-page .admin-quick-link .link-icon {
-  border-radius: 0 !important;
+  border-radius: 12px !important;
   box-shadow: none !important;
 }
 
@@ -3166,7 +3309,7 @@ textarea:focus {
 .admin-shell .admin-products-page .admin-product-actions .btn,
 .admin-shell .admin-products-page .input,
 .admin-shell .admin-products-page .select {
-  border-radius: 0 !important;
+  border-radius: 10px !important;
   box-shadow: none !important;
 }
 
@@ -3223,7 +3366,7 @@ textarea:focus {
 }
 
 .admin-shell .admin-products-page .admin-product-media {
-  border-radius: 0 !important;
+  border-radius: 10px !important;
 }
 
 .admin-shell .admin-categories-page,
@@ -3264,7 +3407,7 @@ textarea:focus {
 .admin-shell .admin-categories-page .textarea,
 .admin-shell .admin-categories-page .input,
 .admin-shell .admin-categories-page .chip {
-  border-radius: 0 !important;
+  border-radius: 10px !important;
   box-shadow: none !important;
 }
 
@@ -3349,7 +3492,7 @@ textarea:focus {
 .admin-shell .admin-recipes-page .textarea,
 .admin-shell .admin-recipes-page .modal,
 .admin-shell .admin-recipes-page .modal-actions .btn {
-  border-radius: 0 !important;
+  border-radius: 10px !important;
   box-shadow: none !important;
 }
 
@@ -3373,7 +3516,7 @@ textarea:focus {
   background: #234d3b !important;
   border-color: #234d3b !important;
   color: #ffffff !important;
-  font-size: 16px !important;
+  font-size: 13px !important;
   font-weight: 700 !important;
 }
 
@@ -3383,7 +3526,7 @@ textarea:focus {
 }
 
 .admin-shell .admin-recipes-page .recipe-header-actions .btn .btn-label {
-  font-size: 16px !important;
+  font-size: 13px !important;
   font-weight: 700 !important;
   line-height: 1.2 !important;
 }
@@ -4940,6 +5083,7 @@ textarea:focus {
   padding: 20px 24px;
   background: #ffffff;
   border-bottom: 1px solid #cfcfcf;
+  border-radius: 12px;
 }
 
 .kds-board-header h1 {
@@ -4990,6 +5134,8 @@ textarea:focus {
   display: grid;
   grid-template-rows: auto 1fr;
   min-height: 0;
+  border-radius: 12px;
+  overflow: hidden;
 }
 
 .kds-board-column-head {
@@ -5025,6 +5171,7 @@ textarea:focus {
   font-family: 'IBM Plex Mono', monospace;
   font-size: 0.82rem;
   font-weight: 800;
+  border-radius: 8px;
 }
 
 .kds-board-list {
@@ -5043,6 +5190,7 @@ textarea:focus {
   background: #ffffff;
   border-left: 4px solid #b3b3b3;
   min-height: 132px;
+  border-radius: 10px;
 }
 
 .kds-board-card h3 {
@@ -5087,6 +5235,7 @@ textarea:focus {
   letter-spacing: 0.08em;
   text-transform: uppercase;
   color: #000000;
+  border-radius: 8px;
 }
 
 .kds-board-status--sent-to-kitchen {
@@ -5113,6 +5262,7 @@ textarea:focus {
   height: 10px;
   border: 1px solid #0b0d10;
   background: #58636f;
+  border-radius: 999px;
 }
 
 .kds-board-station-dot.station-grill {
@@ -5198,6 +5348,7 @@ textarea:focus {
   font-size: 0.88rem;
   color: #000000;
   font-weight: 700;
+  border-radius: 10px;
 }
 
 @media (max-width: 768px) {

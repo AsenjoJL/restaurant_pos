@@ -24,13 +24,13 @@ function SlipTemplate({ order, showTotals = true }: SlipTemplateProps) {
   const orderTypeLabel = order.order_type === 'DINE_IN' ? 'DINE-IN' : formatEnumLabel(order.order_type)
 
   return (
-    <div className="w-[340px] bg-paper border border-divider rounded-[4px] overflow-hidden text-body">
+    <div className="w-[340px] bg-paper border border-divider rounded-[10px] overflow-hidden text-body">
       <div className="bg-brand px-[14px] pt-[12px] pb-[10px] border-b border-dashed border-sage/60">
         <p className="m-0 mb-2 font-mono text-[9px] uppercase tracking-[.15em] text-sage">
           ORDER SLIP
         </p>
         <div className="flex items-center gap-2">
-          <img className="w-[30px] h-[30px] rounded-[2px] border border-sage/50 bg-paper object-cover" src="/Resto.jpg" alt="Asenter Restaurant logo" />
+          <img className="w-[30px] h-[30px] rounded-[4px] border border-sage/50 bg-paper object-cover" src="/Resto.jpg" alt="Asenter Restaurant logo" />
           <div>
             <h2 className="m-0 font-serif text-[20px] text-[#F5EDD6]">ASENTER RESTAURANT</h2>
             <p className="m-0 text-[11px] text-sage">Urgello Branch</p>
@@ -40,7 +40,7 @@ function SlipTemplate({ order, showTotals = true }: SlipTemplateProps) {
 
       <div className="flex items-end justify-between gap-2 px-[14px] pt-[12px] pb-[11px] border-b border-dashed border-divider">
         <div className="font-serif text-[36px] leading-none text-brand">{order.order_no}</div>
-        <span className="inline-flex shrink-0 items-center whitespace-nowrap font-mono text-[10px] uppercase tracking-[.08em] bg-brand text-sage border border-sage rounded-[2px] px-3 py-1">
+        <span className="inline-flex shrink-0 items-center whitespace-nowrap font-mono text-[10px] uppercase tracking-[.08em] bg-brand text-sage border border-sage rounded-[6px] px-3 py-1">
           {orderTypeLabel}
         </span>
       </div>

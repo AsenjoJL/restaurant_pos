@@ -10,7 +10,10 @@
     "lint": "eslint .",
     "preview": "vite preview",
     "kiosk:dev": "concurrently -k \"npm run dev\" \"wait-on tcp:5173 && electron electron/main.cjs\"",
-    "kiosk:build": "npm run build && electron-builder --win nsis"
+    "kiosk:build": "npm run build && electron-builder --win nsis --mac dmg --linux AppImage",
+    "kiosk:build:win": "npm run build && electron-builder --win nsis",
+    "kiosk:build:mac": "npm run build && electron-builder --mac dmg",
+    "kiosk:build:linux": "npm run build && electron-builder --linux AppImage"
   },
   "dependencies": {
     "@reduxjs/toolkit": "^2.11.2",
@@ -61,6 +64,18 @@
       "target": [
         "nsis"
       ]
+    },
+    "mac": {
+      "target": [
+        "dmg"
+      ],
+      "category": "public.app-category.business"
+    },
+    "linux": {
+      "target": [
+        "AppImage"
+      ],
+      "category": "Office"
     }
   }
 }
