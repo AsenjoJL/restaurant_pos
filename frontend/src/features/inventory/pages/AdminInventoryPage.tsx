@@ -44,14 +44,11 @@ function AdminInventoryPage() {
     handleAdjustStock,
     isImporting,
     fileInputRef,
-    exportFormat,
-    setExportFormat,
-    importFormat,
-    setImportFormat,
     fileFormatOptions,
     openImportFilePicker,
     handleImport,
     handleExportInventory,
+    handleDownloadTemplate,
     handleBackToDashboard,
     setQuery,
     setCategoryFilter,
@@ -63,15 +60,12 @@ function AdminInventoryPage() {
     <div className="page admin-page admin-inventory-page">
       <InventoryPageHeader
         fileInputRef={fileInputRef}
-        exportFormat={exportFormat}
         fileFormatOptions={fileFormatOptions}
-        importFormat={importFormat}
         isImporting={isImporting}
         onBackToDashboard={handleBackToDashboard}
+        onDownloadTemplate={handleDownloadTemplate}
         onExportInventory={handleExportInventory}
-        onExportFormatChange={setExportFormat}
         onImport={handleImport}
-        onImportFormatChange={setImportFormat}
         onOpenImportFilePicker={openImportFilePicker}
       />
 

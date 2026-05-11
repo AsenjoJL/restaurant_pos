@@ -57,11 +57,11 @@ function AppRouter() {
     <Router>
       <Suspense fallback={<RouteLoadingFallback />}>
         <Routes>
-          <Route path="/" element={<Navigate to="/kiosk" replace />} />
-          <Route path="/login" element={<LoginPage />} />
-          <Route path="/KDS" element={<KitchenQueueBoardPage />} />
-          <Route path="/kds-board" element={<Navigate to="/KDS" replace />} />
-          <Route path="/kiosk" element={<KioskShell />}>
+            <Route path="/" element={<Navigate to="/kiosk" replace />} />
+            <Route path="/login" element={<LoginPage />} />
+            <Route path="/KDS" element={<KitchenQueueBoardPage />} />
+            <Route path="/kds-board" element={<Navigate to="/KDS" replace />} />
+            <Route path="/kiosk" element={<KioskShell />}>
             <Route index element={<KioskWelcomePage />} />
             <Route path="order-type" element={<Navigate to="/kiosk" replace />} />
             <Route path="menu" element={<KioskMenuPage />} />
@@ -102,12 +102,12 @@ function AppRouter() {
           />
           <Route
             path="/admin"
-            element={
-              <RequireAuth allowedRoles={['admin']}>
-                <AppShell>
-                  <AdminLayout />
-                </AppShell>
-              </RequireAuth>
+              element={
+                <RequireAuth allowedRoles={['admin']}>
+                  <AppShell>
+                    <AdminLayout />
+                  </AppShell>
+                </RequireAuth>
             }
           >
             <Route index element={<Navigate to="dashboard" replace />} />

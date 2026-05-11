@@ -25,7 +25,7 @@ export const calculateKioskTotals = (
     (sum, item) => sum + item.product.price * item.quantity,
     0,
   )
-  const tax = subtotal * taxRate
+  const tax = Math.round(subtotal * taxRate)
   const total = subtotal + tax
   const itemCount = items.reduce((sum, item) => sum + item.quantity, 0)
 

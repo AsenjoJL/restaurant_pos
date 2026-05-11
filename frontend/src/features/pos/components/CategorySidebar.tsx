@@ -22,11 +22,6 @@ function CategorySidebar() {
 
   return (
     <aside className="pos-sidebar panel">
-      <div className="sidebar-status-banner">
-        <span className="sidebar-status-dot" />
-        <span>Open for service</span>
-      </div>
-
       <div className="sidebar-header">
         <div>
           <h2>Categories</h2>

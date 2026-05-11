@@ -1,22 +1,12 @@
 import { formatCurrency } from '../../../shared/lib/format'
-import type { MenuProduct, OrderType } from '../../pos/pos.types'
+import type { MenuProduct } from '../../pos/pos.types'
 import { getCategoryName } from '../../pos/menu.utils'
-
-const toneMap: Record<string, string> = {
-  sun: '#c8b18f',
-  mint: '#b7c0a6',
-  berry: '#bca79b',
-  ocean: '#b8b7a8',
-  clay: '#c3ad98',
-  orchard: '#b7be9d',
-}
+import type { KioskCartItem } from '../kiosk.utils'
 
 const cardTagSequence = ['Best Seller', 'Popular', 'New'] as const
 
-const featuredCardIndexes = new Set([0, 5, 10])
-
 type KioskMenuProductGridProps = {
-  orderType: OrderType | null
+  cart: KioskCartItem[]
   activeCategoryName: string
   brokenImages: Record<string, boolean>
   categoryNameMap: Map<string, string>
@@ -28,12 +18,14 @@ type KioskMenuProductGridProps = {
   onCustomize: (product: MenuProduct) => void
   onImageError: (productId: string) => void
   onBackToHome: () => void
+  onRemoveItem: (key: string) => void
+  onUpdateQuantity: (key: string, quantity: number) => void
   getModifierGroupCount: (categoryId: string) => number
   resolveProductAvailability: (product: MenuProduct) => 'AVAILABLE' | 'LIMITED' | 'SOLD_OUT'
 }
 
 function KioskMenuProductGrid({
-  orderType,
+  cart,
   activeCategoryName,
   brokenImages,
   categoryNameMap,
@@ -45,198 +37,195 @@ function KioskMenuProductGrid({
   onCustomize,
   onImageError,
   onBackToHome,
+  onRemoveItem,
+  onUpdateQuantity,
   getModifierGroupCount,
   resolveProductAvailability,
 }: KioskMenuProductGridProps) {
-  const isAllItemsView = activeCategoryName.trim().toLowerCase() === 'all items'
+  const sortedProducts = [...visibleProducts].sort((left, right) => {
+    const leftUnavailable = resolveProductAvailability(left) !== 'AVAILABLE'
+    const rightUnavailable = resolveProductAvailability(right) !== 'AVAILABLE'
+
+    if (leftUnavailable === rightUnavailable) {
+      return 0
+    }
+
+    return leftUnavailable ? 1 : -1
+  })
 
   return (
-    <section className="min-w-0 min-h-0 overflow-hidden bg-cream px-3 py-2 grid grid-rows-[auto_auto_auto_minmax(0,1fr)] gap-2">
-      <header className="flex items-start justify-between gap-3">
-        <div>
-          <h2 className="m-0 text-[32px] font-semibold text-body">What would you like today?</h2>
-          <p className="mt-1 text-[14px] text-muted">
-            {orderType === 'dine-in'
-              ? 'Dine-in order'
-              : orderType === 'takeout'
-                ? 'Takeout order'
-              : 'Choose an order type from the welcome screen'}
-          </p>
-        </div>
-        <button
-          type="button"
-          className="border border-divider bg-paper text-body min-h-[38px] px-4 rounded-[3px] font-sans text-[12px] font-semibold uppercase tracking-[.06em] hover:bg-[#EFE9DE]"
-          onClick={onBackToHome}
-        >
-          Back to Home
-        </button>
-      </header>
+    <section className="min-w-0 min-h-0 overflow-hidden border-l-2 border-r-2 border-[rgba(216,201,176,0.9)] bg-[#FFFFFF] shadow-[inset_0_1px_0_rgba(255,255,255,0.95),0_0_0_1px_rgba(228,216,196,0.75),0_18px_34px_rgba(28,46,30,0.09),0_4px_10px_rgba(28,46,30,0.05)]">
+      <div className="grid h-full min-h-0 grid-rows-[auto_minmax(0,1fr)]">
+        <header className="grid grid-cols-[minmax(0,1fr)_minmax(260px,360px)_auto] items-center gap-4 bg-white px-5 py-4 text-[#1c2e1e]">
+          <div>
+            <h2 className="m-0 text-[24px] font-bold leading-tight">What would you like today?</h2>
+          </div>
 
-      <div className="flex items-center justify-between gap-2 border-b border-divider pb-2">
-        <label className="flex items-center gap-2 flex-1 min-w-0">
-          <svg className="w-[18px] h-[18px] text-muted" viewBox="0 0 24 24" aria-hidden="true">
-            <circle cx="11" cy="11" r="7" fill="none" stroke="currentColor" strokeWidth="1.8" />
-            <line
-              x1="16.65"
-              y1="16.65"
-              x2="21"
-              y2="21"
-              stroke="currentColor"
-              strokeWidth="1.8"
-            />
-          </svg>
           <input
             type="search"
-            placeholder="Search menu items"
+            placeholder="Search Adobo, Sinigang..."
             value={searchTerm}
             onChange={(event) => onSearchTermChange(event.target.value)}
-            className="w-full min-h-[40px] border-0 border-b border-divider bg-paper font-sans text-[16px] text-body px-2 outline-none"
+            className="min-h-[42px] w-full rounded-[10px] border border-[rgba(28,46,30,0.18)] bg-white px-4 text-[14px] text-[#1c2e1e] outline-none placeholder:text-[#8b988b]"
           />
-        </label>
-        <div className="inline-flex items-center gap-1.5 font-mono text-[13px] text-muted">
-          <img className="w-4 h-4" src="/items.png" alt="" aria-hidden="true" />
-          <span>{visibleProducts.length} items</span>
-        </div>
-      </div>
 
-      <div className="font-mono text-[10px] uppercase tracking-[.15em] text-muted">
-        {activeCategoryName}
-      </div>
-
-      {visibleProducts.length === 0 ? (
-        <div className="border border-dashed border-divider bg-paper rounded-[5px] p-5 grid gap-2 justify-items-start">
-          <h3 className="m-0 text-[18px] text-body">No matching menu items</h3>
-          <p className="m-0 text-[14px] text-muted">Try another search term or switch category.</p>
           <button
             type="button"
-            onClick={onClearFilters}
-            className="border border-divider bg-paper text-brand rounded-[2px] min-h-[34px] px-3 text-[12px] uppercase tracking-[.05em]"
+            className="min-h-[40px] rounded-[10px] border border-[rgba(28,46,30,0.18)] bg-white px-4 text-[11px] font-bold uppercase tracking-[0.12em] text-[#1c2e1e] transition-colors hover:bg-[#f6f7f4]"
+            onClick={onBackToHome}
           >
-            Reset filters
+            Back to Home
           </button>
-        </div>
-      ) : (
-        <div
-          className={`min-h-0 overflow-y-auto grid items-start p-3 ${
-            isAllItemsView ? 'grid-cols-3 gap-4 pr-3' : 'grid-cols-3 gap-3 pr-4'
-          }`}
-          style={{ gridAutoRows: 'max-content' }}
-        >
-          {visibleProducts.map((product, index) => {
-            const resolvedAvailability = resolveProductAvailability(product)
-            const hasModifiers = getModifierGroupCount(product.categoryId) > 0
-            const canAdd = resolvedAvailability === 'AVAILABLE'
-            const categoryLabel = getCategoryName(
-              categoryNameMap,
-              product.categoryId,
-              product.categoryId,
-            )
+        </header>
 
-            const cardTag = index < 12 ? cardTagSequence[index % cardTagSequence.length] : null
-            const isFeatured = !isAllItemsView && featuredCardIndexes.has(index)
-            const sizeClass = isFeatured ? 'is-featured' : ''
+        <div className="grid min-h-0 grid-rows-[auto_auto_minmax(0,1fr)] gap-3 px-5 py-4">
+          <div className="flex items-center justify-between gap-3">
+            <div className="font-mono text-[10px] uppercase tracking-[0.18em] text-[#857766]">
+              {activeCategoryName}
+            </div>
+            <div className="text-[12px] text-[#857766]">{sortedProducts.length} items</div>
+          </div>
 
-            return (
+          {sortedProducts.length === 0 ? (
+            <div className="rounded-[14px] border border-dashed border-[#d8ceb8] bg-white p-5">
+              <h3 className="m-0 text-[18px] font-bold text-[#1c2e1e]">No matching menu items</h3>
+              <p className="mt-2 text-[13px] text-[#857766]">
+                Try another search term or switch category.
+              </p>
               <button
                 type="button"
-                key={product.id}
-                className={`self-start h-fit border border-divider rounded-[8px] bg-paper text-left overflow-hidden transition-all duration-200 ${
-                  canAdd ? 'hover:bg-[#FFFDF8] hover:border-[#baa982] hover:shadow-[0_10px_24px_rgba(44,36,24,0.08)]' : 'opacity-60 cursor-default'
-                } ${isFeatured ? 'row-span-2' : ''} ${sizeClass}`}
-                onClick={() => {
-                  if (!canAdd) return
-                  if (hasModifiers) {
-                    onCustomize(product)
-                    return
-                  }
-                  onAddDirect(product)
-                }}
-                disabled={!canAdd}
+                onClick={onClearFilters}
+                className="mt-4 min-h-[34px] rounded-[8px] border border-[#d8ceb8] bg-[#f5f0e8] px-3 text-[11px] font-bold uppercase tracking-[0.08em] text-[#1c2e1e]"
               >
-                <div
-                  className={`relative shrink-0 overflow-hidden flex items-center justify-center ${
-                    isFeatured ? 'h-[330px]' : isAllItemsView ? 'h-[220px]' : 'h-[182px]'
-                  }`}
-                  style={{ backgroundColor: toneMap[product.tone] ?? '#d4c0a7' }}
-                >
-                  <span className="absolute inset-[14%_28%] border border-white/18 rounded-full pointer-events-none" />
-                  {cardTag ? (
-                  <span className="absolute top-3 left-3 z-20 rounded-[3px] bg-body/90 text-[#C8BCA8] text-[8px] uppercase tracking-[.1em] px-2.5 py-1">
-                    {cardTag}
-                  </span>
-                  ) : null}
-                  {resolvedAvailability !== 'AVAILABLE' ? (
-                    <span className="absolute top-3 left-3 z-20 rounded-[3px] bg-body/90 text-[#C8BCA8] text-[8px] uppercase tracking-[.1em] px-2.5 py-1">
-                      Unavailable
-                    </span>
-                  ) : null}
-                  {product.image && !brokenImages[product.id] ? (
-                    <img
-                      className="relative z-10 w-full h-full object-cover scale-[1.02]"
-                      src={encodeURI(product.image)}
-                      alt={product.name}
-                      loading="lazy"
-                      onError={() => onImageError(product.id)}
-                    />
-                  ) : (
-                    <div className="relative z-10 w-full h-full grid place-items-center">
-                      <svg className="w-14 h-14" viewBox="0 0 24 24">
-                        <circle cx="12" cy="12" r="9" fill="none" stroke="rgba(26,58,42,0.28)" strokeWidth="1.4" />
-                        <path d="M8 12h8M12 8v8" stroke="rgba(26,58,42,0.28)" strokeWidth="1.4" />
-                      </svg>
-                    </div>
-                  )}
-                  <div className="absolute inset-x-0 bottom-0 h-20 bg-gradient-to-t from-[rgba(20,14,10,0.16)] via-transparent to-transparent pointer-events-none" />
-                </div>
-                  <div className={`grid gap-2 ${isFeatured || isAllItemsView ? 'p-4' : 'p-2.5'}`}>
-                    <h3
-                      className={`m-0 font-semibold text-body leading-tight ${
-                      isFeatured ? 'text-[22px]' : isAllItemsView ? 'text-[19px]' : 'text-[16px]'
-                      }`}
-                    >
-                      {product.name}
-                    </h3>
-                    <p
-                      className={`m-0 text-muted leading-[1.4] overflow-hidden ${
-                      isFeatured
-                        ? 'text-[14px] min-h-[52px]'
-                        : isAllItemsView
-                          ? 'text-[13px] min-h-[44px]'
-                          : 'text-[12px] min-h-[34px]'
-                      }`}
-                    >
-                      {product.description || categoryLabel}
-                  </p>
-                  <div className="flex items-center justify-between gap-2">
-                    <span
-                      className={`font-mono text-brand ${
-                        isFeatured ? 'text-[19px]' : isAllItemsView ? 'text-[18px]' : 'text-[15px]'
-                      }`}
-                    >
-                      {formatCurrency(product.price)}
-                    </span>
-                    <span
-                      className={`inline-flex items-center justify-center rounded-[3px] uppercase tracking-[.06em] ${
-                        canAdd ? 'bg-brand text-paper' : 'bg-divider text-muted'
-                      } ${
-                        isFeatured
-                          ? 'min-w-[88px] min-h-[34px] text-[12px]'
-                          : isAllItemsView
-                            ? 'min-w-[98px] min-h-[36px] text-[12px]'
-                            : 'min-w-[78px] min-h-[28px] text-[11px]'
-                      } ${
-                        canAdd ? '' : ''
-                      }`}
-                    >
-                      {canAdd ? '+ Add' : 'Unavailable'}
-                    </span>
-                  </div>
-                </div>
+                Reset filters
               </button>
-            )
-          })}
+            </div>
+          ) : (
+            <div className="min-h-0 overflow-y-auto pr-1">
+              <div className="grid grid-cols-2 gap-4">
+                {sortedProducts.map((product, index) => {
+                  const resolvedAvailability = resolveProductAvailability(product)
+                  const hasModifiers = getModifierGroupCount(product.categoryId) > 0
+                  const categoryLabel = getCategoryName(
+                    categoryNameMap,
+                    product.categoryId,
+                    product.categoryId,
+                  )
+                  const cartLines = cart.filter((item) => item.product.id === product.id)
+                  const cartQuantity = cartLines.reduce((sum, item) => sum + item.quantity, 0)
+                  const simpleCartLine = cartLines.find((item) => item.modifiers.length === 0) ?? null
+                  const badge = index < 8 ? cardTagSequence[index % cardTagSequence.length] : null
+                  const isUnavailable = resolvedAvailability !== 'AVAILABLE'
+
+                  return (
+                    <article
+                      key={product.id}
+                      className={`grid grid-cols-[140px_minmax(0,1fr)] gap-5 rounded-[14px] border border-transparent bg-white p-4 ${
+                        isUnavailable ? 'opacity-45' : ''
+                      }`}
+                    >
+                      <div className="h-[140px] w-[140px] overflow-hidden rounded-[12px] border-none bg-[#ebe0cd]">
+                        {product.image && !brokenImages[product.id] ? (
+                          <img
+                            className="h-full w-full border-none object-cover"
+                            src={encodeURI(product.image)}
+                            alt={product.name}
+                            loading="lazy"
+                            onError={() => onImageError(product.id)}
+                          />
+                        ) : (
+                          <div className="grid h-full w-full place-items-center text-[#8fa08f]">
+                            <svg className="h-7 w-7" viewBox="0 0 24 24" aria-hidden="true">
+                              <circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" strokeWidth="1.4" />
+                              <path d="M8 12h8M12 8v8" stroke="currentColor" strokeWidth="1.4" />
+                            </svg>
+                          </div>
+                        )}
+                      </div>
+
+                      <div className="grid min-w-0 gap-3">
+                        <div className="flex items-center gap-2">
+                          <h3 className="m-0 text-[16px] font-bold text-[#1c2e1e]">{product.name}</h3>
+                          {isUnavailable ? (
+                            <span className="inline-flex rounded-full bg-[#e8ddd0] px-2 py-1 text-[9px] font-bold uppercase tracking-[0.08em] text-[#7e6f61]">
+                              Unavailable
+                            </span>
+                          ) : badge ? (
+                            <span className="inline-flex rounded-full bg-[#edf4ee] px-2 py-1 text-[9px] font-bold uppercase tracking-[0.08em] text-[#3a5c3d]">
+                              {badge}
+                            </span>
+                          ) : null}
+                        </div>
+                        <p className="mt-1 text-[12px] text-[#857766]">
+                          {product.description || categoryLabel}
+                        </p>
+
+                        <div className="mt-auto flex items-end justify-between gap-3">
+                          <strong className="font-mono text-[16px] font-medium text-[#1c2e1e]">
+                            {formatCurrency(product.price)}
+                          </strong>
+
+                          {isUnavailable ? (
+                            <span className="inline-flex min-h-[34px] min-w-[94px] items-center justify-center rounded-[8px] bg-[#ede4d7] px-3 text-[11px] font-bold uppercase tracking-[0.08em] text-[#8b7f72]">
+                              Unavailable
+                            </span>
+                          ) : cartQuantity > 0 && simpleCartLine ? (
+                            <div className="inline-flex min-h-[34px] items-center overflow-hidden rounded-[8px] border border-[#d8ceb8]">
+                              <button
+                                type="button"
+                                className="grid h-[34px] w-[34px] place-items-center bg-[#f5f0e8] text-[18px] text-[#1c2e1e]"
+                                onClick={() => {
+                                  if (simpleCartLine.quantity === 1) {
+                                    onRemoveItem(simpleCartLine.key)
+                                    return
+                                  }
+                                  onUpdateQuantity(simpleCartLine.key, simpleCartLine.quantity - 1)
+                                }}
+                              >
+                                -
+                              </button>
+                              <span className="min-w-[34px] px-2 text-center text-[12px] font-bold text-[#1c2e1e]">
+                                {cartQuantity}
+                              </span>
+                              <button
+                                type="button"
+                                className="grid h-[34px] w-[34px] place-items-center bg-[#1c2e1e] text-[16px] text-white"
+                                onClick={() => {
+                                  if (hasModifiers) {
+                                    onCustomize(product)
+                                    return
+                                  }
+                                  onAddDirect(product)
+                                }}
+                              >
+                                +
+                              </button>
+                            </div>
+                          ) : (
+                            <button
+                              type="button"
+                              className="inline-flex min-h-[34px] min-w-[94px] items-center justify-center rounded-[8px] bg-[#1c2e1e] px-3 text-[11px] font-bold uppercase tracking-[0.08em] text-white"
+                              onClick={() => {
+                                if (hasModifiers) {
+                                  onCustomize(product)
+                                  return
+                                }
+                                onAddDirect(product)
+                              }}
+                            >
+                              + Add
+                            </button>
+                          )}
+                        </div>
+                      </div>
+                    </article>
+                  )
+                })}
+              </div>
+            </div>
+          )}
         </div>
-      )}
+      </div>
     </section>
   )
 }

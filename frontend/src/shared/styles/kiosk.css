@@ -79,6 +79,93 @@
   align-items: center;
 }
 
+.kiosk-shell:not(.kiosk-shell-menu) .kiosk-menu-header {
+  grid-template-columns: 88px 1fr auto;
+  gap: 24px;
+  align-items: center;
+  padding: 12px 28px;
+  background: #ffffff;
+}
+
+.kiosk-shell:not(.kiosk-shell-menu) .kiosk-menu-header-logo {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+}
+
+.kiosk-shell:not(.kiosk-shell-menu) .kiosk-menu-header-logo__image {
+  width: 66px;
+  height: 66px;
+  object-fit: contain;
+  display: block;
+}
+
+.kiosk-shell:not(.kiosk-shell-menu) .kiosk-menu-header-center {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 28px;
+  justify-self: center;
+  min-width: 0;
+  margin-left: -40px;
+}
+
+.kiosk-shell:not(.kiosk-shell-menu) .kiosk-menu-header-brand {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.kiosk-shell:not(.kiosk-shell-menu) .kiosk-menu-header-brand__banner {
+  display: flex;
+  align-items: center;
+  gap: 0;
+  overflow: hidden;
+}
+
+.kiosk-shell:not(.kiosk-shell-menu) .kiosk-menu-header-brand__hero {
+  border: 0;
+  object-fit: cover;
+  display: block;
+}
+
+.kiosk-shell:not(.kiosk-shell-menu) .kiosk-menu-header-brand__hero--pata {
+  width: 258px;
+  height: 148px;
+}
+
+.kiosk-shell:not(.kiosk-shell-menu) .kiosk-menu-header-brand__hero--kalderita {
+  width: 352px;
+  height: 198px;
+  margin-left: -8px;
+}
+
+.kiosk-shell:not(.kiosk-shell-menu) .kiosk-menu-stepper {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.kiosk-shell:not(.kiosk-shell-menu) .kiosk-menu-step {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  color: #1c2e1e;
+}
+
+.kiosk-shell:not(.kiosk-shell-menu) .kiosk-menu-step .kiosk-icon-img,
+.kiosk-shell:not(.kiosk-shell-menu) .kiosk-menu-header-summary .kiosk-icon-img {
+  width: 16px;
+  height: 16px;
+  object-fit: contain;
+  filter: none;
+}
+
 .kiosk-shell-welcome .kiosk-main {
   padding-top: 0;
   overflow: hidden;
@@ -691,7 +778,7 @@
 .kiosk-shell.kiosk-shell-menu {
   --kiosk-brand-dark: #1a3a2a;
   --kiosk-paper: #fdfaf4;
-  --kiosk-page: #f4f0e8;
+  --kiosk-page: #ffffff;
   --kiosk-text: #2c2418;
   --kiosk-muted: #9a8f7a;
   --kiosk-divider: #d8ceb8;
@@ -724,53 +811,81 @@
 }
 
 .kiosk-shell.kiosk-shell-menu .kiosk-menu-header {
-  height: 84px;
-  min-height: 84px;
+  height: 126px;
+  min-height: 126px;
   border: 0;
   border-radius: 0;
-  background: var(--kiosk-brand-dark);
+  background: #ffffff;
   margin: 0;
-  padding: 14px 18px;
+  padding: 10px 18px;
   display: grid;
-  grid-template-columns: 1fr auto auto;
+  grid-template-columns: 88px 1fr auto;
   align-items: center;
   gap: 22px;
   box-shadow: none;
 }
 
-.kiosk-shell.kiosk-shell-menu .kiosk-menu-header-brand {
-  display: grid;
-  grid-template-columns: 48px minmax(0, 1fr);
-  grid-template-rows: auto auto;
+.kiosk-shell.kiosk-shell-menu .kiosk-menu-header-logo {
+  display: flex;
   align-items: center;
-  column-gap: 12px;
+  justify-content: flex-start;
 }
 
-.kiosk-shell.kiosk-shell-menu .kiosk-menu-header-brand__mark {
-  grid-row: 1 / span 2;
+.kiosk-shell.kiosk-shell-menu .kiosk-menu-header-logo__image {
   width: 48px;
   height: 48px;
-  border-radius: 4px;
-  border: 1px solid rgba(168, 212, 186, 0.28);
+  object-fit: contain;
+  display: block;
+}
+
+.kiosk-shell.kiosk-shell-menu .kiosk-menu-header-center {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 18px;
+  justify-self: center;
+  min-width: 0;
+  margin-left: -44px;
+}
+
+.kiosk-shell.kiosk-shell-menu .kiosk-menu-header-brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  justify-content: center;
+  flex-shrink: 0;
+  padding: 0;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+}
+
+.kiosk-shell.kiosk-shell-menu .kiosk-menu-header-brand__banner {
+  display: flex;
+  align-items: center;
+  gap: 0;
+  overflow: hidden;
+}
+
+.kiosk-shell.kiosk-shell-menu .kiosk-menu-header-brand__hero {
+  width: 148px;
+  height: 72px;
+  border-radius: 0;
+  border: 0;
   object-fit: cover;
+  box-shadow: none;
+  display: block;
 }
 
-.kiosk-shell.kiosk-shell-menu .kiosk-menu-header-brand h2 {
-  margin: 0;
-  font-family: 'DM Serif Display', serif;
-  font-size: 28px;
-  font-weight: 400;
-  line-height: 1.05;
-  color: #f5edd6;
+.kiosk-shell.kiosk-shell-menu .kiosk-menu-header-brand__hero--pata {
+  width: 112px;
+  height: 72px;
 }
 
-.kiosk-shell.kiosk-shell-menu .kiosk-menu-header-brand p {
-  margin: 3px 0 0;
-  font-family: 'DM Mono', monospace;
-  font-size: 11px;
-  letter-spacing: 0.18em;
-  text-transform: uppercase;
-  color: var(--kiosk-brand-light);
+.kiosk-shell.kiosk-shell-menu .kiosk-menu-header-brand__hero--kalderita {
+  width: 206px;
+  height: 72px;
+  margin-left: -6px;
 }
 
 .kiosk-shell.kiosk-shell-menu .kiosk-menu-stepper {
@@ -780,6 +895,8 @@
   display: flex;
   align-items: center;
   gap: 14px;
+  flex-wrap: nowrap;
+  justify-content: center;
 }
 
 .kiosk-shell.kiosk-shell-menu .kiosk-menu-step {
@@ -789,7 +906,7 @@
   gap: 9px;
   padding: 10px 14px;
   border-radius: 4px;
-  color: #efe6d4;
+  color: #4f6352;
   font-size: 16px;
   font-weight: 500;
 }
@@ -807,23 +924,23 @@
   width: 16px;
   height: 16px;
   object-fit: contain;
-  filter: brightness(0) invert(1);
-  opacity: 0.92;
+  filter: none;
+  opacity: 0.9;
 }
 
 .kiosk-shell.kiosk-shell-menu .kiosk-menu-step.is-active {
-  background: rgba(168, 212, 186, 0.16);
-  color: #ffffff;
+  background: rgba(58, 92, 61, 0.12);
+  color: #1c2e1e;
 }
 
 .kiosk-shell.kiosk-shell-menu .kiosk-menu-step.is-active .kiosk-icon-img,
 .kiosk-shell.kiosk-shell-menu .kiosk-menu-step.is-complete .kiosk-icon-img {
-  filter: brightness(0) invert(1);
+  filter: none;
   opacity: 1;
 }
 
 .kiosk-shell.kiosk-shell-menu .kiosk-menu-step.is-complete {
-  color: #f8f5eb;
+  color: #1c2e1e;
 }
 
 .kiosk-shell.kiosk-shell-menu .kiosk-menu-step:not(:last-child)::after {
@@ -838,20 +955,22 @@
   display: inline-flex;
   align-items: center;
   gap: 9px;
-  color: #ffffff;
+  color: #1c2e1e;
   padding: 10px 14px;
-  border: 1px solid rgba(168, 212, 186, 0.35);
+  border: 1px solid rgba(28, 46, 30, 0.16);
   border-radius: 4px;
   font-family: 'DM Mono', monospace;
   font-size: 16px;
   font-weight: 700;
+  justify-self: end;
+  background: #ffffff;
 }
 
 .kiosk-shell.kiosk-shell-menu .kiosk-menu-header-summary .kiosk-icon-img {
   width: 16px;
   height: 16px;
   object-fit: contain;
-  filter: brightness(0) invert(1);
+  filter: none;
 }
 
 .kiosk-shell.kiosk-shell-menu .kiosk-page {

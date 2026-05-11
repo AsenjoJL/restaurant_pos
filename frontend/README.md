@@ -34,6 +34,8 @@ Copy `.env.example` to `.env` and set values per environment.
 Architecture guide:
 - `docs/FRONTEND_ARCHITECTURE.md`
 - `docs/UI_STYLE_SPEC.md`
+- `docs/LOCAL_SETUP_USER_MANUAL.md`
+- `docs/END_USER_MANUAL.md`
 
 ## Roles & Access
 - **Cashier**: POS ordering, payments, cash drawer, cashier queue
@@ -80,12 +82,11 @@ All key actions are logged (payments, replacements, cash drawer, auth) and can b
 ## Routes
 ### Public
 - `/kiosk` – Kiosk landing
-- `/kiosk/order-type`
 - `/kiosk/menu`
-- `/kiosk/cart`
-- `/kiosk/confirm`
 - `/kiosk/success/:orderNo`
 - `/kiosk/print/:orderNo`
+- `/KDS` – Customer-facing kitchen queue board
+- `/kds-board` – Redirects to `/KDS`
 
 ### Staff
 - `/pos` – Staff POS ordering
@@ -94,6 +95,10 @@ All key actions are logged (payments, replacements, cash drawer, auth) and can b
 
 ### Admin
 - `/admin/dashboard`
+- `/admin/catalog`
+- `/admin/sales-center`
+- `/admin/sales`
+- `/admin/orders-dashboard`
 - `/admin/products`
 - `/admin/categories`
 - `/admin/inventory`
@@ -103,13 +108,17 @@ All key actions are logged (payments, replacements, cash drawer, auth) and can b
 - `/admin/audit-logs`
 - `/admin/users`
 - `/admin/settings`
+- `/admin/administration`
 
 ## Local Storage Keys
 The frontend persists parts of the UI/session state locally:
-- `pos.orders.v1` – orders
 - `pos.auth.v1` – user session
+- `pos.orders.v2` – orders
+- `pos.inventory.v2` – ingredients, recipes, and inventory adjustments
 - `pos.cash.v1` – cash drawer + adjustments
+- `pos.sales.v2` – sales records
 - `pos.audit.v1` – audit logs
+- `pos.admin.v4` – admin products, categories, users, and settings
 
 ## Setup
 ```bash

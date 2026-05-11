@@ -5,19 +5,7 @@
    - Keeps backoffice visuals consistent across admin modules
    ============================================ */
 
-/* Admin trend and chart primitives */
-
-.admin-kpi-pill--up {
-  color: #065f46;
-  border-color: #6ee7b7;
-  background: #d1fae5;
-}
-
-.admin-kpi-pill--down {
-  color: #991b1b;
-  border-color: #fca5a5;
-  background: #fee2e2;
-}
+/* Charts: range controls and shared sparkline primitives */
 
 .admin-chart-range {
   display: inline-flex;
@@ -77,7 +65,7 @@
   stroke-width: 1.8;
 }
 
-/* Sales trend suite - dark analytics module */
+/* Sales trend suite: dashboard analytics cards, chart, and breakdown table */
 .admin-trend-suite {
   display: grid;
   gap: 16px;
@@ -329,7 +317,7 @@
   width: 100%;
   height: 10px;
   border-radius: 999px;
-  background: #eaecf0;
+  background: var(--admin-soft-row-border);
   overflow: hidden;
 }
 
@@ -383,24 +371,7 @@
   background: #2f2411;
 }
 
-.admin-risk-pill--low {
-  color: #065f46;
-  background: #d1fae5;
-  border-color: #6ee7b7;
-}
-
-.admin-risk-pill--medium {
-  color: #b45309;
-  background: #fef3c7;
-  border-color: #fcd34d;
-}
-
-.admin-risk-pill--high {
-  color: #991b1b;
-  background: #fee2e2;
-  border-color: #fca5a5;
-}
-
+/* Shared dashboard cards and quick links */
 .admin-card {
   padding: 16px;
   display: grid;
@@ -448,6 +419,7 @@
   border-color: var(--accent);
 }
 
+/* Shared admin toolbar shell */
 .admin-toolbar {
   display: flex;
   gap: 12px;
@@ -455,6 +427,7 @@
   align-items: center;
 }
 
+/* Sales table layouts */
 .admin-shell .admin-table-row.sales,
 .admin-shell .admin-table-head.sales {
   grid-template-columns: 1.1fr 1.2fr 0.7fr 0.7fr 0.6fr 0.7fr 0.7fr 0.7fr 0.6fr 1fr;
@@ -478,9 +451,10 @@
   box-shadow: var(--shadow);
 }
 
+/* Inventory table layout */
 .admin-shell .admin-table-row.inventory,
 .admin-shell .admin-table-head.inventory {
-  grid-template-columns: 1fr 1.5fr 0.9fr 1.1fr 0.75fr 0.9fr 0.9fr 0.9fr 1.2fr 1fr;
+  grid-template-columns: 1fr 1.8fr 0.9fr 1.3fr 0.7fr 1fr 1fr 0.9fr 0.8fr 1fr;
   padding: 12px 14px;
   background: #ffffff;
   border: 1px solid var(--border);
@@ -506,18 +480,18 @@
 
 .admin-shell .admin-table-row.inventory .inventory-unit,
 .admin-shell .admin-table-row.inventory .inventory-stock,
-.admin-shell .admin-table-row.inventory .inventory-badge,
-.admin-shell .admin-table-row.inventory .admin-row-actions {
+.admin-shell .admin-table-row.inventory .inventory-badge {
   justify-self: start;
 }
 
 .admin-shell .admin-table-row.inventory .admin-row-actions {
+  justify-self: start;
   justify-content: flex-start;
   gap: 6px;
 }
 
 .admin-shell .admin-table-row.inventory.inventory-row--critical {
-  border-color: #fecaca;
+  border-color: var(--admin-danger-border);
   background: linear-gradient(90deg, #fff8f8 0%, #ffffff 40%);
 }
 
@@ -546,12 +520,7 @@
   }
 }
 
-.admin-shell .admin-row-actions {
-  display: flex;
-  gap: 8px;
-  flex-wrap: wrap;
-}
-
+/* Sales filters and file format controls */
 .sales-filter-bar {
   grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
 }
@@ -573,16 +542,14 @@
   --file-format-action-min-width: 270px;
 }
 
-.admin-shell .admin-sales-page .sales-filter-bar .file-format-action .select,
-.admin-shell .admin-inventory-page .inventory-action-controls .file-format-action .select {
+.admin-shell .admin-sales-page .sales-filter-bar .file-format-action .select {
   height: var(--file-format-action-height, 48px);
   min-height: var(--file-format-action-height, 48px);
   border-radius: 10px 0 0 10px !important;
   border-right: 0;
 }
 
-.admin-shell .admin-sales-page .sales-filter-bar .file-format-action .btn,
-.admin-shell .admin-inventory-page .inventory-action-controls .file-format-action .btn {
+.admin-shell .admin-sales-page .sales-filter-bar .file-format-action .btn {
   flex: 0 0 auto;
   height: var(--file-format-action-height, 48px) !important;
   min-height: var(--file-format-action-height, 48px) !important;
@@ -607,6 +574,7 @@
   }
 }
 
+/* Sales payment details and status pills */
 .sales-payment-breakdown {
   gap: 10px;
 }
@@ -638,22 +606,22 @@
 }
 
 .sales-status-pill--paid {
-  background: #d1fae5;
-  color: #065f46;
-  border-color: #6ee7b7;
+  background: var(--admin-success-bg);
+  color: var(--admin-success-text);
+  border-color: var(--admin-success-border);
 }
 
 .sales-status-pill--pending {
-  background: #fef3c7;
-  color: #92400e;
-  border-color: #fcd34d;
+  background: var(--admin-warning-bg);
+  color: var(--admin-warning-text);
+  border-color: var(--admin-warning-border-soft);
 }
 
 .sales-status-pill--voided,
 .sales-status-pill--cancelled {
-  background: #fee2e2;
-  color: #991b1b;
-  border-color: #fca5a5;
+  background: var(--admin-danger-bg);
+  color: var(--admin-danger-text);
+  border-color: var(--admin-danger-border-strong);
 }
 
 .sales-order-modal {
@@ -693,6 +661,7 @@
   border-top: 1px solid var(--border);
 }
 
+/* Shared forms, settings cards, and chips */
 .admin-form-grid {
   display: grid;
   gap: 16px;
@@ -721,52 +690,6 @@
   font-weight: 600;
 }
 
-/* Pricing inputs */
-
-.input-helper-text {
-  margin: 6px 0 0 0;
-  font-size: 0.8rem;
-  color: var(--muted);
-  line-height: 1.3;
-}
-
-/* Profit Indicators */
-.profit-indicators {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 12px;
-  padding: 16px;
-  border-radius: 12px;
-  margin: 16px 0;
-  background-color: var(--panel-muted);
-}
-
-.profit-indicators.profit-high {
-  background-color: #d1fae5;
-  border: 1px solid #6ee7b7;
-}
-
-.profit-indicators.profit-medium {
-  background-color: #fef3c7;
-  border: 1px solid #fcd34d;
-}
-
-.profit-indicators.profit-low {
-  background-color: #fee2e2;
-  border: 1px solid #fca5a5;
-}
-
-.profit-indicators.profit-neutral {
-  background-color: var(--panel-muted);
-  border: 1px solid var(--border);
-}
-
-.profit-indicator-item {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-}
-
 .chip-active {
   background: #d7efe6;
   border-color: #9ad1ba;
@@ -778,7 +701,9 @@
 }
 
 /* ============================================
-   ADMIN UI UPGRADES
+   ADMIN COMPONENT OVERRIDES
+   Component-scoped adjustments that sit above
+   the modern admin shell styles below.
    ============================================ */
 .admin-metrics {
   display: grid;
@@ -810,53 +735,92 @@
   }
 }
 
+/* Inventory header action menus */
 .admin-shell .admin-inventory-page .inventory-header-actions {
-  align-items: flex-end;
+  align-items: center;
   justify-content: flex-end;
-  gap: 14px;
+  gap: 10px;
 }
 
-.admin-shell .admin-inventory-page .inventory-action-group {
+.admin-shell .admin-inventory-page .inventory-action-menu {
+  position: relative;
+}
+
+.admin-shell .admin-inventory-page .inventory-action-menu-trigger {
+  cursor: pointer;
+  gap: 6px;
+  list-style: none;
+  user-select: none;
+}
+
+.admin-shell .admin-inventory-page .inventory-action-menu-trigger::-webkit-details-marker {
+  display: none;
+}
+
+.admin-shell .admin-inventory-page .inventory-action-menu-trigger.is-disabled {
+  cursor: not-allowed;
+  opacity: 0.65;
+}
+
+.admin-shell .admin-inventory-page .inventory-action-menu[open] .inventory-action-menu-trigger .btn-icon {
+  transform: rotate(180deg);
+}
+
+.admin-shell .admin-inventory-page .inventory-action-menu-panel {
+  position: absolute;
+  top: calc(100% + 8px);
+  right: 0;
+  z-index: 20;
   display: grid;
-  gap: 7px;
-  align-content: end;
-  padding-left: 14px;
-  border-left: 1px solid var(--border);
+  min-width: 230px;
+  gap: 8px;
+  padding: 10px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: #ffffff;
+  box-shadow: var(--shadow-md);
 }
 
-.admin-shell .admin-inventory-page .inventory-action-group:first-child {
-  padding-left: 0;
-  border-left: 0;
+.admin-shell .admin-inventory-page .inventory-action-menu-section {
+  display: grid;
+  gap: 4px;
 }
 
-.admin-shell .admin-inventory-page .inventory-action-group-title {
+.admin-shell .admin-inventory-page .inventory-action-menu-section + .inventory-action-menu-section {
+  padding-top: 8px;
+  border-top: 1px solid var(--border);
+}
+
+.admin-shell .admin-inventory-page .inventory-action-menu-title {
+  padding: 2px 8px 4px;
   color: var(--text-secondary);
-  font-size: 0.74rem;
+  font-size: 0.86rem;
   font-weight: 800;
   letter-spacing: 0.08em;
-  line-height: 1;
+  line-height: 1.2;
   text-transform: uppercase;
 }
 
-.admin-shell .admin-inventory-page .inventory-action-controls {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: flex-end;
-  gap: 8px;
-}
-
-.admin-shell .admin-inventory-page .inventory-action-controls .input-field {
-  min-width: 150px;
-}
-
-.admin-shell .admin-inventory-page .inventory-action-controls .select {
+.admin-shell .admin-inventory-page .inventory-action-menu-item {
   width: 100%;
+  min-height: 42px;
+  padding: 10px 12px;
+  border: 0;
+  border-radius: 8px;
+  background: transparent;
+  color: var(--text-primary);
+  cursor: pointer;
+  font-family: inherit;
+  font-size: 0.96rem;
+  font-weight: 600;
+  line-height: 1.25;
+  text-align: left;
 }
 
-.admin-shell .admin-inventory-page .inventory-action-controls .file-format-action {
-  --file-format-action-button-min-width: 130px;
-  --file-format-action-height: 44px;
-  --file-format-action-min-width: 0;
+.admin-shell .admin-inventory-page .inventory-action-menu-item:hover,
+.admin-shell .admin-inventory-page .inventory-action-menu-item:focus-visible {
+  background: var(--panel-muted);
+  outline: none;
 }
 
 @media (max-width: 900px) {
@@ -865,27 +829,23 @@
     width: 100%;
   }
 
-  .admin-shell .admin-inventory-page .inventory-action-group {
-    width: 100%;
-    padding-left: 0;
-    border-left: 0;
-  }
-
-  .admin-shell .admin-inventory-page .inventory-action-controls .input-field,
-  .admin-shell .admin-inventory-page .inventory-action-controls .btn,
-  .admin-shell .admin-inventory-page .inventory-action-group--nav .btn {
+  .admin-shell .admin-inventory-page .inventory-header-actions > .btn,
+  .admin-shell .admin-inventory-page .inventory-action-menu {
     flex: 1 1 180px;
   }
 
-  .admin-shell .admin-inventory-page .inventory-action-controls .file-format-action .input-field {
-    flex: 1 1 auto;
+  .admin-shell .admin-inventory-page .inventory-action-menu-trigger {
+    width: 100%;
   }
 
-  .admin-shell .admin-inventory-page .inventory-action-controls .file-format-action .btn {
-    flex: 0 0 auto;
+  .admin-shell .admin-inventory-page .inventory-action-menu-panel {
+    right: auto;
+    left: 0;
+    width: min(280px, calc(100vw - 48px));
   }
 }
 
+/* Inventory toolbar state, empty state, and table cell helpers */
 .inventory-toolbar-meta {
   display: flex;
   justify-content: flex-end;
@@ -933,10 +893,11 @@
 .chip-role {
   background: #e9f1ff;
   border: 1px solid #cfe1ff;
-  color: #1d4ed8;
+  color: var(--admin-action-info-text);
   font-weight: 600;
 }
 
+/* Settings page layout */
 .admin-settings-grid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -975,7 +936,9 @@
 }
 
 /* ============================================
-   ADMIN DASHBOARD - MODERN UI SYSTEM (Scoped)
+   ADMIN SHELL - SCOPED DESIGN SYSTEM
+   Shared tokens, layout, navigation, cards, tables,
+   forms, buttons, and badges used by admin pages.
    ============================================ */
 .admin-shell {
   --font-display: 'Outfit', -apple-system, BlinkMacSystemFont, sans-serif;
@@ -983,6 +946,7 @@
   --font-mono: 'JetBrains Mono', 'Courier New', monospace;
   font-size: 0.62rem;
 
+  /* Core palette */
   --primary: #0f172a;
   --primary-light: #1e293b;
   --primary-lighter: #334155;
@@ -1010,6 +974,31 @@
   --error: #ef4444;
   --info: #3b82f6;
 
+  /* Reusable status and action colors */
+  --admin-success-bg: #d1fae5;
+  --admin-success-border: #6ee7b7;
+  --admin-success-text: #065f46;
+  --admin-danger-bg: #fee2e2;
+  --admin-danger-border: #fecaca;
+  --admin-danger-border-strong: #fca5a5;
+  --admin-danger-text: #991b1b;
+  --admin-danger-text-strong: #b42318;
+  --admin-warning-bg: #fef3c7;
+  --admin-warning-border-soft: #fcd34d;
+  --admin-warning-border: #fde68a;
+  --admin-warning-border-strong: #facc15;
+  --admin-warning-text: #92400e;
+  --admin-warning-text-strong: #78350f;
+  --admin-action-info-bg: #e8f1ff;
+  --admin-action-info-border: #bfdbfe;
+  --admin-action-info-text: #1d4ed8;
+  --admin-action-info-hover-bg: #dbeafe;
+  --admin-action-info-hover-border: #93c5fd;
+  --admin-action-info-hover-text: #1e40af;
+  --admin-soft-card-bg: #fcfcfd;
+  --admin-soft-row-border: #eaecf0;
+
+  /* Elevation, spacing, radius, and motion */
   --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
   --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.08), 0 2px 4px -1px rgba(0, 0, 0, 0.04);
   --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1),
@@ -1052,28 +1041,31 @@
   grid-template-columns: 280px minmax(0, 1fr);
   align-items: start;
   gap: var(--space-2xl);
-  padding: var(--space-2xl);
-  background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+  padding: 0 var(--space-2xl) 0 0;
+  background: #f8fafc;
   min-height: 100vh;
   font-family: var(--font-body);
 }
 
+/* Shell layout and navigation */
 .admin-shell .admin-sidebar {
   position: sticky;
-  top: var(--admin-sticky-top);
+  top: var(--app-header-height, 0px);
   align-self: start;
-  height: calc(100vh - var(--admin-sticky-top) - var(--space-2xl));
+  height: calc(100vh - var(--app-header-height, 0px));
   overflow: auto;
   padding: var(--space-sm);
-  border-radius: var(--radius-xl);
+  border-radius: 0;
   box-shadow: var(--shadow-md);
-  border: 1px solid var(--border);
+  border: 2px solid var(--border);
+  border-left: 0;
 }
 
 .admin-shell .admin-main {
   display: grid;
   gap: var(--space-2xl);
   min-width: 0;
+  padding-top: var(--space-2xl);
 }
 
 .admin-shell .admin-header {
@@ -1208,6 +1200,7 @@
   }
 }
 
+/* Page headers and dashboard summary blocks */
 .admin-shell .admin-page {
   display: grid;
   gap: var(--space-2xl);
@@ -1256,6 +1249,7 @@
   overflow: hidden;
   display: grid;
   gap: var(--space-sm);
+  animation: admin-slide-up var(--transition-base) ease-out backwards;
 }
 
 .admin-shell .admin-stat-card::before {
@@ -1282,7 +1276,7 @@
 }
 
 .admin-shell .admin-stat-card > span.muted {
-  font-size: 1.40rem;
+  font-size: 0.89rem;
   font-weight: 400;
   color: var(--text-secondary);
   text-transform: uppercase;
@@ -1324,6 +1318,7 @@
   transition: all var(--transition-base);
   position: relative;
   overflow: hidden;
+  animation: admin-slide-up var(--transition-base) ease-out backwards;
 }
 
 .admin-shell .admin-quick-link::after {
@@ -1376,6 +1371,7 @@
   display: grid;
   gap: var(--space-lg);
   transition: all var(--transition-base);
+  animation: admin-slide-up var(--transition-base) ease-out backwards;
 }
 
 .admin-shell .admin-card:hover {
@@ -1412,6 +1408,7 @@
   box-shadow: var(--shadow-sm);
 }
 
+/* Admin tables and row actions */
 .admin-shell .admin-table {
   display: grid;
   gap: var(--space-md);
@@ -1478,6 +1475,7 @@
   font-size: 1.20rem;
 }
 
+/* Admin forms and validation states */
 .admin-shell .admin-form-grid {
   display: grid;
   gap: var(--space-lg);
@@ -1508,19 +1506,19 @@
 .admin-shell .form-error {
   padding: var(--space-lg);
   border-radius: var(--radius-md);
-  background: #fee2e2;
-  color: #991b1b;
+  background: var(--admin-danger-bg);
+  color: var(--admin-danger-text);
   font-weight: 600;
-  border: 1px solid #fca5a5;
+  border: 1px solid var(--admin-danger-border-strong);
   display: flex;
   align-items: center;
   gap: var(--space-md);
 }
 
 .admin-shell .chip-active {
-  background: #d1fae5;
-  border: 1px solid #6ee7b7;
-  color: #065f46;
+  background: var(--admin-success-bg);
+  border: 1px solid var(--admin-success-border);
+  color: var(--admin-success-text);
   font-weight: 600;
   padding: 0.1rem 0.45rem;
   border-radius: var(--radius-full);
@@ -1547,6 +1545,7 @@
   gap: var(--space-xs);
 }
 
+/* Admin buttons and shared badges */
 .admin-shell button,
 .admin-shell .btn {
   font-family: var(--font-body);
@@ -1596,44 +1595,26 @@
   border-color: var(--accent);
 }
 
-.admin-shell .admin-stat-card,
-.admin-shell .admin-quick-link,
-.admin-shell .admin-card {
-  animation: admin-slide-up var(--transition-base) ease-out backwards;
-}
-
 .admin-shell .admin-stat-card:nth-child(1) {
   animation-delay: 50ms;
 }
 
-.admin-shell .admin-stat-card:nth-child(2) {
-  animation-delay: 100ms;
-}
-
-.admin-shell .admin-stat-card:nth-child(3) {
-  animation-delay: 150ms;
-}
-
-.admin-shell .admin-stat-card:nth-child(4) {
-  animation-delay: 200ms;
-}
-
-.admin-shell .admin-stat-card:nth-child(5) {
-  animation-delay: 250ms;
-}
-
+.admin-shell .admin-stat-card:nth-child(2),
 .admin-shell .admin-quick-link:nth-child(1) {
   animation-delay: 100ms;
 }
 
+.admin-shell .admin-stat-card:nth-child(3),
 .admin-shell .admin-quick-link:nth-child(2) {
   animation-delay: 150ms;
 }
 
+.admin-shell .admin-stat-card:nth-child(4),
 .admin-shell .admin-quick-link:nth-child(3) {
   animation-delay: 200ms;
 }
 
+.admin-shell .admin-stat-card:nth-child(5),
 .admin-shell .admin-quick-link:nth-child(4) {
   animation-delay: 250ms;
 }
@@ -1653,14 +1634,10 @@
 }
 
 /* ============================================
-   INVENTORY + RECIPE PAGES
+   INVENTORY + RECIPE COMPONENTS
+   Inventory badges, row actions, alert center,
+   reorder list, recipe builder, and responsive cards.
    ============================================ */
-.admin-shell .admin-table-row.inventory,
-.admin-shell .admin-table-head.inventory {
-  grid-template-columns: 1fr 1.8fr 0.9fr 1.3fr 0.7fr 1fr 1fr 0.9fr 0.8fr 1fr;
-  justify-items: start;
-}
-
 .inventory-code {
   font-family: var(--font-mono);
   font-weight: 700;
@@ -1704,7 +1681,7 @@
 }
 
 .inventory-stock--low {
-  color: #b42318;
+  color: var(--admin-danger-text-strong);
 }
 
 .inventory-badge {
@@ -1719,33 +1696,39 @@
 }
 
 .inventory-badge--low {
-  background: #fee2e2;
-  color: #991b1b;
-  border-color: #fecaca;
+  background: var(--admin-danger-bg);
+  color: var(--admin-danger-text);
+  border-color: var(--admin-danger-border);
 }
 
 .inventory-badge--ok {
-  background: #d1fae5;
-  color: #065f46;
-  border-color: #6ee7b7;
+  background: var(--admin-success-bg);
+  color: var(--admin-success-text);
+  border-color: var(--admin-success-border);
 }
 
-/* Inventory row actions: distinct button colors for quick recognition */
-.inventory-row-actions .inventory-action-btn {
+/* Row action buttons: distinct colors for quick recognition */
+.inventory-row-actions .inventory-action-btn,
+.recipe-header-actions .recipe-action-btn,
+.sales-row-actions .sales-action-btn {
   border-width: 1px;
   font-weight: 700;
 }
 
-.inventory-row-actions .inventory-action-edit {
-  background: #e8f1ff;
-  border-color: #bfdbfe;
-  color: #1d4ed8;
+.inventory-row-actions .inventory-action-edit,
+.recipe-header-actions .recipe-action-add,
+.sales-row-actions .sales-action-view {
+  background: var(--admin-action-info-bg);
+  border-color: var(--admin-action-info-border);
+  color: var(--admin-action-info-text);
 }
 
-.inventory-row-actions .inventory-action-edit:hover {
-  background: #dbeafe;
-  border-color: #93c5fd;
-  color: #1e40af;
+.inventory-row-actions .inventory-action-edit:hover,
+.recipe-header-actions .recipe-action-add:hover,
+.sales-row-actions .sales-action-view:hover {
+  background: var(--admin-action-info-hover-bg);
+  border-color: var(--admin-action-info-hover-border);
+  color: var(--admin-action-info-hover-text);
 }
 
 .inventory-row-actions .inventory-action-restock {
@@ -1760,46 +1743,30 @@
   color: #14532d;
 }
 
-.inventory-row-actions .inventory-action-adjust {
-  background: #fef3c7;
-  border-color: #fde68a;
-  color: #92400e;
+.inventory-row-actions .inventory-action-adjust,
+.sales-row-actions .sales-action-print {
+  background: var(--admin-warning-bg);
+  border-color: var(--admin-warning-border);
+  color: var(--admin-warning-text);
 }
 
-.inventory-row-actions .inventory-action-adjust:hover {
-  background: #fde68a;
-  border-color: #facc15;
-  color: #78350f;
-}
-
-/* Recipe header actions: add, clear, save */
-.recipe-header-actions .recipe-action-btn {
-  border-width: 1px;
-  font-weight: 700;
-}
-
-.recipe-header-actions .recipe-action-add {
-  background: #e8f1ff;
-  border-color: #bfdbfe;
-  color: #1d4ed8;
-}
-
-.recipe-header-actions .recipe-action-add:hover {
-  background: #dbeafe;
-  border-color: #93c5fd;
-  color: #1e40af;
+.inventory-row-actions .inventory-action-adjust:hover,
+.sales-row-actions .sales-action-print:hover {
+  background: var(--admin-warning-border);
+  border-color: var(--admin-warning-border-strong);
+  color: var(--admin-warning-text-strong);
 }
 
 .recipe-header-actions .recipe-action-clear {
-  background: #fee2e2;
-  border-color: #fecaca;
-  color: #b42318;
+  background: var(--admin-danger-bg);
+  border-color: var(--admin-danger-border);
+  color: var(--admin-danger-text-strong);
 }
 
 .recipe-header-actions .recipe-action-clear:hover {
-  background: #fecaca;
-  border-color: #fca5a5;
-  color: #991b1b;
+  background: var(--admin-danger-border);
+  border-color: var(--admin-danger-border-strong);
+  color: var(--admin-danger-text);
 }
 
 .recipe-header-actions .recipe-action-save {
@@ -1811,36 +1778,6 @@
 .recipe-header-actions .recipe-action-save:hover {
   background: linear-gradient(135deg, #059669, #10b981);
   border-color: #059669;
-}
-
-/* Sales row actions: view, print, void */
-.sales-row-actions .sales-action-btn {
-  border-width: 1px;
-  font-weight: 700;
-}
-
-.sales-row-actions .sales-action-view {
-  background: #e8f1ff;
-  border-color: #bfdbfe;
-  color: #1d4ed8;
-}
-
-.sales-row-actions .sales-action-view:hover {
-  background: #dbeafe;
-  border-color: #93c5fd;
-  color: #1e40af;
-}
-
-.sales-row-actions .sales-action-print {
-  background: #fef3c7;
-  border-color: #fde68a;
-  color: #92400e;
-}
-
-.sales-row-actions .sales-action-print:hover {
-  background: #fde68a;
-  border-color: #facc15;
-  color: #78350f;
 }
 
 /* Inventory alerts center */
@@ -1864,7 +1801,7 @@
   padding: 6px 12px;
   border-radius: 999px;
   background: #fff4ed;
-  color: #b42318;
+  color: var(--admin-danger-text-strong);
   border: 1px solid #fed7aa;
   font-size: 0.8rem;
   font-weight: 700;
@@ -1883,7 +1820,7 @@
   padding: 12px;
   border-radius: 12px;
   border: 1px solid var(--border);
-  background: #fcfcfd;
+  background: var(--admin-soft-card-bg);
 }
 
 .inventory-alert-kpi strong {
@@ -1896,13 +1833,14 @@
   gap: 12px;
 }
 
-.inventory-alert-card {
+.inventory-alert-card,
+.inventory-alert-reorder {
   display: grid;
   gap: 10px;
   padding: 14px;
   border-radius: 14px;
   border: 1px solid var(--border);
-  background: #fcfcfd;
+  background: var(--admin-soft-card-bg);
 }
 
 .inventory-alert-card__head {
@@ -1929,7 +1867,7 @@
   gap: 10px;
   padding: 10px;
   border-radius: 12px;
-  border: 1px solid #eaecf0;
+  border: 1px solid var(--admin-soft-row-border);
   background: #ffffff;
 }
 
@@ -1940,18 +1878,9 @@
 }
 
 .inventory-waste-risk {
-  color: #b42318;
+  color: var(--admin-danger-text-strong);
   font-weight: 700;
   font-family: var(--font-mono);
-}
-
-.inventory-alert-reorder {
-  display: grid;
-  gap: 10px;
-  padding: 14px;
-  border-radius: 14px;
-  border: 1px solid var(--border);
-  background: #fcfcfd;
 }
 
 .inventory-reorder-list {
@@ -1966,7 +1895,7 @@
   align-items: center;
   padding: 12px;
   border-radius: 12px;
-  border: 1px solid #eaecf0;
+  border: 1px solid var(--admin-soft-row-border);
   background: #ffffff;
 }
 
@@ -2012,11 +1941,8 @@
   }
 }
 
-.recipe-card {
-  display: grid;
-  gap: var(--space-lg);
-}
-
+/* Recipe builder */
+.recipe-card,
 .recipe-builder {
   display: grid;
   gap: var(--space-lg);
@@ -2059,6 +1985,7 @@
   }
 }
 
+/* Inventory mobile card layout */
 @media (max-width: 760px) {
   .admin-shell .admin-inventory-page {
     gap: 14px;
@@ -2075,7 +2002,7 @@
   }
 
   .admin-shell .admin-inventory-page .page-header h2 {
-    font-size: clamp(1.35rem, 6vw, 1.75rem);
+    font-size: 0.89em;
   }
 
   .admin-shell .admin-inventory-page .inventory-header-actions {
@@ -2085,45 +2012,15 @@
     width: 100%;
   }
 
-  .admin-shell .admin-inventory-page .inventory-action-group {
-    width: 100%;
-    padding-top: 10px;
-    padding-left: 0;
-    border-top: 1px solid var(--border);
-    border-left: 0;
-  }
-
-  .admin-shell .admin-inventory-page .inventory-action-group:first-child {
-    padding-top: 0;
-    border-top: 0;
-  }
-
-  .admin-shell .admin-inventory-page .inventory-action-controls,
-  .admin-shell .admin-inventory-page .inventory-action-controls .file-format-action {
+  .admin-shell .admin-inventory-page .inventory-header-actions > .btn,
+  .admin-shell .admin-inventory-page .inventory-action-menu {
     width: 100%;
   }
 
-  .admin-shell .admin-inventory-page .inventory-action-controls .file-format-action {
-    --file-format-action-button-min-width: 132px;
-  }
-
-  .admin-shell .admin-inventory-page .inventory-action-controls .file-format-action .input-field {
-    flex: 1 1 0;
-    min-width: 0;
-  }
-
-  .admin-shell .admin-inventory-page .inventory-action-controls .file-format-action .select {
-    min-width: 0;
-    padding-inline: 10px;
-  }
-
-  .admin-shell .admin-inventory-page .inventory-action-controls .file-format-action .btn {
-    flex: 0 0 auto;
-    padding-inline: 10px !important;
-  }
-
-  .admin-shell .admin-inventory-page .inventory-action-group--nav .btn {
+  .admin-shell .admin-inventory-page .inventory-action-menu-panel {
+    position: static;
     width: 100%;
+    margin-top: 8px;
   }
 
   .admin-shell .admin-inventory-page .admin-metrics {

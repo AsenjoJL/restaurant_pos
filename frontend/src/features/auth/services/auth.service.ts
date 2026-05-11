@@ -3,16 +3,16 @@ import type { AuthSession } from '../auth.types'
 
 type LoginPayload = {
   username: string
-  pin: string
+  password: string
 }
 
 export const authService = {
-  login: async ({ username, pin }: LoginPayload): Promise<AuthSession> => {
+  login: async ({ username, password }: LoginPayload): Promise<AuthSession> => {
     const normalizedUsername = username.trim().toLowerCase()
-    const normalizedPin = pin.trim()
+    const normalizedPassword = password.trim()
     const match = users.find(
       (user) =>
-        user.username.toLowerCase() === normalizedUsername && user.pin === normalizedPin,
+        user.username.toLowerCase() === normalizedUsername && user.pin === normalizedPassword,
     )
 
     if (!match) {

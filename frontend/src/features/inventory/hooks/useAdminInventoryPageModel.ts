@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState, type ChangeEvent } from 'react'
 import { useAppDispatch, useAppSelector } from '../../../app/store/hooks'
+import { DATA_FILE_ACCEPT } from '../../../shared/lib/exportFiles'
 import { pushToast } from '../../../shared/store/ui.store'
 import { hasValidationErrors } from '../../../shared/lib/validation'
 import type { Ingredient, IngredientType } from '../inventory.types'
@@ -9,6 +10,7 @@ import {
 } from '../inventory.import'
 import {
   downloadInventoryExport,
+  downloadInventoryTemplate,
   INVENTORY_FILE_FORMAT_OPTIONS,
   type InventoryFileFormat,
 } from '../inventory.export'
@@ -73,11 +75,14 @@ export function useAdminInventoryPageModel() {
   const [isUnitCostManual, setIsUnitCostManual] = useState(false)
 
   const [isImporting, setIsImporting] = useState(false)
-  const [exportFormat, setExportFormat] = useState<InventoryFileFormat>('xlsx')
-  const [importFormat, setImportFormat] = useState<InventoryFileFormat>('xlsx')
   const fileInputRef = useRef<HTMLInputElement | null>(null)
-  const openImportFilePicker = useCallback(() => {
-    fileInputRef.current?.click()
+  const openImportFilePicker = useCallback((format: InventoryFileFormat) => {
+    const input = fileInputRef.current
+    if (!input) {
+      return
+    }
+    input.accept = DATA_FILE_ACCEPT[format]
+    input.click()
   }, [])
 
   const categories = useMemo(() => buildInventoryCategories(ingredients), [ingredients])
@@ -408,10 +413,10 @@ export function useAdminInventoryPageModel() {
     [dispatch, ingredientByInventoryId, ingredientByName],
   )
 
-  const handleExportInventory = useCallback(async () => {
+  const handleExportInventory = useCallback(async (format: InventoryFileFormat) => {
     try {
       await downloadInventoryExport({
-        format: exportFormat,
+        format,
         ingredients,
       })
       dispatch(
@@ -430,7 +435,28 @@ export function useAdminInventoryPageModel() {
         }),
       )
     }
-  }, [dispatch, exportFormat, ingredients])
+  }, [dispatch, ingredients])
+
+  const handleDownloadTemplate = useCallback(async (format: InventoryFileFormat) => {
+    try {
+      await downloadInventoryTemplate(format)
+      dispatch(
+        pushToast({
+          title: 'Template ready',
+          description: `Generated ${format.toUpperCase()} import template.`,
+          variant: 'success',
+        }),
+      )
+    } catch {
+      dispatch(
+        pushToast({
+          title: 'Template failed',
+          description: 'Could not generate the inventory import template.',
+          variant: 'error',
+        }),
+      )
+    }
+  }, [dispatch])
 
   return {
     // data
@@ -481,13 +507,10 @@ export function useAdminInventoryPageModel() {
     // import/export
     isImporting,
     fileInputRef,
-    exportFormat,
-    setExportFormat,
-    importFormat,
-    setImportFormat,
     fileFormatOptions: INVENTORY_FILE_FORMAT_OPTIONS,
     openImportFilePicker,
     handleImport,
     handleExportInventory,
+    handleDownloadTemplate,
   } as const
 }

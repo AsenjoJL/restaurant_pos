@@ -11,6 +11,7 @@
     radial-gradient(920px circle at 88% 0%, rgba(220, 231, 255, 0.45) 0%, transparent 48%),
     #f5f0e8;
   color: #1c1a15;
+  padding: 0 24px 0 0;
 }
 
 .cashier-page .page-header {
@@ -19,6 +20,7 @@
   align-items: end;
   gap: 18px;
   margin-bottom: 8px;
+  padding: 24px 0 0 24px;
 }
 
 .cashier-page .page-header h2 {
@@ -63,16 +65,21 @@
   display: grid;
   grid-template-columns: 220px minmax(0, 1fr);
   gap: 18px;
-  align-items: start;
+  align-items: stretch;
 }
 
 .cashier-sidebar {
-  padding: 18px;
-  border-radius: 24px;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  padding: 14px;
+  border-radius: 0;
   border: 1px solid #44536d;
-  background: linear-gradient(180deg, #33415a 0%, #2d3950 100%);
+  background: #33415a;
   box-shadow: 0 10px 28px rgba(20, 29, 43, 0.18);
-  gap: 14px;
+  gap: 8px;
+  min-height: calc(100vh - 116px);
+  border-left: 0;
 }
 
 .cashier-sidebar h3 {
@@ -86,7 +93,7 @@
 
 .cashier-sidebar .segmented.segmented-vertical {
   display: grid;
-  gap: 8px;
+  gap: 6px;
   background: transparent;
   border: 0;
 }
@@ -95,8 +102,8 @@
   width: 100%;
   justify-content: space-between;
   text-align: left;
-  min-height: 62px;
-  padding: 14px 16px;
+  min-height: 52px;
+  padding: 10px 14px;
   border-radius: 18px;
   border: 1px solid rgba(245, 236, 217, 0.18);
   background: rgba(255, 255, 255, 0.04);
@@ -720,6 +727,11 @@
   border: 1px solid #b8b8b8 !important;
 }
 
+.admin-shell .admin-sales-page .page-header {
+  padding: 16px 20px !important;
+  box-sizing: border-box;
+}
+
 .admin-shell .admin-sales-page .admin-stat-card {
   outline: none !important;
 }
@@ -740,8 +752,6 @@
   align-items: end !important;
 }
 
-.admin-shell .admin-sales-page .sales-filter-bar .input-shell,
-.admin-shell .admin-sales-page .sales-filter-bar .select-shell,
 .admin-shell .admin-sales-page .sales-filter-bar .input,
 .admin-shell .admin-sales-page .sales-filter-bar .select,
 .admin-shell .admin-sales-page .sales-filter-bar .btn,
@@ -1039,6 +1049,11 @@
   border: 1px solid #b8b8b8 !important;
 }
 
+.admin-shell .admin-cash-adjustments-page .page-header {
+  padding: 16px 20px !important;
+  box-sizing: border-box;
+}
+
 .admin-shell .admin-cash-adjustments-page .admin-card {
   padding: 18px !important;
 }
@@ -1156,7 +1171,6 @@
   min-width: 120px !important;
 }
 
-.admin-shell .admin-cash-adjustments-page .cash-adjustment-review .input-shell,
 .admin-shell .admin-cash-adjustments-page .cash-adjustment-review .input {
   border-radius: 10px !important;
 }
@@ -1414,6 +1428,11 @@
   border: 1px solid #b8b8b8 !important;
 }
 
+.admin-shell .admin-replacements-page .page-header {
+  padding: 16px 20px !important;
+  box-sizing: border-box;
+}
+
 .admin-shell .admin-replacements-page .admin-card {
   padding: 18px !important;
 }
@@ -1544,7 +1563,6 @@
   min-width: 130px !important;
 }
 
-.admin-shell .admin-replacements-page .replacement-modal .input-shell,
 .admin-shell .admin-replacements-page .replacement-modal .input {
   border-radius: 0 !important;
 }
@@ -1588,6 +1606,11 @@
   border: 1px solid #b8b8b8 !important;
 }
 
+.admin-shell .admin-inventory-page .page-header {
+  padding: 16px 20px !important;
+  box-sizing: border-box;
+}
+
 .admin-shell .admin-inventory-page .admin-stat-card .stat-icon {
   width: 42px !important;
   height: 42px !important;
@@ -1608,6 +1631,12 @@
   box-shadow: none !important;
 }
 
+.admin-shell .admin-inventory-page .inventory-header-actions .btn {
+  min-width: max-content !important;
+  padding: 0 16px !important;
+  white-space: nowrap !important;
+}
+
 .admin-shell .admin-inventory-page .admin-row-actions .btn:hover:not(:disabled),
 .admin-shell .admin-inventory-page .admin-actions .btn:hover:not(:disabled),
 .admin-shell .admin-inventory-page .inventory-row-actions .btn:hover:not(:disabled) {
@@ -1616,8 +1645,6 @@
   color: #ffffff !important;
 }
 
-.admin-shell .admin-inventory-page .admin-toolbar .input-shell,
-.admin-shell .admin-inventory-page .admin-toolbar .select-shell,
 .admin-shell .admin-inventory-page .admin-toolbar .input,
 .admin-shell .admin-inventory-page .admin-toolbar .select {
   border-radius: 10px !important;
@@ -1731,12 +1758,8 @@
   padding: 24px !important;
 }
 
-.admin-shell .admin-inventory-page .inventory-ingredient-modal .input-shell,
-.admin-shell .admin-inventory-page .inventory-ingredient-modal .select-shell,
 .admin-shell .admin-inventory-page .inventory-ingredient-modal .input,
 .admin-shell .admin-inventory-page .inventory-ingredient-modal .select,
-.admin-shell .admin-inventory-page .inventory-adjustment-modal .input-shell,
-.admin-shell .admin-inventory-page .inventory-adjustment-modal .select-shell,
 .admin-shell .admin-inventory-page .inventory-adjustment-modal .input,
 .admin-shell .admin-inventory-page .inventory-adjustment-modal .select,
 .admin-shell .admin-inventory-page .inventory-ingredient-modal .admin-form-grid,
@@ -1792,6 +1815,11 @@
 .admin-shell .admin-administration-page .admin-quick-link,
 .admin-shell .admin-administration-page .admin-actions .btn {
   border: 1px solid #b8b8b8 !important;
+}
+
+.admin-shell .admin-administration-page .page-header {
+  padding: 16px 20px !important;
+  box-sizing: border-box;
 }
 
 .admin-shell .admin-administration-page .admin-actions .btn {
@@ -1886,6 +1914,21 @@
   border: 1px solid #b8b8b8 !important;
 }
 
+.admin-shell .admin-users-page .page-header {
+  padding: 16px 20px !important;
+  box-sizing: border-box;
+}
+
+.admin-shell .admin-audit-page .page-header {
+  padding: 16px 20px !important;
+  box-sizing: border-box;
+}
+
+.admin-shell .admin-settings-page .page-header {
+  padding: 16px 20px !important;
+  box-sizing: border-box;
+}
+
 .admin-shell .admin-users-page .admin-stat-card .stat-icon {
   width: 42px !important;
   height: 42px !important;
@@ -1973,11 +2016,8 @@
   padding: 24px !important;
 }
 
-.admin-shell .admin-users-page .admin-user-form-modal .input-shell,
-.admin-shell .admin-users-page .admin-user-form-modal .select-shell,
 .admin-shell .admin-users-page .admin-user-form-modal .input,
 .admin-shell .admin-users-page .admin-user-form-modal .select,
-.admin-shell .admin-users-page .admin-change-pin-modal .input-shell,
 .admin-shell .admin-users-page .admin-change-pin-modal .input {
   border-radius: 10px !important;
 }
@@ -2003,8 +2043,6 @@
   gap: 16px !important;
 }
 
-.admin-shell .admin-audit-page .admin-filters .input-shell,
-.admin-shell .admin-audit-page .admin-filters .select-shell,
 .admin-shell .admin-audit-page .admin-filters .input,
 .admin-shell .admin-audit-page .admin-filters .select {
   border-radius: 10px !important;
@@ -2530,7 +2568,6 @@
   background: #ffffff !important;
 }
 
-.admin-shell .admin-sidebar,
 .admin-shell .admin-header,
 .admin-shell .admin-nav-link,
 .admin-shell .admin-sidebar-toggle {
@@ -2547,6 +2584,7 @@
 .admin-shell .admin-sidebar {
   background: #2d3950 !important;
   border-color: #44536d !important;
+  border-radius: 0 !important;
 }
 
 .admin-shell .admin-header h1,
@@ -3023,6 +3061,9 @@
   color: #ffffff !important;
   font-size: 13px !important;
   font-weight: 700 !important;
+  min-width: max-content !important;
+  padding: 0 16px !important;
+  white-space: nowrap !important;
 }
 
 .admin-shell .admin-recipes-page .admin-row-actions .btn *,

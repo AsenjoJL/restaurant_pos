@@ -51,31 +51,47 @@ function KioskLayout() {
     >
       {!isPrintRoute && !isWelcomeRoute ? (
         <header className="kiosk-header kiosk-menu-header">
-          <div className="kiosk-menu-header-brand">
-            <img className="kiosk-menu-header-brand__mark" src="/Resto.jpg" alt="Asenter Restaurant logo" />
-            <h2>Asenter Restaurant</h2>
-            <p>Urgello Branch · Customer Kiosk</p>
+          <div className="kiosk-menu-header-logo">
+            <img
+              className="kiosk-menu-header-logo__image"
+              src="/Resto.jpg"
+              alt="Asenter logo"
+            />
           </div>
-          {showStepper ? (
-            <ol className="kiosk-menu-stepper">
-              {steps.map((step, index) => {
-                const className =
-                  index === activeIndex
-                    ? 'kiosk-menu-step is-active'
-                    : index < activeIndex
-                      ? 'kiosk-menu-step is-complete'
-                      : 'kiosk-menu-step'
-                return (
-                  <li key={step.label} className={className}>
-                    <img className="kiosk-icon-img" src={step.iconSrc} alt="" aria-hidden="true" />
-                    <span>{step.label}</span>
-                  </li>
-                )
-              })}
-            </ol>
-          ) : (
-            <span />
-          )}
+          <div className="kiosk-menu-header-center">
+            <div className="kiosk-menu-header-brand">
+              <div className="kiosk-menu-header-brand__banner">
+                <img
+                  className="kiosk-menu-header-brand__hero kiosk-menu-header-brand__hero--pata"
+                  src="/bestPata.png"
+                  alt="Best Pata"
+                />
+                <img
+                  className="kiosk-menu-header-brand__hero kiosk-menu-header-brand__hero--kalderita"
+                  src="/bestKalderita.png"
+                  alt="Best Kalderita"
+                />
+              </div>
+            </div>
+            {showStepper ? (
+              <ol className="kiosk-menu-stepper">
+                {steps.map((step, index) => {
+                  const className =
+                    index === activeIndex
+                      ? 'kiosk-menu-step is-active'
+                      : index < activeIndex
+                        ? 'kiosk-menu-step is-complete'
+                        : 'kiosk-menu-step'
+                  return (
+                    <li key={step.label} className={className}>
+                      <img className="kiosk-icon-img" src={step.iconSrc} alt="" aria-hidden="true" />
+                      <span>{step.label}</span>
+                    </li>
+                  )
+                })}
+              </ol>
+            ) : null}
+          </div>
           <div className="kiosk-menu-header-summary">
             <img className="kiosk-icon-img" src="/items.png" alt="" aria-hidden="true" />
             <span>{totals.itemCount} items · {formatCurrency(totals.total)}</span>

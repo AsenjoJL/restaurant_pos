@@ -53,7 +53,7 @@ const initialState: AuthState = storedSession
 
 type LoginPayload = {
   username: string
-  pin: string
+  password: string
 }
 
 export const login = createAsyncThunk<AuthSession, LoginPayload>(

@@ -66,6 +66,25 @@ export function useKioskMenuPageController() {
     return counts
   }, [runtimeProducts])
 
+  const upsellProducts = useMemo(() => {
+    const preferredCategories = new Set(['drinks', 'desserts'])
+    return runtimeProducts
+      .filter((product) => {
+        const categoryName = model.categoryNameMap
+          .get(product.categoryId)
+          ?.trim()
+          .toLowerCase()
+
+        return (
+          preferredCategories.has(product.categoryId.toLowerCase()) ||
+          categoryName === 'drinks' ||
+          categoryName === 'desserts'
+        )
+      })
+      .filter((product) => model.resolveProductAvailability(product) === 'AVAILABLE')
+      .slice(0, 2)
+  }, [model, runtimeProducts])
+
   const handlePlaceOrder = () => {
     if (isPlacing) {
       return
@@ -192,6 +211,7 @@ export function useKioskMenuPageController() {
     selectedProduct,
     state,
     totals,
+    upsellProducts,
     setActiveCategory,
     setClearReason,
     setIsClearConfirmOpen,

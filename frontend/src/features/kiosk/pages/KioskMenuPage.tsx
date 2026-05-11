@@ -20,6 +20,7 @@ function KioskMenuPage() {
     selectedProduct,
     state,
     totals,
+    upsellProducts,
     setActiveCategory,
     setClearReason,
     setIsClearConfirmOpen,
@@ -40,8 +41,8 @@ function KioskMenuPage() {
   } = useKioskMenuPageController()
 
   return (
-    <section className="h-full min-h-0 overflow-hidden bg-cream text-body">
-      <div className="h-full min-h-0 grid grid-cols-[170px_minmax(0,1fr)_272px] overflow-hidden">
+    <section className="h-full min-h-0 overflow-hidden bg-white text-body">
+      <div className="h-full min-h-0 grid grid-cols-[130px_minmax(0,1fr)_220px] overflow-hidden">
         <KioskMenuCategorySidebar
           activeCategory={activeCategory}
           categories={categories.filter((category) => category.id !== 'all')}
@@ -50,7 +51,7 @@ function KioskMenuPage() {
           onCategoryChange={setActiveCategory}
         />
         <KioskMenuProductGrid
-          orderType={state.orderType}
+          cart={state.cart}
           activeCategoryName={model.activeCategoryName}
           brokenImages={brokenImages}
           categoryNameMap={model.categoryNameMap}
@@ -62,6 +63,8 @@ function KioskMenuPage() {
           onCustomize={handleCustomize}
           onImageError={handleImageError}
           onBackToHome={handleBackToHome}
+          onRemoveItem={removeItem}
+          onUpdateQuantity={updateQuantity}
           getModifierGroupCount={model.getModifierGroupCount}
           resolveProductAvailability={model.resolveProductAvailability}
         />
@@ -71,7 +74,9 @@ function KioskMenuPage() {
           isPlacing={isPlacing}
           note={state.note}
           totals={totals}
+          upsellProducts={upsellProducts}
           onClearCart={() => setIsClearConfirmOpen(true)}
+          onQuickAdd={handleAddDirect}
           onNoteChange={setNote}
           onPlaceOrder={handlePlaceOrder}
           onRemoveItem={removeItem}

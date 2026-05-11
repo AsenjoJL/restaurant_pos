@@ -15,40 +15,39 @@ function KioskMenuCategorySidebar({
   totalCount,
   onCategoryChange,
 }: KioskMenuCategorySidebarProps) {
+  const items = [
+    { id: 'all', name: 'All', count: totalCount },
+    ...categories.map((category) => ({
+      id: category.id,
+      name: category.name,
+      count: categoryCounts.get(category.id) ?? 0,
+    })),
+  ]
+
   return (
-    <aside className="w-[170px] shrink-0 bg-paper border-r border-divider py-3 overflow-y-auto">
-      <p className="px-3 mb-2 font-mono text-[10px] uppercase tracking-[.18em] text-muted">
-        Category
-      </p>
-      <div className="flex flex-col gap-[2px]">
-        <button
-          type="button"
-          className={`w-full min-h-[44px] px-3 flex items-center justify-between text-[15px] border-l-2 transition-colors ${
-            activeCategory === 'all'
-              ? 'border-brand bg-chip text-brand font-semibold'
-              : 'border-transparent text-body hover:bg-[#EFE9DE]'
-          }`}
-          onClick={() => onCategoryChange('all')}
-        >
-          <span>All</span>
-          <span className="font-mono text-[13px] text-muted">{totalCount}</span>
-        </button>
-        {categories.map((category) => {
-          const isActive = activeCategory === category.id
+    <aside className="h-full min-h-0 overflow-y-auto bg-white px-2 py-4 text-black">
+      <div className="mb-3 px-2">
+        <p className="m-0 text-[10px] uppercase tracking-[0.18em] text-[#5f5a4f]">Category</p>
+      </div>
+
+      <div className="grid gap-2">
+        {items.map((item) => {
+          const isActive = activeCategory === item.id
+
           return (
             <button
-              key={category.id}
+              key={item.id}
               type="button"
-              className={`w-full min-h-[44px] px-3 flex items-center justify-between text-[15px] border-l-2 transition-colors ${
+              className={`w-full rounded-[10px] px-3 py-2 text-left transition-colors ${
                 isActive
-                  ? 'border-brand bg-chip text-brand font-semibold'
-                  : 'border-transparent text-body hover:bg-[#EFE9DE]'
+                  ? 'bg-[#dfeade] text-black'
+                  : 'bg-transparent text-black hover:bg-[#f4f6f1]'
               }`}
-              onClick={() => onCategoryChange(category.id)}
+              onClick={() => onCategoryChange(item.id)}
             >
-              <span>{category.name}</span>
-              <span className="font-mono text-[13px] text-muted">
-                {categoryCounts.get(category.id) ?? 0}
+              <span className="block text-[13px] font-bold leading-tight">{item.name}</span>
+              <span className="mt-1 block text-[10px] text-[#6f6a5f]">
+                {item.count} item{item.count === 1 ? '' : 's'}
               </span>
             </button>
           )
