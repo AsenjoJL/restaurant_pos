@@ -1,4 +1,5 @@
 import { createSlice, nanoid } from '@reduxjs/toolkit'
+import { isRecord, readLocalStorageJson } from '../lib/jsonStorage'
 import type { AuditLogEntry, AuditScope, AuditSeverity } from '../types/audit'
 
 export const AUDIT_STORAGE_KEY = 'pos.audit.v1'
@@ -18,22 +19,11 @@ type CreateAuditPayload = {
 }
 
 const loadStoredAudit = (): AuditState | null => {
-  if (typeof window === 'undefined') {
+  const parsed = readLocalStorageJson(AUDIT_STORAGE_KEY)
+  if (!isRecord(parsed) || !Array.isArray(parsed.entries)) {
     return null
   }
-  try {
-    const raw = localStorage.getItem(AUDIT_STORAGE_KEY)
-    if (!raw) {
-      return null
-    }
-    const parsed = JSON.parse(raw)
-    if (!parsed || !Array.isArray(parsed.entries)) {
-      return null
-    }
-    return parsed as AuditState
-  } catch {
-    return null
-  }
+  return parsed as AuditState
 }
 
 const initialState: AuditState = loadStoredAudit() ?? { entries: [] }

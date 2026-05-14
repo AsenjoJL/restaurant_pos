@@ -1,7 +1,6 @@
 import type { Dispatch, SetStateAction } from 'react'
 import type { AdminCategory } from '../../admin.types'
 import type { ProductErrors, ProductFormState } from '../../admin.products-form'
-import { productEditorStyles } from './productEditor.styles'
 
 export type ProductDetailsFieldsProps = {
   categories: AdminCategory[]
@@ -17,26 +16,26 @@ function ProductDetailsFields({
   setForm,
 }: ProductDetailsFieldsProps) {
   return (
-    <div style={{ marginBottom: '32px' }}>
-      <h3 style={productEditorStyles.sectionTitle}>Product Details</h3>
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px', marginBottom: '16px' }}>
+    <div className="product-editor-section">
+      <h3 className="product-editor-section-title">Product Details</h3>
+      <div className="product-editor-grid product-editor-grid--two">
         <div>
-          <label style={productEditorStyles.label}>Product Name *</label>
+          <label className="product-editor-label">Product Name *</label>
           <input
             type="text"
             value={form.name}
             onChange={(event) => setForm((prev) => ({ ...prev, name: event.target.value }))}
-            style={productEditorStyles.input(Boolean(errors.name))}
+            className={`product-editor-control${errors.name ? ' is-error' : ''}`}
             placeholder="e.g. Classic Cheeseburger"
           />
-          {errors.name ? <div style={productEditorStyles.errorText}>{errors.name}</div> : null}
+          {errors.name ? <div className="product-editor-error">{errors.name}</div> : null}
         </div>
         <div>
-          <label style={productEditorStyles.label}>Category *</label>
+          <label className="product-editor-label">Category *</label>
           <select
             value={form.category}
             onChange={(event) => setForm((prev) => ({ ...prev, category: event.target.value }))}
-            style={productEditorStyles.input(Boolean(errors.category))}
+            className={`product-editor-control${errors.category ? ' is-error' : ''}`}
           >
             <option value="">Select a category</option>
             {categories.map((category) => (
@@ -45,19 +44,15 @@ function ProductDetailsFields({
               </option>
             ))}
           </select>
-          {errors.category ? <div style={productEditorStyles.errorText}>{errors.category}</div> : null}
+          {errors.category ? <div className="product-editor-error">{errors.category}</div> : null}
         </div>
       </div>
       <div>
-        <label style={productEditorStyles.label}>Description</label>
+        <label className="product-editor-label">Description</label>
         <textarea
           value={form.description}
           onChange={(event) => setForm((prev) => ({ ...prev, description: event.target.value }))}
-          style={{
-            ...productEditorStyles.input(),
-            minHeight: '80px',
-            resize: 'vertical',
-          }}
+          className="product-editor-control product-editor-textarea"
           placeholder="Optional product description"
         />
       </div>

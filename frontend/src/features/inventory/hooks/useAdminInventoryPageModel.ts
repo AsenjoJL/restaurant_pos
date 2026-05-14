@@ -1,20 +1,9 @@
-import { useCallback, useEffect, useMemo, useRef, useState, type ChangeEvent } from 'react'
+import { useCallback, useMemo, useState } from 'react'
 import { useAppDispatch, useAppSelector } from '../../../app/store/hooks'
-import { DATA_FILE_ACCEPT } from '../../../shared/lib/exportFiles'
 import { pushToast } from '../../../shared/store/ui.store'
 import { hasValidationErrors } from '../../../shared/lib/validation'
 import type { Ingredient, IngredientType } from '../inventory.types'
-import {
-  calculateUnitCostFromBulk,
-  parseInventoryImportFile,
-} from '../inventory.import'
-import {
-  downloadInventoryExport,
-  downloadInventoryTemplate,
-  INVENTORY_FILE_FORMAT_OPTIONS,
-  type InventoryFileFormat,
-} from '../inventory.export'
-import { syncImportedIngredients } from '../inventory.import-sync'
+import { calculateUnitCostFromBulk } from '../inventory.import'
 import {
   emptyAdjustForm,
   emptyIngredientForm,
@@ -44,11 +33,12 @@ import {
   resolveAdjustmentQuantity,
 } from '../inventory.adjustments'
 import { selectInventoryAdjustments, selectInventoryIngredients } from '../inventory.selectors'
-import { refreshInventorySnapshot, runInventorySync } from '../inventory.sync'
+import { runInventorySync } from '../inventory.sync'
 import {
   syncStockAdjustment,
   syncUpsertIngredient,
 } from '../inventory.store'
+import useInventoryImportExport from './useInventoryImportExport'
 
 export function useAdminInventoryPageModel() {
   const dispatch = useAppDispatch()
@@ -72,18 +62,6 @@ export function useAdminInventoryPageModel() {
   const [adjustErrors, setAdjustErrors] = useState<AdjustErrors>({})
 
   const [isSaving, setIsSaving] = useState(false)
-  const [isUnitCostManual, setIsUnitCostManual] = useState(false)
-
-  const [isImporting, setIsImporting] = useState(false)
-  const fileInputRef = useRef<HTMLInputElement | null>(null)
-  const openImportFilePicker = useCallback((format: InventoryFileFormat) => {
-    const input = fileInputRef.current
-    if (!input) {
-      return
-    }
-    input.accept = DATA_FILE_ACCEPT[format]
-    input.click()
-  }, [])
 
   const categories = useMemo(() => buildInventoryCategories(ingredients), [ingredients])
 
@@ -93,6 +71,12 @@ export function useAdminInventoryPageModel() {
     () => buildIngredientLookupByInventoryId(ingredients),
     [ingredients],
   )
+
+  const inventoryFileActions = useInventoryImportExport({
+    ingredients,
+    ingredientByInventoryId,
+    ingredientByName,
+  })
 
   const categoryOptions = useMemo(() => buildInventoryCategoryOptions(categories), [categories])
 
@@ -128,7 +112,6 @@ export function useAdminInventoryPageModel() {
     setForm(buildIngredientEditForm(ingredient))
     setErrors({})
     setFormError('')
-    setIsUnitCostManual(true)
     setIsIngredientModalOpen(true)
   }, [])
 
@@ -171,21 +154,6 @@ export function useAdminInventoryPageModel() {
       Number(form.bulkPrice),
     )
   }, [form.baseUnit, form.bulkPrice, form.bulkQty, form.bulkUnit])
-
-  useEffect(() => {
-    if (derivedUnitCost === null) {
-      return
-    }
-    if (!isUnitCostManual || form.unitCost.trim().length === 0) {
-      setForm((prev) => ({
-        ...prev,
-        unitCost: derivedUnitCost.toFixed(4),
-      }))
-      if (form.unitCost.trim().length === 0) {
-        setIsUnitCostManual(false)
-      }
-    }
-  }, [derivedUnitCost, form.unitCost, isUnitCostManual])
 
   const handleSaveIngredient = useCallback(async () => {
     if (isSaving) {
@@ -364,100 +332,6 @@ export function useAdminInventoryPageModel() {
     closeAdjustModal()
   }, [adjustForm, closeAdjustModal, dispatch, ingredients, isSaving])
 
-  const handleImport = useCallback(
-    async (event: ChangeEvent<HTMLInputElement>) => {
-      const file = event.target.files?.[0]
-      if (!file) {
-        return
-      }
-      setIsImporting(true)
-      try {
-        const rows = await parseInventoryImportFile(file)
-
-        const summary = await syncImportedIngredients({
-          rows,
-          lookup: {
-            ingredientByName,
-            ingredientByInventoryId,
-          },
-          upsertIngredient: async (payload) => {
-            await dispatch(syncUpsertIngredient(payload)).unwrap()
-          },
-        })
-
-        if (summary.imported > 0 || summary.updated > 0) {
-          await refreshInventorySnapshot(dispatch)
-        }
-
-        dispatch(
-          pushToast({
-            title: 'Import complete',
-            description: `Imported ${summary.imported}, updated ${summary.updated}, skipped ${summary.skipped}, errors ${summary.errors}.`,
-            variant: summary.errors > 0 ? 'warning' : 'success',
-          }),
-        )
-      } catch {
-        dispatch(
-          pushToast({
-            title: 'Import failed',
-            description:
-              'Could not read the file. Use an Excel, CSV, or JSON inventory template.',
-            variant: 'error',
-          }),
-        )
-      } finally {
-        setIsImporting(false)
-        event.target.value = ''
-      }
-    },
-    [dispatch, ingredientByInventoryId, ingredientByName],
-  )
-
-  const handleExportInventory = useCallback(async (format: InventoryFileFormat) => {
-    try {
-      await downloadInventoryExport({
-        format,
-        ingredients,
-      })
-      dispatch(
-        pushToast({
-          title: 'Inventory exported',
-          description: `Exported ${ingredients.length} ingredient records.`,
-          variant: 'success',
-        }),
-      )
-    } catch {
-      dispatch(
-        pushToast({
-          title: 'Export failed',
-          description: 'Could not generate the inventory export file.',
-          variant: 'error',
-        }),
-      )
-    }
-  }, [dispatch, ingredients])
-
-  const handleDownloadTemplate = useCallback(async (format: InventoryFileFormat) => {
-    try {
-      await downloadInventoryTemplate(format)
-      dispatch(
-        pushToast({
-          title: 'Template ready',
-          description: `Generated ${format.toUpperCase()} import template.`,
-          variant: 'success',
-        }),
-      )
-    } catch {
-      dispatch(
-        pushToast({
-          title: 'Template failed',
-          description: 'Could not generate the inventory import template.',
-          variant: 'error',
-        }),
-      )
-    }
-  }, [dispatch])
-
   return {
     // data
     ingredients,
@@ -489,7 +363,6 @@ export function useAdminInventoryPageModel() {
     derivedUnitCost,
     ingredientCategoryOptions,
     setForm,
-    setIsUnitCostManual,
     openEditModal,
     closeIngredientModal,
     handleSaveIngredient,
@@ -505,12 +378,6 @@ export function useAdminInventoryPageModel() {
     handleAdjustStock,
 
     // import/export
-    isImporting,
-    fileInputRef,
-    fileFormatOptions: INVENTORY_FILE_FORMAT_OPTIONS,
-    openImportFilePicker,
-    handleImport,
-    handleExportInventory,
-    handleDownloadTemplate,
+    ...inventoryFileActions,
   } as const
 }

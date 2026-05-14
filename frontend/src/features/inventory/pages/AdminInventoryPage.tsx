@@ -30,7 +30,6 @@ function AdminInventoryPage() {
     derivedUnitCost,
     ingredientCategoryOptions,
     setForm,
-    setIsUnitCostManual,
     openEditModal,
     closeIngredientModal,
     handleSaveIngredient,
@@ -121,7 +120,6 @@ function AdminInventoryPage() {
         onClose={closeIngredientModal}
         onSave={handleSaveIngredient}
         onFormChange={setForm}
-        onUnitCostManualChange={setIsUnitCostManual}
       />
 
       <AdjustmentModal

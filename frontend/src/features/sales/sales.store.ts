@@ -1,5 +1,6 @@
 import { createAsyncThunk, createSlice, nanoid } from '@reduxjs/toolkit'
 import type { RootState } from '../../app/store/store'
+import { readLocalStorageJson } from '../../shared/lib/jsonStorage'
 import type { SalesRecord } from '../../shared/types/sales'
 import { salesRepository } from './api'
 import type { UpsertSalesRecordInput } from './api/sales.repository'
@@ -45,23 +46,12 @@ const migrateSalesRecords = (records: SalesRecord[]) => {
 }
 
 const loadStoredSales = () => {
-  if (typeof window === 'undefined') {
+  const parsed = readLocalStorageJson(SALES_STORAGE_KEY)
+  if (!Array.isArray(parsed)) {
     return null
   }
-  try {
-    const raw = localStorage.getItem(SALES_STORAGE_KEY)
-    if (!raw) {
-      return null
-    }
-    const parsed = JSON.parse(raw)
-    if (!Array.isArray(parsed)) {
-      return null
-    }
-    const { migrated } = migrateSalesRecords(parsed as SalesRecord[])
-    return migrated
-  } catch {
-    return null
-  }
+  const { migrated } = migrateSalesRecords(parsed as SalesRecord[])
+  return migrated
 }
 
 const initialState: SalesState = {

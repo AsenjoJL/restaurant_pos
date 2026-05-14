@@ -7,7 +7,6 @@ type IngredientStockCostFieldsProps = {
   errors: IngredientErrors
   form: IngredientFormState
   onFormChange: (next: IngredientFormState) => void
-  onUnitCostManualChange: (isManual: boolean) => void
 }
 
 function IngredientStockCostFields({
@@ -15,7 +14,6 @@ function IngredientStockCostFields({
   errors,
   form,
   onFormChange,
-  onUnitCostManualChange,
 }: IngredientStockCostFieldsProps) {
   return (
     <>
@@ -53,9 +51,7 @@ function IngredientStockCostFields({
         autoComplete="new-password"
         value={form.unitCost}
         onChange={(event) => {
-          const nextValue = event.target.value
-          onFormChange({ ...form, unitCost: nextValue })
-          onUnitCostManualChange(nextValue.trim().length > 0)
+          onFormChange({ ...form, unitCost: event.target.value })
         }}
         error={errors.unitCost}
         helperText="Cost per base unit (e.g., per g, ml, or pcs)"

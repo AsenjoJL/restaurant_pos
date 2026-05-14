@@ -20,7 +20,7 @@ function KioskWelcomeSidebar({
           style={fadeUpStyle('0s')}
         >
           <span
-            className="pointer-events-none absolute inset-x-[18%] top-[14%] z-0 h-[210px] rounded-full bg-[radial-gradient(circle,rgba(243,234,219,0.72)_0%,rgba(243,234,219,0)_72%)] blur-[12px]"
+            className="pointer-events-none absolute inset-x-[18%] top-[14%] z-0 h-[210px] rounded-full bg-[#f3eadb] opacity-70 blur-[12px]"
             style={bubbleStyle('kioskBubbleFloat 6.4s ease-in-out infinite')}
           />
           <div

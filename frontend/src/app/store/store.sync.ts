@@ -23,6 +23,7 @@ import {
   AUDIT_STORAGE_KEY,
   setAuditEntries,
 } from '../../shared/store/audit.store'
+import { isRecord, parseJson, writeLocalStorageJson } from '../../shared/lib/jsonStorage'
 
 type OrdersPayload = Parameters<typeof setOrders>[0]
 type OrdersStatePayload = Parameters<typeof setOrdersState>[0]
@@ -51,20 +52,6 @@ type AppStoreLike = {
   subscribe: (listener: () => void) => () => void
 }
 
-const safeParse = (value: string | null) => {
-  if (!value) {
-    return null
-  }
-  try {
-    return JSON.parse(value) as unknown
-  } catch {
-    return null
-  }
-}
-
-const isRecord = (value: unknown): value is Record<string, unknown> =>
-  typeof value === 'object' && value !== null
-
 export const setupStorePersistence = (store: AppStoreLike) =>
   (() => {
     // Persisting on every store update gets expensive as the app grows. Batch writes
@@ -79,16 +66,12 @@ export const setupStorePersistence = (store: AppStoreLike) =>
       if (!state) {
         return
       }
-      try {
-        localStorage.setItem(ORDERS_STORAGE_KEY, JSON.stringify(state.orders))
-        localStorage.setItem(INVENTORY_STORAGE_KEY, JSON.stringify(state.inventory))
-        localStorage.setItem(CASH_STORAGE_KEY, JSON.stringify(state.cashAdjustments))
-        localStorage.setItem(SALES_STORAGE_KEY, JSON.stringify(state.sales.records))
-        localStorage.setItem(AUDIT_STORAGE_KEY, JSON.stringify(state.audit))
-        localStorage.setItem(ADMIN_STORAGE_KEY, JSON.stringify(state.admin))
-      } catch {
-        // ignore storage errors
-      }
+      writeLocalStorageJson(ORDERS_STORAGE_KEY, state.orders)
+      writeLocalStorageJson(INVENTORY_STORAGE_KEY, state.inventory)
+      writeLocalStorageJson(CASH_STORAGE_KEY, state.cashAdjustments)
+      writeLocalStorageJson(SALES_STORAGE_KEY, state.sales.records)
+      writeLocalStorageJson(AUDIT_STORAGE_KEY, state.audit)
+      writeLocalStorageJson(ADMIN_STORAGE_KEY, state.admin)
     }
 
     const scheduleFlush = () => {
@@ -122,7 +105,7 @@ export const setupStorePersistence = (store: AppStoreLike) =>
 export const setupStoreCrossTabSync = (store: AppStoreLike) => {
   const handleStorage = (event: StorageEvent) => {
     if (event.key === ORDERS_STORAGE_KEY) {
-      const parsed = safeParse(event.newValue)
+      const parsed = parseJson(event.newValue)
       if (Array.isArray(parsed)) {
         store.dispatch(setOrders(parsed as OrdersPayload))
       } else if (
@@ -140,7 +123,7 @@ export const setupStoreCrossTabSync = (store: AppStoreLike) => {
     }
 
     if (event.key === CASH_STORAGE_KEY) {
-      const parsed = safeParse(event.newValue)
+      const parsed = parseJson(event.newValue)
       if (isRecord(parsed)) {
         store.dispatch(hydrateCashState(parsed as CashPayload))
       }
@@ -148,7 +131,7 @@ export const setupStoreCrossTabSync = (store: AppStoreLike) => {
     }
 
     if (event.key === INVENTORY_STORAGE_KEY) {
-      const parsed = safeParse(event.newValue)
+      const parsed = parseJson(event.newValue)
       if (
         isRecord(parsed) &&
         'ingredients' in parsed &&
@@ -161,7 +144,7 @@ export const setupStoreCrossTabSync = (store: AppStoreLike) => {
     }
 
     if (event.key === AUDIT_STORAGE_KEY) {
-      const parsed = safeParse(event.newValue)
+      const parsed = parseJson(event.newValue)
       if (isRecord(parsed) && Array.isArray(parsed.entries)) {
         store.dispatch(setAuditEntries(parsed.entries as AuditPayload))
       }
@@ -169,7 +152,7 @@ export const setupStoreCrossTabSync = (store: AppStoreLike) => {
     }
 
     if (event.key === SALES_STORAGE_KEY) {
-      const parsed = safeParse(event.newValue)
+      const parsed = parseJson(event.newValue)
       if (Array.isArray(parsed)) {
         store.dispatch(setSalesRecords(parsed as SalesPayload))
       }
@@ -177,7 +160,7 @@ export const setupStoreCrossTabSync = (store: AppStoreLike) => {
     }
 
     if (event.key === ADMIN_STORAGE_KEY) {
-      const parsed = safeParse(event.newValue)
+      const parsed = parseJson(event.newValue)
       if (
         isRecord(parsed) &&
         'categories' in parsed &&

@@ -1,5 +1,4 @@
 import type { DemoProductKey } from '../../admin.product-demos'
-import { productEditorStyles } from './productEditor.styles'
 
 type ProductEditorDemoBarProps = {
   isVisible: boolean
@@ -15,28 +14,22 @@ function ProductEditorDemoBar({
   }
 
   return (
-    <div
-      style={{
-        backgroundColor: 'white',
-        borderBottom: '1px solid #e2e8f0',
-        padding: '16px 24px',
-      }}
-    >
-      <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
-        <span style={{ fontSize: '14px', color: '#64748b', fontWeight: '500' }}>
+    <div className="product-editor-demo-bar">
+      <div className="product-editor-demo-row">
+        <span className="product-editor-demo-label">
           Demo Products:
         </span>
         <button
           type="button"
           onClick={() => onLoadDemoProduct('espresso')}
-          style={productEditorStyles.pillButton}
+          className="product-editor-pill-btn"
         >
           Espresso
         </button>
         <button
           type="button"
           onClick={() => onLoadDemoProduct('cheeseburger')}
-          style={productEditorStyles.pillButton}
+          className="product-editor-pill-btn"
         >
           Cheeseburger
         </button>

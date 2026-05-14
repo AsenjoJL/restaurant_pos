@@ -2,11 +2,9 @@ import { formatDuration } from '../kitchen.logic'
 import {
   getKitchenBoardItemCount,
   getKitchenBoardOrderTypeLabel,
-  getKitchenBoardStations,
   getKitchenBoardStatusLabel,
   getKitchenBoardWaitLabel,
 } from '../kitchen.board'
-import { getKitchenStationLabel } from '../kitchen.utils'
 import type { Order } from '../../../shared/types/order'
 
 type KitchenQueueBoardCardProps = {
@@ -16,7 +14,6 @@ type KitchenQueueBoardCardProps = {
 
 function KitchenQueueBoardCard({ kind, order }: KitchenQueueBoardCardProps) {
   const elapsed = getKitchenBoardWaitLabel(order)
-  const stations = getKitchenBoardStations(order)
   const statusClass = order.status.toLowerCase().replace(/_/g, '-')
 
   return (
@@ -33,16 +30,6 @@ function KitchenQueueBoardCard({ kind, order }: KitchenQueueBoardCardProps) {
         >
           {kind === 'ready' ? 'Ready' : getKitchenBoardStatusLabel(order.status)}
         </span>
-        <div className="kds-board-stations" aria-label="Stations">
-          {stations.map((station) => (
-            <span
-              key={`${order.id}-${station}`}
-              className={`kds-board-station-dot station-${station.toLowerCase()}`}
-              title={getKitchenStationLabel(station)}
-              aria-label={getKitchenStationLabel(station)}
-            />
-          ))}
-        </div>
       </div>
       <h3>{order.order_no}</h3>
       <div className="kds-board-card-meta">

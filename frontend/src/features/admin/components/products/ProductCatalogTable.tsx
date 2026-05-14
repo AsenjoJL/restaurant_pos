@@ -127,7 +127,7 @@ function ProductCatalogTable({
                 <div className="absolute inset-0">
                   <ProductThumbnail product={product} />
                 </div>
-                <div className="pointer-events-none absolute inset-x-0 bottom-0 h-24 bg-gradient-to-t from-[rgba(20,14,10,0.22)] via-[rgba(20,14,10,0.06)] to-transparent" />
+                <div className="pointer-events-none absolute inset-x-0 bottom-0 h-24 bg-[rgba(20,14,10,0.08)]" />
               </div>
 
               <div className="admin-product-body grid gap-3 p-4">

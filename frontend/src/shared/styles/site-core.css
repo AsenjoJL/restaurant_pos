@@ -1,10 +1,7 @@
 /* Global body presentation */
 body {
   font-family: var(--font-body);
-  background:
-    radial-gradient(1200px circle at 12% -10%, #fff6e5 0%, transparent 50%),
-    radial-gradient(900px circle at 88% 0%, #e9f1ff 0%, transparent 45%),
-    var(--bg);
+  background: var(--bg);
   color: var(--text);
 }
 

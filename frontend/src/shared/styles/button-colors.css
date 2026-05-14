@@ -1,0 +1,145 @@
+/* Final button color layer: keeps action buttons consistently blue across features. */
+:root {
+  --button-blue: #2563eb;
+  --button-blue-hover: #1d4ed8;
+  --button-blue-soft: #dbeafe;
+  --button-blue-border: #93c5fd;
+}
+
+.btn-primary,
+.btn-secondary,
+.btn-danger,
+.admin-shell .admin-actions .btn:not(.btn-outline):not(.btn-ghost),
+.admin-shell .admin-row-actions .btn:not(.btn-outline):not(.btn-ghost),
+.admin-shell .modal-actions .btn:not(.btn-outline):not(.btn-ghost),
+.sales-action-btn,
+.cart-checkout-btn.btn,
+.product-add-btn,
+.kiosk-slip-done-btn.btn,
+.recipe-action-save,
+.inventory-action-menu-trigger,
+.product-editor-remove-btn,
+.product-editor-add-line-btn,
+.product-editor-footer-btn--primary,
+.payment-method.is-active,
+.admin-chart-range-btn.is-active,
+.kiosk-back-home-btn,
+.kds-actions .btn.btn-primary {
+  background: var(--button-blue) !important;
+  border-color: var(--button-blue) !important;
+  color: #ffffff !important;
+  box-shadow: none !important;
+}
+
+.btn-primary:hover:not(:disabled),
+.btn-secondary:hover:not(:disabled),
+.btn-danger:hover:not(:disabled),
+.admin-shell .admin-actions .btn:not(.btn-outline):not(.btn-ghost):hover:not(:disabled),
+.admin-shell .admin-row-actions .btn:not(.btn-outline):not(.btn-ghost):hover:not(:disabled),
+.admin-shell .modal-actions .btn:not(.btn-outline):not(.btn-ghost):hover:not(:disabled),
+.sales-action-btn:hover:not(:disabled),
+.cart-checkout-btn.btn:hover:not(:disabled),
+.product-add-btn:hover:not(:disabled),
+.kiosk-slip-done-btn.btn:hover:not(:disabled),
+.recipe-action-save:hover:not(:disabled),
+.inventory-action-menu-trigger:hover:not(:disabled),
+.product-editor-remove-btn:hover:not(:disabled),
+.product-editor-add-line-btn:hover:not(:disabled),
+.product-editor-footer-btn--primary:hover:not(:disabled),
+.payment-method.is-active:hover:not(:disabled),
+.admin-chart-range-btn.is-active:hover:not(:disabled),
+.kiosk-back-home-btn:hover:not(:disabled),
+.kds-actions .btn.btn-primary:hover:not(:disabled) {
+  background: var(--button-blue-hover) !important;
+  border-color: var(--button-blue-hover) !important;
+  color: #ffffff !important;
+}
+
+.btn-outline,
+.btn-ghost {
+  border-color: var(--button-blue-border) !important;
+  color: var(--button-blue) !important;
+}
+
+.btn-outline:hover:not(:disabled),
+.btn-ghost:hover:not(:disabled) {
+  background: var(--button-blue-soft) !important;
+  border-color: var(--button-blue) !important;
+  color: var(--button-blue-hover) !important;
+}
+
+.category-button.is-active,
+.pos-sidebar .category-button.is-active,
+.pos-cart .segmented-button.is-active,
+.kds-filter-btn.is-active,
+.kiosk-option.is-selected,
+button.bg-brand,
+button[class*='bg-[#17130f]'],
+button[class*='bg-[#285943]'],
+button[class*='bg-[#214c39]'],
+button[class*='bg-[#1a3a2a]'],
+button[class*='bg-[#1c2e1e]'],
+button[class*='bg-[#234d3b]'],
+button[class*='bg-[#dfeade]'],
+button[class*='bg-[#f5f0e8]'],
+button[class*='bg-[#ede4d7]'],
+button[class*='bg-[#1c1a15]'],
+button[class*='bg-[#111111]'] {
+  background: var(--button-blue) !important;
+  border-color: var(--button-blue) !important;
+  color: #ffffff !important;
+}
+
+.category-button.is-active:hover:not(:disabled),
+.pos-sidebar .category-button.is-active:hover:not(:disabled),
+.pos-cart .segmented-button.is-active:hover:not(:disabled),
+.kds-filter-btn.is-active:hover:not(:disabled),
+.kiosk-option.is-selected:hover:not(:disabled),
+button.bg-brand:hover:not(:disabled),
+button[class*='bg-[#17130f]']:hover:not(:disabled),
+button[class*='bg-[#285943]']:hover:not(:disabled),
+button[class*='bg-[#214c39]']:hover:not(:disabled),
+button[class*='bg-[#1a3a2a]']:hover:not(:disabled),
+button[class*='bg-[#1c2e1e]']:hover:not(:disabled),
+button[class*='bg-[#234d3b]']:hover:not(:disabled),
+button[class*='bg-[#dfeade]']:hover:not(:disabled),
+button[class*='bg-[#f5f0e8]']:hover:not(:disabled),
+button[class*='bg-[#ede4d7]']:hover:not(:disabled),
+button[class*='bg-[#1c1a15]']:hover:not(:disabled),
+button[class*='bg-[#111111]']:hover:not(:disabled) {
+  background: var(--button-blue-hover) !important;
+  border-color: var(--button-blue-hover) !important;
+  color: #ffffff !important;
+}
+
+.btn-primary *,
+.btn-secondary *,
+.btn-danger *,
+.cart-checkout-btn.btn *,
+.product-add-btn *,
+.kiosk-slip-done-btn.btn *,
+.recipe-action-save *,
+.product-editor-remove-btn *,
+.product-editor-add-line-btn *,
+.product-editor-footer-btn--primary *,
+.kiosk-back-home-btn *,
+button.bg-brand *,
+button[class*='bg-[#17130f]'] *,
+button[class*='bg-[#285943]'] *,
+button[class*='bg-[#1a3a2a]'] *,
+button[class*='bg-[#1c2e1e]'] *,
+button[class*='bg-[#234d3b]'] *,
+button[class*='bg-[#dfeade]'] *,
+button[class*='bg-[#f5f0e8]'] *,
+button[class*='bg-[#ede4d7]'] *,
+button[class*='bg-[#1c1a15]'] *,
+button[class*='bg-[#111111]'] * {
+  color: #ffffff !important;
+}
+
+button:disabled,
+.btn:disabled {
+  background: #d1d5db !important;
+  border-color: #d1d5db !important;
+  color: #6b7280 !important;
+}

@@ -1,7 +1,6 @@
 import { nanoid } from '@reduxjs/toolkit'
 import { useCallback, useMemo, useState } from 'react'
 import { useAppDispatch, useAppSelector } from '../../../app/store/hooks'
-import { useFileObjectUrl } from '../../../shared/hooks/useFileObjectUrl'
 import { hasValidationErrors } from '../../../shared/lib/validation'
 import { pushToast } from '../../../shared/store/ui.store'
 import { selectInventoryIngredients, selectInventoryRecipes } from '../../inventory/inventory.selectors'
@@ -14,7 +13,6 @@ import {
   buildRecipeLinesForSave,
   emptyProductForm,
   validateProductForm,
-  validateProductImageFile,
   type ProductErrors,
   type ProductFormState,
 } from '../admin.products-form'
@@ -33,7 +31,8 @@ import {
 import { selectAdminCategories, selectAdminProducts } from '../admin.selectors'
 import { addProduct, toggleProductActive, updateProduct } from '../admin.store'
 import type { AdminProduct } from '../admin.types'
-import { adminRepository } from '../api'
+import useProductFormHandlers from './useProductFormHandlers'
+import useProductImageDraft from './useProductImageDraft'
 
 export function useAdminProductsPageModel() {
   const dispatch = useAppDispatch()
@@ -52,13 +51,6 @@ export function useAdminProductsPageModel() {
   const [formError, setFormError] = useState('')
   const [isSaving, setIsSaving] = useState(false)
 
-  const {
-    file: pendingImageFile,
-    url: pendingImagePreview,
-    setFile: setPendingImageFile,
-    clear: clearPendingImage,
-  } = useFileObjectUrl()
-
   const categoryOptions = useMemo(() => buildProductCategoryOptions(categories), [categories])
 
   const ingredientSelectOptions = useMemo(
@@ -70,6 +62,15 @@ export function useAdminProductsPageModel() {
 
   const classOptions = useMemo(() => PRODUCT_CLASS_OPTIONS, [])
 
+  const {
+    handleAddIngredientLink,
+    handleAdditionalIngredientSelect,
+    handleIngredientSelect,
+    handleRecipeIngredientChange,
+    handleRecipeQtyChange,
+    handleRemoveIngredientLink,
+  } = useProductFormHandlers({ ingredients, setForm })
+
   const filteredProducts = useMemo(
     () =>
       filterProducts({
@@ -80,6 +81,35 @@ export function useAdminProductsPageModel() {
       }),
     [categoryFilter, classFilter, products, query],
   )
+
+  const failSave = useCallback(
+    (
+      formMessage: string,
+      toast?: {
+        title: string
+        description: string
+      },
+    ) => {
+      setIsSaving(false)
+      setFormError(formMessage)
+      if (toast) {
+        dispatch(
+          pushToast({
+            ...toast,
+            variant: 'error',
+          }),
+        )
+      }
+    },
+    [dispatch],
+  )
+
+  const {
+    clearPendingImage,
+    handleImageFileChange,
+    pendingImagePreview,
+    uploadProductImage,
+  } = useProductImageDraft({ onUploadFailure: failSave })
 
   const resetModalState = useCallback(() => {
     setEditing(null)
@@ -118,150 +148,6 @@ export function useAdminProductsPageModel() {
     setIsModalOpen(false)
     resetModalState()
   }, [resetModalState])
-
-  const handleIngredientSelect = useCallback(
-    (ingredientId: string) => {
-      const selectedIngredient = ingredients.find((ingredient) => ingredient.id === ingredientId)
-      if (!selectedIngredient) {
-        setForm((prev) => ({
-          ...prev,
-          ingredientId,
-          currentStock: '',
-          unit: '',
-          lowStockAlert: '',
-          unitCost: '',
-        }))
-        return
-      }
-
-      setForm((prev) => ({
-        ...prev,
-        ingredientId,
-        currentStock: String(selectedIngredient.onHand),
-        unit: selectedIngredient.baseUnit,
-        lowStockAlert: String(selectedIngredient.reorderLevel),
-        unitCost: String(selectedIngredient.unitCost),
-      }))
-    },
-    [ingredients],
-  )
-
-  const handleAdditionalIngredientSelect = useCallback((index: number, ingredientId: string) => {
-    setForm((prev) => {
-      const next = [...prev.additionalIngredientIds]
-      next[index] = ingredientId
-      return { ...prev, additionalIngredientIds: next }
-    })
-  }, [])
-
-  const handleAddIngredientLink = useCallback(() => {
-    setForm((prev) => ({
-      ...prev,
-      additionalIngredientIds: [...prev.additionalIngredientIds, ''],
-    }))
-  }, [])
-
-  const handleRemoveIngredientLink = useCallback((index: number) => {
-    setForm((prev) => ({
-      ...prev,
-      additionalIngredientIds: prev.additionalIngredientIds.filter((_, rowIndex) => rowIndex !== index),
-    }))
-  }, [])
-
-  const handleImageFileChange = useCallback(
-    (file: File | null) => {
-      if (!file) {
-        clearPendingImage()
-        return
-      }
-
-      const imageValidation = validateProductImageFile(file)
-      if (imageValidation) {
-        dispatch(
-          pushToast({
-            title: imageValidation.title,
-            description: imageValidation.description,
-            variant: 'error',
-          }),
-        )
-        return
-      }
-
-      setPendingImageFile(file)
-    },
-    [clearPendingImage, dispatch, setPendingImageFile],
-  )
-
-  const handleRecipeIngredientChange = useCallback((index: number, ingredientId: string) => {
-    setForm((prev) => {
-      const updated = prev.recipeLines.map((line, rowIndex) => {
-        if (rowIndex !== index) {
-          return line
-        }
-        const qtyValue = Number(line.qty)
-        const nextQty =
-          line.qty.trim().length === 0 || !Number.isFinite(qtyValue) || qtyValue <= 0 ? '1' : line.qty
-        return {
-          ...line,
-          ingredientId,
-          qty: ingredientId ? nextQty : line.qty,
-        }
-      })
-      return { ...prev, recipeLines: updated }
-    })
-  }, [])
-
-  const handleRecipeQtyChange = useCallback((index: number, qty: string) => {
-    setForm((prev) => ({
-      ...prev,
-      recipeLines: prev.recipeLines.map((line, rowIndex) => (rowIndex === index ? { ...line, qty } : line)),
-    }))
-  }, [])
-
-  const failSave = useCallback(
-    (
-      formMessage: string,
-      toast?: {
-        title: string
-        description: string
-      },
-    ) => {
-      setIsSaving(false)
-      setFormError(formMessage)
-      if (toast) {
-        dispatch(
-          pushToast({
-            ...toast,
-            variant: 'error',
-          }),
-        )
-      }
-    },
-    [dispatch],
-  )
-
-  const uploadPendingProductImage = useCallback(async () => {
-    if (!pendingImageFile) {
-      return {
-        ok: true as const,
-        imageUrl: form.imageUrl.trim() || null,
-      }
-    }
-
-    try {
-      const uploaded = await adminRepository.uploadProductImage(pendingImageFile)
-      return {
-        ok: true as const,
-        imageUrl: uploaded.imageUrl,
-      }
-    } catch {
-      failSave('Image upload failed. Please try another image.', {
-        title: 'Upload failed',
-        description: 'Unable to upload the product image right now.',
-      })
-      return { ok: false as const }
-    }
-  }, [failSave, form.imageUrl, pendingImageFile])
 
   const syncRawIngredientIfNeeded = useCallback(async () => {
     if (form.productType !== 'raw') {
@@ -431,7 +317,7 @@ export function useAdminProductsPageModel() {
 
     setIsSaving(true)
 
-    const imageResult = await uploadPendingProductImage()
+    const imageResult = await uploadProductImage(form.imageUrl)
     if (!imageResult.ok) {
       return
     }
@@ -469,7 +355,7 @@ export function useAdminProductsPageModel() {
     syncRawIngredientIfNeeded,
     syncRecipeForProduct,
     upsertProductRecord,
-    uploadPendingProductImage,
+    uploadProductImage,
   ])
 
   const handleClear = useCallback(() => {

@@ -3,8 +3,6 @@
    ============================================ */
 .kiosk-shell {
   /* Kiosk-specific enhancements */
-  --kiosk-hero-gradient: #ffffff;
-  --kiosk-card-gradient: #ffffff;
   --kiosk-glow: 0 0 40px rgba(31, 111, 92, 0.15);
   --kiosk-transition: 280ms cubic-bezier(0.34, 1.56, 0.64, 1);
   --kiosk-transition-smooth: 350ms cubic-bezier(0.4, 0, 0.2, 1);

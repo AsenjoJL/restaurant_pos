@@ -1,693 +1,215 @@
-# Restaurant POS End User Manual
+Restaurant POS — User Manual
+This guide covers how customers, cashiers, kitchen staff, and admins use the system day to day.
 
-This manual explains how customers, cashiers, kitchen staff, and admins use the Restaurant POS system.
+Who Uses What
+UserScreensWhat they doCustomer/kiosk, /kiosk/menuSelf-service orderingCashier/pos, /ordersTake orders, collect payments, manage the queueKitchen Staff/kitchenPrepare orders and mark them readyAdmin / Manager/admin/* + staff screensProducts, inventory, users, reports, settings
+Customers don't need to log in. Everyone else signs in at /login.
 
-## 1. User Types
+Default Test Accounts
+RoleUsernamePINOpens on loginAdminadmin1111Admin dashboardCashiercashier2222POS ordering screenKitchenkitchen3333Kitchen display
 
-| User type | Main screens | Purpose |
-| --- | --- | --- |
-| Customer | `/kiosk`, `/kiosk/menu` | Place self-service orders |
-| Cashier | `/pos`, `/orders` | Create staff orders, collect payments, manage queue |
-| Kitchen Staff | `/kitchen` | Prepare orders and mark them ready |
-| Admin / Manager | `/admin/*` plus staff screens | Manage products, inventory, users, reports, settings |
+Logging In and Out
 
-Customer kiosk ordering does not require login.
+Go to /login
+Enter your username and PIN
+Select Sign In
 
-Staff and admin users log in through:
+If login fails, double-check the username and PIN spelling. If it still doesn't work, ask an admin to confirm the account is active.
+To switch users, log out from the user menu, return to /login, and sign in with the other account.
 
-```text
-/login
-```
+Customer Kiosk
+Route: /kiosk
+Placing an Order
 
-## 2. Default Staff Accounts
+Tap the start button on the welcome screen
+Choose Dine-in or Takeout
+Browse the menu — use category filters or search to find items
+Tap an item to add it to the cart; if it has modifiers or bundle choices, a customization screen will appear
+Unavailable items can't be added
 
-Use these accounts for local testing:
+Managing the Cart
+Customers can increase or decrease quantities, remove items, add order notes, or clear the cart entirely before submitting.
+Submitting the Order
 
-| Role | Username | Password / PIN |
-| --- | --- | --- |
-| Admin | `admin` | `1111` |
-| Cashier | `cashier` | `2222` |
-| Kitchen | `kitchen` | `3333` |
+Review the cart and confirm
+The app generates an order number and shows the success page
+An order slip can be printed
+The customer pays at the counter
+
+
+The kiosk creates the order, but payment is always collected by the cashier. Once paid, the order enters the kitchen workflow.
 
-After login:
+
+Cashier POS
+Route: /pos — accessible by Cashier and Admin roles
+Building an Order
+
+Log in and open /pos
+Choose a category from the left panel, or use search
+Select items — customize modifiers or bundle choices when prompted
+The current order builds up in the order panel on the right
+
+Order Details
+Before checkout, set:
+
+Dine-in or Takeout — and a table number for dine-in if required
+Order notes if needed
+Discount if authorized
+Promo code if applicable
+
+Editing an Order
+You can adjust quantities, remove items, clear the cart, or void an item with a reason before the order is locked.
+Taking Payment
 
-| Role | Opens first |
-| --- | --- |
-| Admin | Admin dashboard |
-| Cashier | POS ordering screen |
-| Kitchen | Kitchen display |
-
-## 3. Login and Logout
-
-To log in:
-
-1. Open `/login`.
-2. Type the username.
-3. Type the password/PIN.
-4. Select Sign In.
-
-If login fails:
-
-1. Check spelling of the username.
-2. Check the PIN.
-3. Ask an admin to confirm the user is active.
-
-To switch users:
-
-1. Log out from the app shell/user menu.
-2. Return to `/login`.
-3. Sign in with the next account.
-
-## 4. Customer Kiosk Ordering
-
-Route:
-
-```text
-/kiosk
-```
-
-Use this flow for self-ordering customers.
-
-### Start an Order
-
-1. Customer taps the start button on the welcome screen.
-2. Customer chooses the order type:
-   - Dine-in
-   - Takeout
-3. The app opens the menu page.
-
-### Browse the Menu
-
-On the menu page, customers can:
-
-1. Use category filters to show a section of the menu.
-2. Search for a menu item.
-3. View item name, description, price, and availability.
-4. Add available items to the cart.
-5. Open item customization when an item has modifiers or bundle choices.
-
-Unavailable items cannot be added.
-
-### Manage the Cart
-
-Customers can:
-
-1. Increase item quantity.
-2. Decrease item quantity.
-3. Remove an item.
-4. Add order notes when needed.
-5. Clear the order before submitting.
-
-### Place the Kiosk Order
-
-1. Review the cart.
-2. Confirm the order.
-3. The app creates an order number.
-4. The app opens the success page.
-5. An order slip can be printed.
-6. Customer pays at the counter.
-
-Important kiosk rule:
-
-The kiosk creates the order, but cashier payment still happens at the counter. Paid orders are sent into the kitchen workflow.
-
-## 5. Cashier POS Ordering
-
-Route:
-
-```text
-/pos
-```
-
-Allowed users:
-
-| Role | Access |
-| --- | --- |
-| Cashier | Full cashier operation |
-| Admin | Can access POS |
-
-### Create a Staff Order
-
-1. Log in as cashier or admin.
-2. Open `/pos`.
-3. Choose a category from the left panel.
-4. Search if needed.
-5. Select menu items.
-6. Customize item modifiers or bundle choices if the item requires it.
-7. Check the current order panel.
-
-### Set Order Details
-
-In the current order panel:
-
-1. Choose Dine-in or Takeout.
-2. For Dine-in, choose a table when required.
-3. Add order notes when needed.
-4. Add a discount if authorized.
-5. Enter a promo code when applicable.
-
-### Edit the Current Order
-
-Cashiers can:
-
-1. Increase or decrease item quantity.
-2. Remove an item.
-3. Clear the cart.
-4. Void an item with a reason when the system asks for one.
-
-### Take Payment
-
-1. Select Checkout or the payment action.
-2. The payment modal opens.
-3. Review order number, source, item count, and total due.
-4. Choose payment method:
-   - Cash
-   - Card
-   - GCash
-   - Other
-5. Complete the payment fields.
-
-Payment field rules:
-
-| Method | Required fields |
-| --- | --- |
-| Cash | Amount received must be equal to or higher than total due |
-| Card | Card reference is optional |
-| GCash | Reference number is required; payer name is optional |
-| Other | Reference number is required; payer name is optional |
-
-After selecting Pay & Print:
-
-1. Payment is recorded.
-2. Inventory is checked.
-3. Ingredient stock is deducted when recipes exist.
-4. Sales record is created.
-5. Receipt prints.
-6. Staff order is sent to the kitchen.
-
-If inventory is insufficient, the payment cannot continue until the shortage is fixed.
-
-## 6. Cashier Queue
-
-Route:
-
-```text
-/orders
-```
-
-Allowed users:
-
-| Role | Access |
-| --- | --- |
-| Cashier | Full operation |
-| Admin | View by default, can use admin override for operation |
-
-Use the cashier queue to manage customer kiosk orders and staff orders after they are created.
-
-### Find an Order
-
-1. Open `/orders`.
-2. Use the search field for order number or customer/order details.
-3. Switch between queue tabs such as pending and ready orders.
-4. Select an order to view details.
-
-### Common Queue Actions
-
-Depending on order status, the cashier can:
-
-| Action | Use when |
-| --- | --- |
-| Take Payment | Kiosk order is unpaid |
-| Send to Kitchen | Paid order is ready to prepare |
-| Print | Customer needs invoice or receipt copy |
-| Edit Order | Order needs item or note changes before it is locked |
-| Cancel Order | Order must be cancelled with a reason |
-| Close Order | Ready order has been served or released |
-| Request Replacement | Completed order needs a remake/replacement request |
-
-### Cash Drawer
-
-Cashier queue includes the cash drawer modal.
-
-To open a shift:
-
-1. Open Cash Drawer.
-2. Enter opening float.
-3. Select Open Drawer.
-
-During the shift:
-
-1. Add Cash In for extra cash added to drawer.
-2. Add Cash Out for cash removed from drawer.
-3. Add a note/reference for traceability.
-
-To close a shift:
-
-1. Count physical cash.
-2. Enter Counted cash.
-3. Add closing notes if needed.
-4. Select Close Shift.
-5. Review expected cash and variance.
-
-### Cash Adjustment Request
-
-Use cash adjustment when there is wrong change, shortage, or overage.
-
-1. Open Cash Adjustment.
-2. Choose the adjustment type.
-3. Link the order if applicable.
-4. Enter amount and reason.
-5. Submit the request.
-6. Admin reviews it in Sales > Cash Adjustments.
-
-## 7. Kitchen Display System
-
-Staff route:
-
-```text
-/kitchen
-```
-
-Customer-facing queue board:
-
-```text
-/KDS
-```
-
-Allowed users for `/kitchen`:
-
-| Role | Access |
-| --- | --- |
-| Kitchen | Full kitchen operation |
-| Admin | View by default, can use admin override for operation |
-
-### Kitchen Workflow
-
-1. Paid orders appear in the kitchen display.
-2. Kitchen staff chooses the station filter when needed.
-3. Select Start on a ticket to mark it preparing.
-4. Prepare the items shown on the ticket.
-5. Select Ready when the order is ready for serving or pickup.
-6. The order moves to Ready for Serving on the queue board.
-7. Cashier closes the order after serving/releasing it.
-
-Kitchen status meaning:
-
-| Status | Meaning |
-| --- | --- |
-| Sent to Kitchen | Paid order is waiting for preparation |
-| Preparing | Kitchen has started the ticket |
-| Ready for Pickup / Serving | Kitchen has finished the ticket |
-| Completed | Cashier closed the served/released order |
-
-### Replacement Tickets
-
-If an admin approves a replacement/remake request:
-
-1. A replacement ticket appears on the kitchen display.
-2. Kitchen staff starts and marks it ready like a normal ticket.
-
-## 8. Admin Dashboard
-
-Route:
-
-```text
-/admin/dashboard
-```
-
-The dashboard shows operational and sales metrics.
-
-Use it to check:
-
-1. Total sales.
-2. Order counts.
-3. Profit and margin.
-4. Recent trends.
-5. Time ranges:
-   - 7D
-   - 30D
-   - 12M
-
-## 9. Catalog Management
-
-Route:
-
-```text
-/admin/catalog
-```
-
-Catalog contains:
-
-| Section | Route | Purpose |
-| --- | --- | --- |
-| Products | `/admin/products` | Create, update, price, and activate menu items |
-| Categories | `/admin/categories` | Organize menu items |
-| Recipes | `/admin/recipes` | Link products to ingredients |
-
-### Products
-
-Use Products to:
-
-1. Create a new menu item.
-2. Edit name, description, category, price, and cost.
-3. Set product class:
-   - Raw
-   - Non-raw
-4. Upload or set product image.
-5. Activate or deactivate a product.
-6. Review visual catalog cards.
-
-Product availability affects whether customers and cashiers can add the item.
-
-### Categories
-
-Use Categories to:
-
-1. Add a new menu category.
-2. Rename a category.
-3. Activate or deactivate a category.
-4. Delete a category when allowed.
-
-Categories appear in the kiosk and POS menu filters.
-
-### Recipes
-
-Use Recipes to:
-
-1. Select a product.
-2. Add ingredient lines.
-3. Set quantity used per serving.
-4. Save the recipe.
-5. Create missing inventory ingredients from the recipe flow when needed.
-
-Recipe lines are used for inventory deduction, COGS, gross profit, and gross margin.
-
-## 10. Inventory Management
-
-Route:
-
-```text
-/admin/inventory
-```
-
-Use inventory to manage raw ingredients and non-raw service items.
-
-### Inventory List
-
-The table shows:
-
-1. Inventory ID.
-2. Ingredient name.
-3. Type.
-4. Category.
-5. Base unit.
-6. On-hand quantity.
-7. Reorder level.
-8. Unit cost.
-9. Stock status.
-10. Actions.
-
-Ingredient types:
-
-| Type | Example |
-| --- | --- |
-| Raw | Chicken, beef, rice, sauce ingredients |
-| Non-raw | Paper bag, cup, container, packaging |
-
-Base units:
-
-| Unit | Use for |
-| --- | --- |
-| `g` | Weight-based stock |
-| `ml` | Liquid stock |
-| `pcs` | Countable items |
-
-### Add an Ingredient
-
-1. Open Inventory.
-2. Select Add Ingredient.
-3. Enter name and category.
-4. Choose ingredient type.
-5. Choose base unit.
-6. Enter on-hand quantity.
-7. Enter reorder level.
-8. Enter unit cost, or enter bulk quantity/unit/price so the system can calculate unit cost.
-9. Save.
-
-### Edit an Ingredient
-
-1. Find the ingredient in the table.
-2. Select Edit.
-3. Update fields.
-4. Save.
-
-### Restock
-
-1. Select Restock on the ingredient.
-2. Enter quantity received.
-3. Add reason/reference if needed.
-4. Save adjustment.
-
-### Manual Adjustment
-
-1. Select Adjust on the ingredient.
-2. Choose adjustment reason:
-   - Restock
-   - Waste
-   - Variance
-   - Manual
-3. Enter quantity or counted quantity.
-4. Add reason/reference.
-5. Save adjustment.
-
-The app prevents stock from going negative.
-
-### Export Inventory
-
-1. Select Export Inventory.
-2. Choose file type:
-   - Excel `.xlsx`
-   - CSV `.csv`
-   - JSON `.json`
-3. The file downloads as `inventory-export-YYYY-MM-DD`.
-
-Export includes:
-
-1. Inventory ID.
-2. Ingredient type.
-3. Name.
-4. Category.
-5. Base unit.
-6. On hand.
-7. Reorder level.
-8. Unit cost.
-9. Status.
-10. Inventory value.
-
-### Download Import Template
-
-1. Select Import Inventory.
-2. Under Download Template, choose:
-   - Excel `.xlsx`
-   - CSV `.csv`
-   - JSON `.json`
-3. Fill in the downloaded template.
-
-Template columns:
-
-| Column | How to fill |
-| --- | --- |
-| `inventory id` | Optional unique ID like `ING-0001` |
-| `ingredient type` | `RAW` or `NON_RAW` |
-| `name` | Required ingredient name |
-| `category` | Required category |
-| `base unit` | `g`, `ml`, or `pcs` |
-| `on hand` | Current quantity |
-| `reorder level` | Low-stock point |
-| `unit cost` | Cost per base unit |
-| `bulk qty` | Optional bulk pack quantity |
-| `bulk unit` | Optional bulk pack unit |
-| `bulk price` | Optional bulk pack price |
-
-Use either `unit cost` or the bulk cost fields. If `unit cost` is blank, the system tries to calculate it from `bulk qty`, `bulk unit`, and `bulk price`.
-
-### Import Inventory
-
-1. Select Import Inventory.
-2. Under Import File, choose the matching file type.
-3. Select the completed file.
-4. Wait for the import summary.
-
-The import summary reports:
-
-| Result | Meaning |
-| --- | --- |
-| Imported | New ingredients created |
-| Updated | Existing ingredients changed |
-| Skipped | Blank rows ignored |
-| Errors | Rows that could not be read or validated |
-
-## 11. Sales Tools
-
-Route:
-
-```text
-/admin/sales-center
-```
-
-Sales tools:
-
-| Tool | Route | Purpose |
-| --- | --- | --- |
-| Sales History | `/admin/sales` | View sales records and profit |
-| Cash Adjustments | `/admin/cash-adjustments` | Review cashier adjustment requests |
-| Order Deductions | `/admin/orders-dashboard` | Track order and inventory deductions |
-| Replacements | `/admin/replacements` | Approve or reject remake/replacement requests |
-
-### Sales History
-
-Use Sales History to:
-
-1. Search order records.
-2. Filter by payment method.
-3. Filter by status.
-4. Filter by date range.
-5. View sales totals, COGS, profit, and margin.
-6. Open record details.
-7. Print receipt copy.
-8. Export records.
-
-### Cash Adjustments Review
-
-1. Open Cash Adjustments.
-2. Review pending requests.
-3. Check order link, amount, type, and reason.
-4. Approve or reject with review note.
-5. The decision is saved to history and audit logs.
-
-### Replacements Review
-
-1. Open Replacements.
-2. Review pending replacement/remake requests.
-3. Check items and reason.
-4. Approve or reject.
-5. Approved replacements are sent to the kitchen as replacement tickets.
-
-## 12. Administration
-
-Route:
-
-```text
-/admin/administration
-```
-
-Administration contains:
-
-| Section | Route | Purpose |
-| --- | --- | --- |
-| Users | `/admin/users` | Create staff accounts and manage access |
-| Audit Logs | `/admin/audit-logs` | Track system activity |
-| Settings | `/admin/settings` | Configure store, receipt, tax, and sync settings |
-
-### Users
-
-Use Users to:
-
-1. Create cashier, kitchen, or admin accounts.
-2. Edit staff name and username.
-3. Change PIN/password.
-4. Activate or deactivate a user.
-
-Recommended user rules:
-
-1. Give each staff member their own account.
-2. Do not share admin accounts.
-3. Deactivate staff accounts that are no longer used.
-
-### Audit Logs
-
-Audit logs track important actions such as:
-
-1. Login/auth actions.
-2. Payment confirmation.
-3. Cash drawer open/close.
-4. Cash adjustment review.
-5. Replacement review.
-6. Inventory changes.
-7. System events.
-
-Use filters to search by:
-
-1. Text.
-2. Scope.
-3. Severity.
-
-Export audit logs when management needs a record.
-
-### Settings
-
-Use Settings to configure:
-
-1. Store name.
-2. Tax rate.
-3. Service charge rate.
-4. Receipt footer message.
-5. Live sync timing.
-
-Save settings after editing.
-
-## 13. Daily Operating Routine
-
-Recommended opening routine:
-
-1. Start the local app or kiosk app.
-2. Confirm kiosk menu is visible.
-3. Cashier logs in.
-4. Open the cash drawer shift and enter opening float.
-5. Kitchen staff logs in to `/kitchen`.
-6. Admin checks dashboard, inventory alerts, and menu availability.
-
-Recommended during-service routine:
-
-1. Customers place kiosk orders.
-2. Cashier collects kiosk payments in `/orders`.
-3. Cashier creates staff orders in `/pos` when needed.
-4. Paid orders are sent to kitchen.
-5. Kitchen starts and marks tickets ready.
-6. Cashier closes served or released orders.
-7. Admin handles adjustment and replacement requests.
-
-Recommended closing routine:
-
-1. Finish all pending orders.
-2. Close ready orders after serving.
-3. Export sales if needed.
-4. Review cash adjustment requests.
-5. Count physical cash.
-6. Close cash drawer shift.
-7. Check inventory alerts.
-8. Export inventory backup if needed.
-
-## 14. Important Data Notes
-
-This version is frontend-only and stores data locally in the browser/device.
-
-That means:
-
-1. Data is not automatically shared with another computer.
-2. Clearing browser local storage removes local POS data.
-3. Exports are important when you need backups or reports.
-4. A real backend/database is required for multi-device production deployment.
-
-## 15. Common Errors and What To Do
-
-| Message / problem | What it means | What to do |
-| --- | --- | --- |
-| Invalid login | Username or PIN is wrong | Re-enter credentials or ask admin to reset PIN |
-| Not authorized | Current role cannot do the action | Log in with the correct role |
-| Insufficient amount | Cash received is less than total due | Enter a higher cash amount |
-| Reference required | GCash/Other payment is missing reference | Enter the payment reference |
-| Inventory shortage | Ingredients are not enough for the order | Restock/adjust inventory or remove the unavailable item |
-| Import failed | File format or headers cannot be read | Download a new template and retry |
-| No kitchen tickets yet | No paid/sent orders are waiting | Confirm payment and send order to kitchen |
-
+Select Checkout
+Review the order summary — number, source, item count, total due
+Choose a payment method:
+
+MethodWhat's requiredCashAmount received must be ≥ total dueCardCard reference is optionalGCashReference number required; payer name optionalOtherReference number required; payer name optional
+
+Select Pay & Print
+
+After payment, the system records the sale, deducts inventory if recipes exist, prints the receipt, and sends the order to the kitchen. If any ingredient is short, payment can't go through until the shortage is resolved.
+
+Cashier Queue
+Route: /orders — Cashier (full access), Admin (view + override)
+Finding an Order
+Use the search field to look up an order by number or details. Switch between queue tabs (pending, ready, etc.) to filter the view.
+Queue Actions
+ActionWhen to useTake PaymentKiosk order is unpaidSend to KitchenPaid order is ready to preparePrintCustomer needs a receipt or invoice copyEdit OrderOrder needs changes before it's lockedCancel OrderOrder needs to be cancelled — requires a reasonClose OrderOrder has been served or releasedRequest ReplacementCompleted order needs a remake
+Cash Drawer
+Opening a shift:
+
+Open Cash Drawer
+Enter the opening float
+Select Open Drawer
+
+During the shift, use Cash In and Cash Out to record any cash added or removed. Add a note or reference for each entry.
+Closing a shift:
+
+Count the physical cash
+Enter the counted amount
+Add any closing notes
+Select Close Shift and review the expected vs. actual variance
+
+Cash Adjustment Requests
+Use this when there's a wrong change, shortage, or overage:
+
+Open Cash Adjustment
+Choose the adjustment type and link an order if relevant
+Enter the amount and reason
+Submit — admin reviews it under Sales > Cash Adjustments
+
+
+Kitchen Display
+Staff route: /kitchen — Kitchen (full access), Admin (view + override)
+Customer-facing board: /KDS
+Kitchen Workflow
+
+Paid orders appear on the display automatically
+Filter by station if needed
+Select Start on a ticket to mark it as preparing
+When done, select Ready
+The order moves to Ready for Serving on the queue board
+The cashier closes it after serving or releasing
+
+Order statuses:
+StatusMeaningSent to KitchenWaiting to be startedPreparingKitchen has started the ticketReady for Pickup / ServingKitchen is doneCompletedCashier has closed the order
+Replacement Tickets
+When an admin approves a replacement request, a new ticket appears on the kitchen display. Handle it the same as a normal ticket — start it, then mark it ready.
+
+Admin Dashboard
+Route: /admin/dashboard
+Shows a high-level view of sales, order counts, profit, margin, and recent trends. Use the time range selector (7D, 30D, 12M) to adjust the window.
+
+Catalog Management
+Route: /admin/catalog
+SectionRoutePurposeProducts/admin/productsCreate and manage menu itemsCategories/admin/categoriesOrganize the menuRecipes/admin/recipesLink products to ingredients
+Products
+Create or edit menu items — name, description, category, price, cost, image, and product class (Raw or Non-raw). Activating or deactivating a product controls whether it's orderable in the kiosk and POS.
+Categories
+Add, rename, activate, deactivate, or delete categories. Categories appear as filters in the kiosk and POS menu.
+Recipes
+Select a product, add ingredient lines, and set the quantity used per serving. Recipes drive inventory deduction, COGS, gross profit, and margin calculations. You can create missing ingredients directly from the recipe flow if needed.
+
+Inventory Management
+Route: /admin/inventory
+Tracks raw ingredients (chicken, rice, sauces) and non-raw items (cups, bags, packaging).
+Base units: g for weight, ml for liquids, pcs for countable items.
+Adding an Ingredient
+
+Select Add Ingredient
+Fill in name, category, type, base unit, on-hand quantity, and reorder level
+Enter unit cost directly, or enter bulk quantity/unit/price and let the system calculate it
+Save
+
+Restocking
+Select Restock on an ingredient, enter the quantity received, add a reference if needed, and save.
+Manual Adjustments
+Select Adjust, choose a reason (Restock, Waste, Variance, or Manual), enter the quantity, and save. The app won't let stock go negative.
+Exporting Inventory
+Select Export Inventory, choose a format (.xlsx, .csv, or .json), and the file downloads as inventory-export-YYYY-MM-DD. The export includes ID, type, name, category, unit, on-hand quantity, reorder level, unit cost, status, and total value.
+Importing Inventory
+
+Select Import Inventory and download the template in your preferred format
+Fill it in:
+
+ColumnNotesinventory idOptional — used to match and update existing ingredientsingredient typeRAW or NON_RAWnameRequiredcategoryRequiredbase unitg, ml, or pcson handDefaults to 0 if blankreorder levelDefaults to 0 if blankunit costRequired unless bulk pricing is providedbulk qty / unit / priceOptional — used to calculate unit cost if unit cost is blank
+
+Upload the file and wait for the import summary — it will show how many rows were imported, updated, skipped, or errored
+
+
+Sales Tools
+Route: /admin/sales-center
+ToolRoutePurposeSales History/admin/salesView records, profit, and marginsCash Adjustments/admin/cash-adjustmentsReview cashier adjustment requestsOrder Deductions/admin/orders-dashboardTrack inventory deductions per orderReplacements/admin/replacementsApprove or reject remake requests
+Sales History
+Search and filter records by payment method, status, or date range. View totals, COGS, profit, and margin. Print receipt copies or export records as needed.
+Cash Adjustments
+Review pending requests — check the linked order, amount, type, and reason — then approve or reject with a note. All decisions are saved to audit logs.
+Replacements
+Review pending remake requests, check the items and reason, then approve or reject. Approved replacements go straight to the kitchen as new tickets.
+
+Administration
+Route: /admin/administration
+SectionRoutePurposeUsers/admin/usersManage staff accountsAudit Logs/admin/audit-logsTrack system activitySettings/admin/settingsStore, receipt, tax, and sync config
+Users
+Create, edit, activate, or deactivate staff accounts. Give each person their own account, don't share admin logins, and deactivate accounts for staff who have left.
+Audit Logs
+Tracks logins, payments, cash drawer events, adjustments, replacements, inventory changes, and system events. Filter by text, scope, or severity. Export when management needs a record.
+Settings
+Configure store name, tax rate, service charge, receipt footer, and live sync timing. Save after making any changes.
+
+Daily Routine
+Opening:
+
+Start the app or kiosk
+Confirm the kiosk menu is visible
+Cashier logs in and opens the cash drawer shift with an opening float
+Kitchen staff logs in to /kitchen
+Admin checks the dashboard, inventory alerts, and menu availability
+
+During service:
+
+Customers place kiosk orders
+Cashier collects payments in /orders
+Cashier creates staff orders in /pos when needed
+Paid orders go to the kitchen
+Kitchen starts and marks tickets ready
+Cashier closes served orders
+Admin handles adjustment and replacement requests
+
+Closing:
+
+Finish and close all pending orders
+Export sales records if needed
+Review and clear cash adjustment requests
+Count cash and close the drawer shift
+Check inventory alerts
+Export an inventory backup if needed
+
+
+A Note on Data
+This version is frontend-only — all data is stored locally in the browser. That means data doesn't sync between devices automatically, clearing browser storage will wipe local POS data, and exports are your only backup. A real backend is needed for multi-device production use.
+
+Common Issues
+ProblemWhat it meansWhat to doInvalid loginUsername or PIN is wrongRe-enter carefully, or ask admin to resetNot authorizedYour role can't do that actionLog in with the correct roleInsufficient amountCash entered is less than the totalEnter a higher amountReference requiredGCash/Other payment is missing a referenceEnter the payment reference numberInventory shortageNot enough stock to fulfill the orderRestock the ingredient or remove the itemImport failedFile format or headers aren't recognizedDownload a fresh template and try againNo kitchen ticketsNo paid orders are waitingConfirm payment was taken and the order was sent

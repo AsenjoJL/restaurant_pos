@@ -1,4 +1,5 @@
 import type { KitchenStation } from '../pos/pos.types'
+import { isRecord, readLocalStorageJson } from '../../shared/lib/jsonStorage'
 
 type CachedAdminCategory = {
   id: string
@@ -40,22 +41,15 @@ const keywordStationRules: Array<{ station: KitchenStation; keywords: string[] }
 ]
 
 const loadAdminCatalog = (): CachedAdminState => {
-  if (typeof window === 'undefined') {
+  const parsed = readLocalStorageJson(ADMIN_STORAGE_KEY)
+  if (!isRecord(parsed)) {
     return { categories: [], products: [] }
   }
-
-  try {
-    const raw = localStorage.getItem(ADMIN_STORAGE_KEY)
-    if (!raw) {
-      return { categories: [], products: [] }
-    }
-    const parsed = JSON.parse(raw) as Partial<CachedAdminState>
-    return {
-      categories: Array.isArray(parsed.categories) ? parsed.categories : [],
-      products: Array.isArray(parsed.products) ? parsed.products : [],
-    }
-  } catch {
-    return { categories: [], products: [] }
+  return {
+    categories: Array.isArray(parsed.categories)
+      ? (parsed.categories as CachedAdminCategory[])
+      : [],
+    products: Array.isArray(parsed.products) ? (parsed.products as CachedAdminProduct[]) : [],
   }
 }
 

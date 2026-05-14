@@ -1,6 +1,7 @@
 import { createAsyncThunk, createSlice, nanoid, type PayloadAction } from '@reduxjs/toolkit'
 import type { RootState } from '../../app/store/store'
 import { getDefaultLiveSyncSettings } from '../../app/config/live-sync'
+import { isRecord, readLocalStorageJson } from '../../shared/lib/jsonStorage'
 import { adminRepository } from './api'
 import type {
   AdminSettings,
@@ -70,51 +71,37 @@ const seededState: AdminState = {
 }
 
 const loadStoredAdminState = (): AdminState | null => {
-  if (typeof window === 'undefined') {
+  const parsed = readLocalStorageJson<AdminState>(ADMIN_STORAGE_KEY)
+  if (
+    !isRecord(parsed) ||
+    !Array.isArray(parsed.categories) ||
+    !Array.isArray(parsed.products) ||
+    !Array.isArray(parsed.users) ||
+    !parsed.settings
+  ) {
     return null
   }
-
-  try {
-    const raw = localStorage.getItem(ADMIN_STORAGE_KEY)
-    if (!raw) {
-      return null
-    }
-    const parsed = JSON.parse(raw) as AdminState
-    if (!parsed) {
-      return null
-    }
-    if (
-      !Array.isArray(parsed.categories) ||
-      !Array.isArray(parsed.products) ||
-      !Array.isArray(parsed.users) ||
-      !parsed.settings
-    ) {
-      return null
-    }
-    return {
-      ...parsed,
-      products: parsed.products.map((product, index) => ({
-        ...product,
-        sku:
-          (product as AdminState['products'][number]).sku ??
-          `PRD-NON-${String(index + 1).padStart(4, '0')}`,
-        baseCost:
-          Number((product as AdminState['products'][number]).baseCost) > 0
-            ? Number((product as AdminState['products'][number]).baseCost)
-            : Math.max(product.price * 0.55, 1),
-        productClass:
-          (product as AdminState['products'][number]).productClass === 'RAW'
-            ? 'RAW'
-            : 'NON_RAW',
-        imageUrl: (product as AdminState['products'][number]).imageUrl ?? null,
-      })),
-      settings: {
-        ...parsed.settings,
-        liveSync: parsed.settings.liveSync ?? getDefaultLiveSyncSettings(),
-      },
-    }
-  } catch {
-    return null
+  return {
+    ...parsed,
+    products: parsed.products.map((product, index) => ({
+      ...product,
+      sku:
+        (product as AdminState['products'][number]).sku ??
+        `PRD-NON-${String(index + 1).padStart(4, '0')}`,
+      baseCost:
+        Number((product as AdminState['products'][number]).baseCost) > 0
+          ? Number((product as AdminState['products'][number]).baseCost)
+          : Math.max(product.price * 0.55, 1),
+      productClass:
+        (product as AdminState['products'][number]).productClass === 'RAW'
+          ? 'RAW'
+          : 'NON_RAW',
+      imageUrl: (product as AdminState['products'][number]).imageUrl ?? null,
+    })),
+    settings: {
+      ...parsed.settings,
+      liveSync: parsed.settings.liveSync ?? getDefaultLiveSyncSettings(),
+    },
   }
 }
 

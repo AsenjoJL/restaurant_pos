@@ -7,7 +7,6 @@ import {
   type RecipeLineDraft,
 } from '../../admin.products-form'
 import ProductImageUploadField from './ProductImageUploadField'
-import { productEditorStyles } from './productEditor.styles'
 
 type NonRawProductFieldsProps = {
   errors: ProductErrors
@@ -22,29 +21,6 @@ type NonRawProductFieldsProps = {
   onRecipeIngredientChange: (index: number, ingredientId: string) => void
   onRecipeQtyChange: (index: number, qty: string) => void
   setForm: Dispatch<SetStateAction<ProductFormState>>
-}
-
-const getMetricTone = (markupPercentage: number | null) => {
-  if (markupPercentage !== null && markupPercentage >= 30) {
-    return {
-      backgroundColor: '#ffffff',
-      borderColor: '#b5b5b5',
-      textColor: '#000000',
-    }
-  }
-  if (markupPercentage !== null && markupPercentage >= 15) {
-    return {
-      backgroundColor: '#ffffff',
-      borderColor: '#b5b5b5',
-      textColor: '#000000',
-    }
-  }
-
-  return {
-    backgroundColor: '#ffffff',
-    borderColor: '#b5b5b5',
-    textColor: '#000000',
-  }
 }
 
 const updateRecipeLines =
@@ -70,12 +46,11 @@ function NonRawProductFields({
   onRecipeQtyChange,
   setForm,
 }: NonRawProductFieldsProps) {
-  const metricTone = getMetricTone(markupPercentage)
   const setRecipeLines = updateRecipeLines(setForm)
 
   return (
-    <div style={{ marginBottom: '32px' }}>
-      <h3 style={productEditorStyles.sectionTitle}>Pricing & Margins</h3>
+    <div className="product-editor-section">
+      <h3 className="product-editor-section-title">Pricing & Margins</h3>
       <ProductImageUploadField
         currentImageUrl={form.imageUrl}
         pendingImagePreview={pendingImagePreview}
@@ -86,104 +61,91 @@ function NonRawProductFields({
         }}
       />
 
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px', marginBottom: '24px' }}>
+      <div className="product-editor-grid product-editor-grid--two product-editor-grid--with-gap">
         <div>
-          <label style={productEditorStyles.label}>Cost Price (Php) *</label>
+          <label className="product-editor-label">Cost Price (Php) *</label>
           <input
             type="number"
             step="0.01"
             value={form.costPrice}
             onChange={(event) => setForm((prev) => ({ ...prev, costPrice: event.target.value }))}
-            style={productEditorStyles.input(Boolean(errors.costPrice))}
+            className={`product-editor-control${errors.costPrice ? ' is-error' : ''}`}
             placeholder="0.00"
             min="0"
           />
-          <div style={productEditorStyles.helperText}>Cost to produce or acquire this item</div>
-          {errors.costPrice ? <div style={productEditorStyles.errorText}>{errors.costPrice}</div> : null}
+          <div className="product-editor-help">Cost to produce or acquire this item</div>
+          {errors.costPrice ? <div className="product-editor-error">{errors.costPrice}</div> : null}
         </div>
         <div>
-          <label style={productEditorStyles.label}>Selling Price (Php) *</label>
+          <label className="product-editor-label">Selling Price (Php) *</label>
           <input
             type="number"
             step="0.01"
             value={form.sellingPrice}
             onChange={(event) => setForm((prev) => ({ ...prev, sellingPrice: event.target.value }))}
-            style={productEditorStyles.input(Boolean(errors.sellingPrice || errors.priceValidation))}
+            className={`product-editor-control${
+              errors.sellingPrice || errors.priceValidation ? ' is-error' : ''
+            }`}
             placeholder="0.00"
             min="0"
           />
-          <div style={productEditorStyles.helperText}>Price charged to customers</div>
-          {errors.sellingPrice ? <div style={productEditorStyles.errorText}>{errors.sellingPrice}</div> : null}
-          {errors.priceValidation ? <div style={productEditorStyles.errorText}>{errors.priceValidation}</div> : null}
+          <div className="product-editor-help">Price charged to customers</div>
+          {errors.sellingPrice ? (
+            <div className="product-editor-error">{errors.sellingPrice}</div>
+          ) : null}
+          {errors.priceValidation ? (
+            <div className="product-editor-error">{errors.priceValidation}</div>
+          ) : null}
         </div>
       </div>
 
       {profitPerItem !== null ? (
-        <div
-          style={{
-            display: 'grid',
-            gridTemplateColumns: 'repeat(3, 1fr)',
-            gap: '16px',
-            padding: '20px',
-            borderRadius: '0',
-            marginBottom: '24px',
-            backgroundColor: metricTone.backgroundColor,
-            border: `1px solid ${metricTone.borderColor}`,
-          }}
-        >
-          <div style={{ textAlign: 'center' }}>
-            <div style={{ ...productEditorStyles.helperText, marginTop: 0, marginBottom: '4px', fontWeight: '500' }}>
+        <div className="product-editor-metrics">
+          <div className="product-editor-metric">
+            <div className="product-editor-metric-label">
               PROFIT/ITEM
             </div>
-            <div style={{ fontSize: '18px', fontWeight: '700', color: metricTone.textColor }}>
+            <div className="product-editor-metric-value">
               Php{profitPerItem.toFixed(2)}
             </div>
           </div>
-          <div style={{ textAlign: 'center' }}>
-            <div style={{ ...productEditorStyles.helperText, marginTop: 0, marginBottom: '4px', fontWeight: '500' }}>
+          <div className="product-editor-metric">
+            <div className="product-editor-metric-label">
               MARKUP
             </div>
-            <div style={{ fontSize: '18px', fontWeight: '700', color: metricTone.textColor }}>
+            <div className="product-editor-metric-value">
               {markupPercentage !== null ? `${Math.round(markupPercentage)}%` : '-'}
             </div>
           </div>
-          <div style={{ textAlign: 'center' }}>
-            <div style={{ ...productEditorStyles.helperText, marginTop: 0, marginBottom: '4px', fontWeight: '500' }}>
+          <div className="product-editor-metric">
+            <div className="product-editor-metric-label">
               PROFIT MARGIN
             </div>
-            <div style={{ fontSize: '18px', fontWeight: '700', color: metricTone.textColor }}>
+            <div className="product-editor-metric-value">
               {profitMarginPercent !== null ? `${Math.round(profitMarginPercent)}%` : '-'}
             </div>
           </div>
         </div>
       ) : null}
 
-      <h3 style={productEditorStyles.sectionTitle}>Recipe / Ingredients</h3>
-      <div style={{ fontSize: '14px', color: '#000000', marginBottom: '16px', fontWeight: '700' }}>
+      <h3 className="product-editor-section-title">Recipe / Ingredients</h3>
+      <div className="product-editor-note">
         Add ingredients that make up this product for inventory tracking and auto-deduction
       </div>
 
       {form.recipeLines.map((line, index) => (
         <div
           key={line.id}
-          style={{
-            display: 'grid',
-            gridTemplateColumns: '2fr 1fr 1fr auto',
-            gap: '12px',
-            alignItems: 'end',
-            marginBottom: '12px',
-            padding: '12px',
-            backgroundColor: '#ffffff',
-            border: '1px solid #b5b5b5',
-            borderRadius: '0',
-          }}
+          className="product-editor-recipe-line"
         >
           <div>
-            {index === 0 ? <label style={productEditorStyles.label}>Ingredient *</label> : null}
+            {index === 0 ? (
+              <label className="product-editor-label">Ingredient *</label>
+            ) : null}
             <select
               value={line.ingredientId}
               onChange={(event) => onRecipeIngredientChange(index, event.target.value)}
-              style={productEditorStyles.input()}
+              className="product-editor-control"
             >
               <option value="">Select ingredient</option>
               {ingredientSelectOptions.map((option) => (
@@ -194,19 +156,19 @@ function NonRawProductFields({
             </select>
           </div>
           <div>
-            {index === 0 ? <label style={productEditorStyles.label}>Qty *</label> : null}
+            {index === 0 ? <label className="product-editor-label">Qty *</label> : null}
             <input
               type="number"
               step="0.01"
               value={line.qty}
               onChange={(event) => onRecipeQtyChange(index, event.target.value)}
-              style={productEditorStyles.input()}
+              className="product-editor-control"
               placeholder="1"
               min="0.01"
             />
           </div>
           <div>
-            {index === 0 ? <label style={productEditorStyles.label}>Unit *</label> : null}
+            {index === 0 ? <label className="product-editor-label">Unit *</label> : null}
             <select
               value={line.unit}
               onChange={(event) =>
@@ -218,7 +180,7 @@ function NonRawProductFields({
                   ),
                 )
               }
-              style={productEditorStyles.input()}
+              className="product-editor-control"
             >
               <option value="">Select unit</option>
               <option value="g">g</option>
@@ -239,17 +201,9 @@ function NonRawProductFields({
                 return updated.length === 0 ? [createEmptyRecipeLine()] : updated
               })
             }
-            style={{
-              padding: '8px',
-              backgroundColor: '#234d3b',
-              color: 'white',
-              border: '1px solid #234d3b',
-              borderRadius: '0',
-              cursor: 'pointer',
-              fontSize: '14px',
-              fontWeight: '700',
-              marginBottom: index === 0 ? '24px' : '0',
-            }}
+            className={`product-editor-remove-btn${
+              index === 0 ? ' product-editor-remove-btn--with-label' : ''
+            }`}
             title="Remove ingredient"
           >
             x
@@ -260,23 +214,16 @@ function NonRawProductFields({
       <button
         type="button"
         onClick={() => setRecipeLines((lines) => [...lines, createEmptyRecipeLine()])}
-        style={{
-          width: '100%',
-          padding: '12px',
-          backgroundColor: '#234d3b',
-          border: '1px solid #234d3b',
-          borderRadius: '0',
-          cursor: 'pointer',
-          fontSize: '14px',
-          color: '#ffffff',
-          fontWeight: '700',
-          marginTop: '12px',
-        }}
+        className="product-editor-add-line-btn"
       >
         + Add Ingredient
       </button>
 
-      {errors.recipeLines ? <div style={{ ...productEditorStyles.errorText, marginTop: '8px' }}>{errors.recipeLines}</div> : null}
+      {errors.recipeLines ? (
+        <div className="product-editor-error product-editor-error--spaced">
+          {errors.recipeLines}
+        </div>
+      ) : null}
     </div>
   )
 }

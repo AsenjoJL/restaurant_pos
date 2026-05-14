@@ -1,4 +1,5 @@
 import type { AppDispatch } from '../../app/store/store'
+import { isRecord, readLocalStorageJson } from '../../shared/lib/jsonStorage'
 import { runSync } from '../../shared/lib/sync'
 import {
   ADMIN_STORAGE_KEY,
@@ -9,28 +10,17 @@ import {
 import type { AdminState } from './admin.types'
 
 const readAdminSnapshotFromStorage = (): AdminState | null => {
-  if (typeof window === 'undefined') {
+  const parsed = readLocalStorageJson<AdminState>(ADMIN_STORAGE_KEY)
+  if (
+    !isRecord(parsed) ||
+    !Array.isArray(parsed.categories) ||
+    !Array.isArray(parsed.products) ||
+    !Array.isArray(parsed.users) ||
+    !parsed.settings
+  ) {
     return null
   }
-  try {
-    const raw = localStorage.getItem(ADMIN_STORAGE_KEY)
-    if (!raw) {
-      return null
-    }
-    const parsed = JSON.parse(raw) as AdminState
-    if (
-      !parsed ||
-      !Array.isArray(parsed.categories) ||
-      !Array.isArray(parsed.products) ||
-      !Array.isArray(parsed.users) ||
-      !parsed.settings
-    ) {
-      return null
-    }
-    return parsed
-  } catch {
-    return null
-  }
+  return parsed
 }
 
 export const dispatchAndSyncAdmin = (

@@ -29,10 +29,7 @@ body {
   margin: 0;
   min-height: 100vh;
   color: var(--text);
-  background:
-    radial-gradient(1200px circle at 15% 0%, #fff7eb 0%, transparent 55%),
-    radial-gradient(900px circle at 85% 0%, #e9f5ff 0%, transparent 50%),
-    var(--bg);
+  background: var(--bg);
 }
 
 #root {
@@ -382,11 +379,11 @@ textarea {
 .btn-primary {
   background: var(--accent);
   color: #ffffff;
-  box-shadow: 0 12px 20px rgba(31, 111, 92, 0.25);
+  box-shadow: 0 12px 20px rgba(37, 99, 235, 0.24);
 }
 
 .btn-secondary {
-  background: var(--panel-strong);
+  background: var(--accent);
   color: #ffffff;
 }
 
@@ -595,7 +592,7 @@ textarea {
 }
 
 .btn-danger {
-  background: var(--danger);
+  background: var(--accent);
   color: #ffffff;
 }
 
@@ -870,7 +867,7 @@ textarea {
   position: sticky;
   top: calc(var(--app-header-height, 64px) + var(--space-lg));
   z-index: 5;
-  background: linear-gradient(180deg, #ffffff 0%, #f6f8fb 80%);
+  background: #ffffff;
   padding: var(--space-sm) var(--space-md);
   border-radius: var(--radius-lg);
   border: 1px solid var(--border);
@@ -1553,27 +1550,27 @@ textarea {
 }
 
 .tone-sun .product-media {
-  background: linear-gradient(135deg, #ffe6b0, #ffb84a);
+  background: #ffe6b0;
 }
 
 .tone-mint .product-media {
-  background: linear-gradient(135deg, #d7f5e1, #a0e3c1);
+  background: #d7f5e1;
 }
 
 .tone-berry .product-media {
-  background: linear-gradient(135deg, #ffd6e1, #f4a2c7);
+  background: #ffd6e1;
 }
 
 .tone-ocean .product-media {
-  background: linear-gradient(135deg, #d7f0ff, #98c8ff);
+  background: #d7f0ff;
 }
 
 .tone-clay .product-media {
-  background: linear-gradient(135deg, #f3d3b5, #e6a77e);
+  background: #f3d3b5;
 }
 
 .tone-orchard .product-media {
-  background: linear-gradient(135deg, #fbe6c8, #f7b36a);
+  background: #fbe6c8;
 }
 
 @media (max-width: 1200px) {

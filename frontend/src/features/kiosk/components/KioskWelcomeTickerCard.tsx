@@ -53,7 +53,7 @@ function KioskWelcomeTickerCard({
           />
         ) : null}
 
-        <div className="absolute inset-0 bg-gradient-to-t from-[rgba(20,14,10,0.14)] via-transparent to-[rgba(255,255,255,0.04)]" />
+        <div className="absolute inset-0 bg-[rgba(20,14,10,0.08)]" />
         <svg
           className="relative z-10 opacity-15"
           viewBox="0 0 120 120"

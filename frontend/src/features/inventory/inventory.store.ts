@@ -10,6 +10,7 @@ import type {
   InventoryState,
   RecipeLine,
 } from './inventory.types'
+import { isRecord, readLocalStorageJson } from '../../shared/lib/jsonStorage'
 import { inventoryRepository } from './api'
 
 export const INVENTORY_STORAGE_KEY = 'pos.inventory.v2'
@@ -165,26 +166,17 @@ const normalizeIngredients = (ingredients: Ingredient[]) => {
 }
 
 const loadStoredInventory = () => {
-  if (typeof window === 'undefined') {
+  const parsed = readLocalStorageJson(INVENTORY_STORAGE_KEY)
+  if (!isRecord(parsed) || !Array.isArray(parsed.ingredients) || !Array.isArray(parsed.recipes)) {
     return null
   }
-  try {
-    const raw = localStorage.getItem(INVENTORY_STORAGE_KEY)
-    if (!raw) {
-      return null
-    }
-    const parsed = JSON.parse(raw) as InventoryState
-    if (!parsed || !Array.isArray(parsed.ingredients) || !Array.isArray(parsed.recipes)) {
-      return null
-    }
-    return {
-      ingredients: normalizeIngredients(parsed.ingredients),
-      recipes: parsed.recipes,
-      adjustments: Array.isArray(parsed.adjustments) ? parsed.adjustments : [],
-    } satisfies InventoryState
-  } catch {
-    return null
-  }
+  return {
+    ingredients: normalizeIngredients(parsed.ingredients as Ingredient[]),
+    recipes: parsed.recipes as InventoryState['recipes'],
+    adjustments: Array.isArray(parsed.adjustments)
+      ? (parsed.adjustments as InventoryState['adjustments'])
+      : [],
+  } satisfies InventoryState
 }
 
 const initialState: InventoryState =

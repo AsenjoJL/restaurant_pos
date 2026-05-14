@@ -1,4 +1,5 @@
 import { createSlice, nanoid } from '@reduxjs/toolkit'
+import { readLocalStorageJson } from '../../shared/lib/jsonStorage'
 import type { Role } from '../auth/auth.types'
 import type {
   CashAdjustment,
@@ -69,19 +70,7 @@ type CloseDrawerPayload = {
 export const CASH_STORAGE_KEY = 'pos.cash.v1'
 
 const loadStoredCashState = () => {
-  if (typeof window === 'undefined') {
-    return null
-  }
-  try {
-    const raw = localStorage.getItem(CASH_STORAGE_KEY)
-    if (!raw) {
-      return null
-    }
-    const parsed = JSON.parse(raw)
-    return parsed as CashState
-  } catch {
-    return null
-  }
+  return readLocalStorageJson<CashState>(CASH_STORAGE_KEY)
 }
 
 const defaultState: CashState = {

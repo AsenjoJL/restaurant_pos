@@ -18,7 +18,6 @@ function KitchenQueueBoardColumn({
     <section className={`kds-board-column ${tone}`}>
       <div className="kds-board-column-head">
         <h2>{title}</h2>
-        <span>{orders.length}</span>
       </div>
       <div className="kds-board-list">
         {orders.length === 0 ? (

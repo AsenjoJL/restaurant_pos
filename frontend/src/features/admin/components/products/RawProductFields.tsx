@@ -1,7 +1,6 @@
-import type { CSSProperties, Dispatch, SetStateAction } from 'react'
+import type { Dispatch, SetStateAction } from 'react'
 import type { Ingredient } from '../../../inventory/inventory.types'
 import type { ProductErrors, ProductFormState } from '../../admin.products-form'
-import { productEditorStyles } from './productEditor.styles'
 
 type RawProductFieldsProps = {
   errors: ProductErrors
@@ -12,17 +11,6 @@ type RawProductFieldsProps = {
   onAdditionalIngredientSelect: (index: number, ingredientId: string) => void
   onRemoveIngredientLink: (index: number) => void
   setForm: Dispatch<SetStateAction<ProductFormState>>
-}
-
-const secondaryButtonStyle: CSSProperties = {
-  padding: '8px 12px',
-  border: '1px solid #d1d5db',
-  borderRadius: '6px',
-  backgroundColor: '#f8fafc',
-  color: '#374151',
-  cursor: 'pointer',
-  fontSize: '13px',
-  fontWeight: 600,
 }
 
 function RawProductFields({
@@ -36,14 +24,14 @@ function RawProductFields({
   setForm,
 }: RawProductFieldsProps) {
   return (
-    <div style={{ marginBottom: '32px' }}>
-      <h3 style={productEditorStyles.sectionTitle}>Ingredient Link</h3>
+    <div className="product-editor-section">
+      <h3 className="product-editor-section-title">Ingredient Link</h3>
       <div>
-        <label style={productEditorStyles.label}>Select Ingredient *</label>
+        <label className="product-editor-label">Select Ingredient *</label>
         <select
           value={form.ingredientId}
           onChange={(event) => onIngredientSelect(event.target.value)}
-          style={productEditorStyles.input(Boolean(errors.ingredientId))}
+          className={`product-editor-control${errors.ingredientId ? ' is-error' : ''}`}
         >
           <option value="">-- Select an ingredient --</option>
           {ingredients.map((ingredient) => (
@@ -52,17 +40,19 @@ function RawProductFields({
             </option>
           ))}
         </select>
-        {errors.ingredientId ? <div style={productEditorStyles.errorText}>{errors.ingredientId}</div> : null}
+        {errors.ingredientId ? (
+          <div className="product-editor-error">{errors.ingredientId}</div>
+        ) : null}
       </div>
 
       {form.additionalIngredientIds.map((ingredientId, index) => (
-        <div key={`raw-link-${index}`} style={{ marginTop: '12px' }}>
-          <label style={productEditorStyles.label}>Additional Ingredient {index + 1}</label>
-          <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+        <div key={`raw-link-${index}`} className="product-editor-link-row">
+          <label className="product-editor-label">Additional Ingredient {index + 1}</label>
+          <div className="product-editor-inline-row">
             <select
               value={ingredientId}
               onChange={(event) => onAdditionalIngredientSelect(index, event.target.value)}
-              style={{ ...productEditorStyles.input(), flex: 1 }}
+              className="product-editor-control product-editor-flex-control"
             >
               <option value="">-- Select an ingredient --</option>
               {ingredients.map((ingredient) => (
@@ -71,39 +61,51 @@ function RawProductFields({
                 </option>
               ))}
             </select>
-            <button type="button" onClick={() => onRemoveIngredientLink(index)} style={secondaryButtonStyle}>
+            <button
+              type="button"
+              className="product-editor-secondary-btn"
+              onClick={() => onRemoveIngredientLink(index)}
+            >
               Remove
             </button>
           </div>
         </div>
       ))}
 
-      <div style={{ marginTop: '12px' }}>
-        <button type="button" onClick={onAddIngredientLink} style={secondaryButtonStyle}>
+      <div className="product-editor-link-row">
+        <button
+          type="button"
+          className="product-editor-secondary-btn"
+          onClick={onAddIngredientLink}
+        >
           + Add Ingredient Link
         </button>
       </div>
 
-      <h3 style={{ ...productEditorStyles.sectionTitle, marginTop: '24px' }}>Inventory Details</h3>
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '16px' }}>
+      <h3 className="product-editor-section-title product-editor-section-title--spaced">
+        Inventory Details
+      </h3>
+      <div className="product-editor-grid product-editor-grid--three">
         <div>
-          <label style={productEditorStyles.label}>Current Stock *</label>
+          <label className="product-editor-label">Current Stock *</label>
           <input
             type="number"
             value={form.currentStock}
             onChange={(event) => setForm((prev) => ({ ...prev, currentStock: event.target.value }))}
-            style={productEditorStyles.input(Boolean(errors.currentStock))}
+            className={`product-editor-control${errors.currentStock ? ' is-error' : ''}`}
             placeholder="0"
             min="0"
           />
-          {errors.currentStock ? <div style={productEditorStyles.errorText}>{errors.currentStock}</div> : null}
+          {errors.currentStock ? (
+            <div className="product-editor-error">{errors.currentStock}</div>
+          ) : null}
         </div>
         <div>
-          <label style={productEditorStyles.label}>Unit *</label>
+          <label className="product-editor-label">Unit *</label>
           <select
             value={form.unit}
             onChange={(event) => setForm((prev) => ({ ...prev, unit: event.target.value }))}
-            style={productEditorStyles.input(Boolean(errors.unit))}
+            className={`product-editor-control${errors.unit ? ' is-error' : ''}`}
           >
             <option value="">Select unit</option>
             <option value="g">Grams (g)</option>
@@ -114,48 +116,56 @@ function RawProductFields({
             <option value="tbsp">Tablespoon (tbsp)</option>
             <option value="tsp">Teaspoon (tsp)</option>
           </select>
-          {errors.unit ? <div style={productEditorStyles.errorText}>{errors.unit}</div> : null}
+          {errors.unit ? <div className="product-editor-error">{errors.unit}</div> : null}
         </div>
         <div>
-          <label style={productEditorStyles.label}>Low Stock Alert *</label>
+          <label className="product-editor-label">Low Stock Alert *</label>
           <input
             type="number"
             value={form.lowStockAlert}
             onChange={(event) => setForm((prev) => ({ ...prev, lowStockAlert: event.target.value }))}
-            style={productEditorStyles.input(Boolean(errors.lowStockAlert))}
+            className={`product-editor-control${errors.lowStockAlert ? ' is-error' : ''}`}
             placeholder="0"
             min="0"
           />
-          {errors.lowStockAlert ? <div style={productEditorStyles.errorText}>{errors.lowStockAlert}</div> : null}
+          {errors.lowStockAlert ? (
+            <div className="product-editor-error">{errors.lowStockAlert}</div>
+          ) : null}
         </div>
       </div>
 
-      <div style={{ marginTop: '16px' }}>
-        <label style={productEditorStyles.label}>Unit Cost (Php) *</label>
+      <div className="product-editor-field-row">
+        <label className="product-editor-label">Unit Cost (Php) *</label>
         <input
           type="number"
           step="0.01"
           value={form.unitCost}
           onChange={(event) => setForm((prev) => ({ ...prev, unitCost: event.target.value }))}
-          style={{ ...productEditorStyles.input(Boolean(errors.unitCost)), width: '200px' }}
+          className={`product-editor-control product-editor-control--narrow${
+            errors.unitCost ? ' is-error' : ''
+          }`}
           placeholder="0.00"
           min="0"
         />
-        {errors.unitCost ? <div style={productEditorStyles.errorText}>{errors.unitCost}</div> : null}
+        {errors.unitCost ? <div className="product-editor-error">{errors.unitCost}</div> : null}
       </div>
 
-      <div style={{ marginTop: '16px' }}>
-        <label style={productEditorStyles.label}>Selling Price (Php) *</label>
+      <div className="product-editor-field-row">
+        <label className="product-editor-label">Selling Price (Php) *</label>
         <input
           type="number"
           step="0.01"
           value={form.sellingPrice}
           onChange={(event) => setForm((prev) => ({ ...prev, sellingPrice: event.target.value }))}
-          style={{ ...productEditorStyles.input(Boolean(errors.sellingPrice)), width: '200px' }}
+          className={`product-editor-control product-editor-control--narrow${
+            errors.sellingPrice ? ' is-error' : ''
+          }`}
           placeholder="0.00"
           min="0"
         />
-        {errors.sellingPrice ? <div style={productEditorStyles.errorText}>{errors.sellingPrice}</div> : null}
+        {errors.sellingPrice ? (
+          <div className="product-editor-error">{errors.sellingPrice}</div>
+        ) : null}
       </div>
     </div>
   )

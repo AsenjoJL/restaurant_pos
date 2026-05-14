@@ -1,4 +1,10 @@
 import { createAsyncThunk, createSlice } from '@reduxjs/toolkit'
+import {
+  isRecord,
+  readLocalStorageJson,
+  removeLocalStorageItem,
+  writeLocalStorageJson,
+} from '../../shared/lib/jsonStorage'
 import type { AuthSession, User } from './auth.types'
 import { authService } from './services/auth.service'
 
@@ -17,22 +23,11 @@ type StoredAuthSession = {
 export const AUTH_STORAGE_KEY = 'pos.auth.v1'
 
 const loadStoredSession = (): StoredAuthSession | null => {
-  if (typeof window === 'undefined') {
+  const parsed = readLocalStorageJson(AUTH_STORAGE_KEY)
+  if (!isRecord(parsed) || !parsed.user || typeof parsed.token !== 'string') {
     return null
   }
-  try {
-    const raw = localStorage.getItem(AUTH_STORAGE_KEY)
-    if (!raw) {
-      return null
-    }
-    const parsed = JSON.parse(raw) as StoredAuthSession
-    if (!parsed?.user || !parsed?.token) {
-      return null
-    }
-    return parsed
-  } catch {
-    return null
-  }
+  return parsed as StoredAuthSession
 }
 
 const storedSession = loadStoredSession()
@@ -77,9 +72,7 @@ const authSlice = createSlice({
       state.user = null
       state.token = null
       state.error = null
-      if (typeof window !== 'undefined') {
-        localStorage.removeItem(AUTH_STORAGE_KEY)
-      }
+      removeLocalStorageItem(AUTH_STORAGE_KEY)
     },
   },
   extraReducers: (builder) => {
@@ -93,12 +86,10 @@ const authSlice = createSlice({
         state.user = action.payload.user
         state.token = action.payload.token
         state.error = null
-        if (typeof window !== 'undefined') {
-          localStorage.setItem(
-            AUTH_STORAGE_KEY,
-            JSON.stringify({ token: action.payload.token, user: action.payload.user }),
-          )
-        }
+        writeLocalStorageJson(AUTH_STORAGE_KEY, {
+          token: action.payload.token,
+          user: action.payload.user,
+        })
       })
       .addCase(login.rejected, (state, action) => {
         state.status = 'unauthenticated'

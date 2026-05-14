@@ -71,7 +71,7 @@ function KioskMenuProductGrid({
 
           <button
             type="button"
-            className="min-h-[40px] rounded-[10px] border border-[rgba(28,46,30,0.18)] bg-white px-4 text-[11px] font-bold uppercase tracking-[0.12em] text-[#1c2e1e] transition-colors hover:bg-[#f6f7f4]"
+            className="kiosk-back-home-btn min-h-[40px] rounded-[10px] border border-[#2563eb] bg-[#2563eb] px-4 text-[11px] font-bold uppercase tracking-[0.12em] text-white transition-colors hover:bg-[#1d4ed8]"
             onClick={onBackToHome}
           >
             Back to Home

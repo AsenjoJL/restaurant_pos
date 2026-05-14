@@ -8,7 +8,6 @@ import ProductDetailsFields from './ProductDetailsFields'
 import ProductEditorDemoBar from './ProductEditorDemoBar'
 import ProductEditorFooter from './ProductEditorFooter'
 import RawProductFields from './RawProductFields'
-import { productEditorStyles } from './productEditor.styles'
 
 export type ProductEditorModalProps = {
   categories: AdminCategory[]
@@ -72,21 +71,21 @@ function ProductEditorModal({
   }
 
   return (
-    <div style={productEditorStyles.overlay}>
-      <div style={productEditorStyles.modalShell}>
-        <div style={productEditorStyles.modalHeader}>
+    <div className="product-editor-overlay">
+      <div className="product-editor-shell">
+        <div className="product-editor-header">
           <div>
-            <h2 style={productEditorStyles.modalHeaderTitle}>{editing ? 'Edit Product' : 'Add Product'}</h2>
+            <h2 className="product-editor-title">{editing ? 'Edit Product' : 'Add Product'}</h2>
           </div>
-          <button type="button" onClick={onClose} style={productEditorStyles.ghostButton}>
+          <button type="button" onClick={onClose} className="product-editor-close-btn">
             x
           </button>
         </div>
 
         <ProductEditorDemoBar isVisible={!editing} onLoadDemoProduct={onLoadDemoProduct} />
 
-        <div style={productEditorStyles.modalBody}>
-          {formError ? <div style={productEditorStyles.modalErrorBanner}>{formError}</div> : null}
+        <div className="product-editor-body">
+          {formError ? <div className="product-editor-error-banner">{formError}</div> : null}
 
           <ProductDetailsFields categories={categories} errors={errors} form={form} setForm={setForm} />
 

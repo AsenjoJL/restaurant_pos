@@ -6,10 +6,7 @@
    - Keep feature-owned rules in pos.css, kiosk.css, or admin.css when they do not need cross-page override behavior.
    ============================================ */
 .cashier-page {
-  background:
-    radial-gradient(720px circle at 12% 0%, rgba(247, 231, 192, 0.36) 0%, transparent 52%),
-    radial-gradient(920px circle at 88% 0%, rgba(220, 231, 255, 0.45) 0%, transparent 48%),
-    #f5f0e8;
+  background: #ffffff;
   color: #1c1a15;
   padding: 0 24px 0 0;
 }
@@ -186,7 +183,7 @@
   padding: 16px 16px 14px;
   border-radius: 20px;
   border: 1px solid #e5dcc8;
-  background: linear-gradient(180deg, #fffdf9 0%, #fbf7ef 100%);
+  background: #ffffff;
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.72);
   transition: transform 160ms ease, border-color 160ms ease, box-shadow 160ms ease;
 }
@@ -198,7 +195,7 @@
 }
 
 .cashier-card.is-active {
-  border-color: #2a6a58;
+  border-color: #2563eb;
   box-shadow: 0 14px 30px rgba(31, 111, 92, 0.12);
 }
 
@@ -289,7 +286,7 @@
   padding: 16px;
   border-radius: 20px;
   border: 1px solid #e5dcc8;
-  background: linear-gradient(180deg, #fffdf9 0%, #faf5eb 100%);
+  background: #ffffff;
   gap: 12px;
 }
 
@@ -325,14 +322,14 @@
 }
 
 .cashier-actions .btn.btn-primary {
-  background: #2a6a58;
-  border-color: #2a6a58;
+  background: #2563eb;
+  border-color: #2563eb;
   color: #f5f0e8;
 }
 
 .cashier-actions .btn.btn-primary:hover:not(:disabled) {
-  background: #255847;
-  border-color: #255847;
+  background: #1d4ed8;
+  border-color: #1d4ed8;
 }
 
 .cashier-actions .btn.btn-danger {
@@ -389,10 +386,7 @@
    KITCHEN REFRESH
    ============================================ */
 .kitchen-page {
-  background:
-    radial-gradient(720px circle at 8% 0%, rgba(247, 225, 186, 0.24) 0%, transparent 46%),
-    radial-gradient(980px circle at 90% 0%, rgba(215, 232, 255, 0.28) 0%, transparent 48%),
-    linear-gradient(180deg, #f2eee7 0%, #ebe6dc 100%);
+  background: #ffffff;
   color: #1f1b15;
 }
 
@@ -465,7 +459,7 @@
   padding: 16px 18px;
   border-radius: 22px;
   border: 1px solid #ddd1bc;
-  background: linear-gradient(180deg, rgba(255, 252, 247, 0.92) 0%, rgba(246, 240, 230, 0.95) 100%);
+  background: #ffffff;
   box-shadow: 0 12px 28px rgba(53, 41, 23, 0.05);
 }
 
@@ -553,7 +547,7 @@
   padding: 16px;
   border-radius: 24px;
   border: 1px solid #ddd1bc;
-  background: linear-gradient(180deg, rgba(255, 252, 247, 0.98) 0%, rgba(247, 241, 232, 0.96) 100%);
+  background: #ffffff;
   box-shadow: 0 16px 34px rgba(53, 41, 23, 0.06);
   grid-template-rows: auto auto auto 1fr auto;
   position: relative;
@@ -573,7 +567,7 @@
 }
 
 .kds-card.kds-status-ready-for-pickup::before {
-  background: #2f7d68;
+  background: #2563eb;
 }
 
 .kds-card.kds-status-sent-to-kitchen::before {
@@ -682,14 +676,14 @@
 }
 
 .kds-actions .btn.btn-primary {
-  background: #2f7d68;
-  border-color: #2f7d68;
+  background: #2563eb;
+  border-color: #2563eb;
   color: #f3ead8;
 }
 
 .kds-actions .btn.btn-primary:hover:not(:disabled) {
-  background: #276956;
-  border-color: #276956;
+  background: #1d4ed8;
+  border-color: #1d4ed8;
 }
 
 @media (max-width: 1200px) {
@@ -762,15 +756,15 @@
 .admin-shell .admin-sales-page .sales-filter-bar .btn,
 .admin-shell .admin-sales-page .sales-row-actions .btn {
   min-height: 48px !important;
-  border: 1px solid #285943 !important;
-  background: #285943 !important;
+  border: 1px solid #2563eb !important;
+  background: #2563eb !important;
   color: #ffffff !important;
 }
 
 .admin-shell .admin-sales-page .sales-filter-bar .btn:hover,
 .admin-shell .admin-sales-page .sales-row-actions .btn:hover {
-  background: #214c39 !important;
-  border-color: #214c39 !important;
+  background: #1d4ed8 !important;
+  border-color: #1d4ed8 !important;
   color: #ffffff !important;
 }
 
@@ -785,8 +779,8 @@
   min-height: 36px !important;
   padding: 0 14px !important;
   border-radius: 10px !important;
-  border: 1px solid #285943 !important;
-  background: #285943 !important;
+  border: 1px solid #2563eb !important;
+  background: #2563eb !important;
   color: #ffffff !important;
   font-weight: 700 !important;
 }
@@ -1006,14 +1000,14 @@
   min-width: 120px !important;
   min-height: 46px !important;
   border-radius: 0 !important;
-  border: 1px solid #285943 !important;
-  background: #285943 !important;
+  border: 1px solid #2563eb !important;
+  background: #2563eb !important;
   color: #ffffff !important;
 }
 
 .admin-shell .admin-sales-page .sales-order-details-footer .modal-actions .btn:hover:not(:disabled) {
-  background: #214c39 !important;
-  border-color: #214c39 !important;
+  background: #1d4ed8 !important;
+  border-color: #1d4ed8 !important;
 }
 
 .admin-shell .admin-cash-adjustments-page {
@@ -1084,8 +1078,8 @@
 }
 
 .admin-shell .admin-cash-adjustments-page .chip {
-  border: 1px solid #285943 !important;
-  background: #285943 !important;
+  border: 1px solid #2563eb !important;
+  background: #2563eb !important;
   color: #ffffff !important;
   font-weight: 700 !important;
 }
@@ -1094,16 +1088,16 @@
 .admin-shell .admin-cash-adjustments-page .admin-actions .btn,
 .admin-shell .admin-cash-adjustments-page .cash-adjustment-review-footer .modal-actions .btn {
   min-height: 46px !important;
-  border: 1px solid #285943 !important;
-  background: #285943 !important;
+  border: 1px solid #2563eb !important;
+  background: #2563eb !important;
   color: #ffffff !important;
 }
 
 .admin-shell .admin-cash-adjustments-page .admin-row-actions .btn:hover:not(:disabled),
 .admin-shell .admin-cash-adjustments-page .admin-actions .btn:hover:not(:disabled),
 .admin-shell .admin-cash-adjustments-page .cash-adjustment-review-footer .modal-actions .btn:hover:not(:disabled) {
-  background: #214c39 !important;
-  border-color: #214c39 !important;
+  background: #1d4ed8 !important;
+  border-color: #1d4ed8 !important;
   color: #ffffff !important;
 }
 
@@ -1203,14 +1197,14 @@
 .admin-shell .admin-order-deductions-page .admin-actions .btn {
   min-height: 46px !important;
   border-radius: 10px !important;
-  border: 1px solid #285943 !important;
-  background: #285943 !important;
+  border: 1px solid #2563eb !important;
+  background: #2563eb !important;
   color: #ffffff !important;
 }
 
 .admin-shell .admin-order-deductions-page .admin-actions .btn:hover:not(:disabled) {
-  background: #214c39 !important;
-  border-color: #214c39 !important;
+  background: #1d4ed8 !important;
+  border-color: #1d4ed8 !important;
 }
 
 .admin-shell .admin-order-deductions-page .order-history-panel {
@@ -1326,8 +1320,8 @@
   justify-content: center !important;
   min-height: 34px !important;
   padding: 0 14px !important;
-  border: 1px solid #285943 !important;
-  background: #285943 !important;
+  border: 1px solid #2563eb !important;
+  background: #2563eb !important;
   color: #ffffff !important;
   border-radius: 10px !important;
   font-size: 11px !important;
@@ -1337,8 +1331,8 @@
 .admin-shell .admin-order-deductions-page .order-history-badge--cancelled,
 .admin-shell .admin-order-deductions-page .order-history-badge--raw,
 .admin-shell .admin-order-deductions-page .order-history-badge--non-raw {
-  border-color: #285943 !important;
-  background: #285943 !important;
+  border-color: #2563eb !important;
+  background: #2563eb !important;
   color: #ffffff !important;
 }
 
@@ -1470,8 +1464,8 @@
   justify-content: center !important;
   min-height: 34px !important;
   padding: 0 14px !important;
-  border: 1px solid #285943 !important;
-  background: #285943 !important;
+  border: 1px solid #2563eb !important;
+  background: #2563eb !important;
   color: #ffffff !important;
   font-weight: 700 !important;
   text-transform: uppercase !important;
@@ -1482,16 +1476,16 @@
 .admin-shell .admin-replacements-page .admin-actions .btn,
 .admin-shell .admin-replacements-page .replacement-review-footer .modal-actions .btn {
   min-height: 46px !important;
-  border: 1px solid #285943 !important;
-  background: #285943 !important;
+  border: 1px solid #2563eb !important;
+  background: #2563eb !important;
   color: #ffffff !important;
 }
 
 .admin-shell .admin-replacements-page .admin-row-actions .btn:hover:not(:disabled),
 .admin-shell .admin-replacements-page .admin-actions .btn:hover:not(:disabled),
 .admin-shell .admin-replacements-page .replacement-review-footer .modal-actions .btn:hover:not(:disabled) {
-  background: #214c39 !important;
-  border-color: #214c39 !important;
+  background: #1d4ed8 !important;
+  border-color: #1d4ed8 !important;
   color: #ffffff !important;
 }
 
@@ -1625,8 +1619,8 @@
 .admin-shell .admin-inventory-page .inventory-row-actions .btn {
   min-height: 44px !important;
   border-radius: 10px !important;
-  border: 1px solid #285943 !important;
-  background: #285943 !important;
+  border: 1px solid #2563eb !important;
+  background: #2563eb !important;
   color: #ffffff !important;
   box-shadow: none !important;
 }
@@ -1640,8 +1634,8 @@
 .admin-shell .admin-inventory-page .admin-row-actions .btn:hover:not(:disabled),
 .admin-shell .admin-inventory-page .admin-actions .btn:hover:not(:disabled),
 .admin-shell .admin-inventory-page .inventory-row-actions .btn:hover:not(:disabled) {
-  background: #214c39 !important;
-  border-color: #214c39 !important;
+  background: #1d4ed8 !important;
+  border-color: #1d4ed8 !important;
   color: #ffffff !important;
 }
 
@@ -1671,8 +1665,8 @@
 .admin-shell .admin-inventory-page .inventory-type-badge,
 .admin-shell .admin-inventory-page .inventory-badge {
   border-radius: 0 !important;
-  border: 1px solid #285943 !important;
-  background: #285943 !important;
+  border: 1px solid #2563eb !important;
+  background: #2563eb !important;
   color: #ffffff !important;
 }
 
@@ -1789,15 +1783,15 @@
   min-width: 130px !important;
   min-height: 46px !important;
   border-radius: 10px !important;
-  border: 1px solid #285943 !important;
-  background: #285943 !important;
+  border: 1px solid #2563eb !important;
+  background: #2563eb !important;
   color: #ffffff !important;
 }
 
 .admin-shell .admin-inventory-page .inventory-ingredient-modal-footer .modal-actions .btn:hover:not(:disabled),
 .admin-shell .admin-inventory-page .inventory-adjustment-modal-footer .modal-actions .btn:hover:not(:disabled) {
-  background: #214c39 !important;
-  border-color: #214c39 !important;
+  background: #1d4ed8 !important;
+  border-color: #1d4ed8 !important;
 }
 
 .admin-shell .admin-administration-page,
@@ -1824,14 +1818,14 @@
 
 .admin-shell .admin-administration-page .admin-actions .btn {
   min-height: 46px !important;
-  border-color: #285943 !important;
-  background: #285943 !important;
+  border-color: #2563eb !important;
+  background: #2563eb !important;
   color: #ffffff !important;
 }
 
 .admin-shell .admin-administration-page .admin-actions .btn:hover:not(:disabled) {
-  background: #214c39 !important;
-  border-color: #214c39 !important;
+  background: #1d4ed8 !important;
+  border-color: #1d4ed8 !important;
 }
 
 .admin-shell .admin-administration-page .admin-actions .btn * {
@@ -1843,7 +1837,7 @@
 }
 
 .admin-shell .admin-administration-page .admin-quick-link:hover {
-  border-color: #285943 !important;
+  border-color: #2563eb !important;
 }
 
 .admin-shell .admin-administration-page .admin-quick-link .link-icon {
@@ -1945,8 +1939,8 @@
 .admin-shell .admin-settings-page .admin-actions .btn {
   min-height: 46px !important;
   border-radius: 10px !important;
-  border: 1px solid #285943 !important;
-  background: #285943 !important;
+  border: 1px solid #2563eb !important;
+  background: #2563eb !important;
   color: #ffffff !important;
 }
 
@@ -1956,15 +1950,15 @@
 .admin-shell .admin-users-page .admin-change-pin-modal-footer .modal-actions .btn:hover:not(:disabled),
 .admin-shell .admin-audit-page .admin-actions .btn:hover:not(:disabled),
 .admin-shell .admin-settings-page .admin-actions .btn:hover:not(:disabled) {
-  background: #214c39 !important;
-  border-color: #214c39 !important;
+  background: #1d4ed8 !important;
+  border-color: #1d4ed8 !important;
 }
 
 .admin-shell .admin-users-page .chip,
 .admin-shell .admin-audit-page .chip {
   border-radius: 10px !important;
-  border: 1px solid #285943 !important;
-  background: #285943 !important;
+  border: 1px solid #2563eb !important;
+  background: #2563eb !important;
   color: #ffffff !important;
   font-weight: 700 !important;
 }
@@ -1972,8 +1966,8 @@
 .admin-shell .admin-users-page .chip-role,
 .admin-shell .admin-users-page .chip-active,
 .admin-shell .admin-users-page .chip-inactive {
-  border-color: #285943 !important;
-  background: #285943 !important;
+  border-color: #2563eb !important;
+  background: #2563eb !important;
   color: #ffffff !important;
 }
 
@@ -2118,7 +2112,7 @@
 }
 
 .cashier-page .cashier-sidebar {
-  background: linear-gradient(180deg, #33415a 0%, #2d3950 100%) !important;
+  background: #33415a !important;
 }
 
 .cashier-page .cashier-sidebar,
@@ -2177,7 +2171,7 @@
 .cashier-page .segmented-button.is-active,
 .cashier-page .segmented-button:hover {
   background: #ffffff !important;
-  border-color: #234d3b !important;
+  border-color: #2563eb !important;
 }
 
 .cashier-page .cashier-sidebar .segmented-button.is-active {
@@ -2197,8 +2191,8 @@
 .cashier-page .badge,
 .cashier-page .cashier-tools .btn,
 .cashier-page .cashier-actions .btn {
-  background: #234d3b !important;
-  border-color: #234d3b !important;
+  background: #2563eb !important;
+  border-color: #2563eb !important;
   color: #ffffff !important;
 }
 
@@ -2222,14 +2216,58 @@
 
 .cashier-page .cashier-tools .btn:hover:not(:disabled),
 .cashier-page .cashier-actions .btn:hover:not(:disabled) {
-  background: #1d4031 !important;
-  border-color: #1d4031 !important;
+  background: #1d4ed8 !important;
+  border-color: #1d4ed8 !important;
   color: #ffffff !important;
 }
 
 .cashier-page .cashier-actions .btn.btn-danger {
-  background: #234d3b !important;
-  border-color: #234d3b !important;
+  background: #2563eb !important;
+  border-color: #2563eb !important;
+}
+
+.cashier-page .cashier-sidebar {
+  background: #1e40af !important;
+  border-color: #1d4ed8 !important;
+}
+
+.cashier-page .cashier-sidebar h3 {
+  color: #f8fbff !important;
+}
+
+.cashier-page .cashier-sidebar .segmented-button {
+  background: #2563eb !important;
+  border-color: rgba(255, 255, 255, 0.34) !important;
+  color: #ffffff !important;
+}
+
+.cashier-page .cashier-sidebar .segmented-button .segmented-label {
+  color: #ffffff !important;
+}
+
+.cashier-page .cashier-sidebar .segmented-button:hover,
+.cashier-page .cashier-sidebar .segmented-button.is-active {
+  background: #eff6ff !important;
+  border-color: #ffffff !important;
+  color: #0f172a !important;
+}
+
+.cashier-page .cashier-sidebar .segmented-button:hover .segmented-label,
+.cashier-page .cashier-sidebar .segmented-button.is-active .segmented-label {
+  color: #0f172a !important;
+}
+
+.cashier-page .cashier-sidebar .segmented-badge {
+  background: #dbeafe !important;
+  border-color: #bfdbfe !important;
+  color: #1d4ed8 !important;
+}
+
+.cashier-page .cashier-sidebar .segmented-button:hover .segmented-badge,
+.cashier-page .cashier-sidebar .segmented-button.is-active .segmented-badge {
+  background: #1d4ed8 !important;
+  border-color: #1d4ed8 !important;
+  color: #ffffff !important;
 }
 
 /* ============================================
@@ -2324,30 +2362,30 @@
 .kitchen-page .btn,
 .kitchen-page .kds-actions .btn,
 .kitchen-page .kitchen-tools .btn {
-  background: #234d3b !important;
-  border-color: #234d3b !important;
+  background: #2563eb !important;
+  border-color: #2563eb !important;
   color: #ffffff !important;
 }
 
 .kitchen-page .kds-filter-btn.is-active,
 .kitchen-page .kds-actions .btn.btn-primary,
 .kitchen-page .kitchen-tools .btn.btn-primary {
-  background: #234d3b !important;
-  border-color: #234d3b !important;
+  background: #2563eb !important;
+  border-color: #2563eb !important;
   color: #ffffff !important;
 }
 
 .kitchen-page .btn:hover:not(:disabled),
 .kitchen-page .kds-filter-btn:hover {
-  background: #1d4031 !important;
-  border-color: #1d4031 !important;
+  background: #1d4ed8 !important;
+  border-color: #1d4ed8 !important;
   color: #ffffff !important;
 }
 
 .kitchen-page .btn:disabled,
 .kitchen-page .kds-actions .btn:disabled {
-  background: #234d3b !important;
-  border-color: #234d3b !important;
+  background: #2563eb !important;
+  border-color: #2563eb !important;
   color: #ffffff !important;
   opacity: 1 !important;
 }
@@ -2366,8 +2404,8 @@
 .kitchen-page .kds-stations .station-chip,
 .kitchen-page .kds-item-title .station-pill,
 .kitchen-page .kds-timer {
-  background: #234d3b !important;
-  border-color: #234d3b !important;
+  background: #2563eb !important;
+  border-color: #2563eb !important;
   color: #ffffff !important;
 }
 
@@ -2390,8 +2428,134 @@
 }
 
 /* ============================================
+   STAFF APP HEADER
+   Applies to Admin, Kitchen, Cashier, and POS shells.
+   ============================================ */
+.app-shell .app-header {
+  background: #ffffff !important;
+  color: #000000 !important;
+  border-bottom: 1px solid #d1d5db !important;
+}
+
+.app-shell .brand h1,
+.app-shell .brand .muted,
+.app-shell .user-name,
+.app-shell .user-role,
+.app-shell .app-nav .nav-link {
+  color: #000000 !important;
+  text-shadow: none !important;
+}
+
+.app-shell .app-nav .nav-link,
+.app-shell .user-chip,
+.app-shell .header-signout-btn.btn {
+  background: #ffffff !important;
+  border-color: #d1d5db !important;
+}
+
+.app-shell .app-nav .nav-link:hover:not(.active) {
+  background: #dbeafe !important;
+  border-color: #93c5fd !important;
+  color: #1d4ed8 !important;
+}
+
+.app-shell .app-nav .nav-link.active {
+  background: #2563eb !important;
+  border-color: #2563eb !important;
+  color: #ffffff !important;
+}
+
+.app-shell .app-nav .nav-link.active span {
+  color: #ffffff !important;
+}
+
+.app-shell .nav-icon-img {
+  filter: none !important;
+}
+
+.app-shell .app-nav .nav-link.active .nav-icon-img {
+  filter: brightness(0) invert(1) !important;
+}
+
+.app-shell .nav-active-dot {
+  background: #ffffff !important;
+}
+
+.app-shell .user-avatar {
+  background: #2563eb !important;
+  border-color: #2563eb !important;
+  color: #ffffff !important;
+}
+
+.app-shell .header-signout-btn.btn {
+  color: #2563eb !important;
+}
+
+.app-shell .header-signout-btn.btn:hover:not(:disabled) {
+  background: #dbeafe !important;
+  border-color: #2563eb !important;
+  color: #1d4ed8 !important;
+}
+
+/* ============================================
    ADMIN DASHBOARD SQUARE OVERRIDES
    ============================================ */
+.app-shell--admin .app-header {
+  background: #ffffff !important;
+  color: #000000 !important;
+  border-bottom: 1px solid #d1d5db !important;
+}
+
+.app-shell--admin .brand h1,
+.app-shell--admin .brand .muted,
+.app-shell--admin .user-name,
+.app-shell--admin .user-role,
+.app-shell--admin .app-nav .nav-link {
+  color: #000000 !important;
+  text-shadow: none !important;
+}
+
+.app-shell--admin .app-nav .nav-link,
+.app-shell--admin .user-chip,
+.app-shell--admin .header-signout-btn.btn {
+  background: #ffffff !important;
+  border-color: #d1d5db !important;
+}
+
+.app-shell--admin .app-nav .nav-link.active {
+  background: #2563eb !important;
+  border-color: #2563eb !important;
+  color: #ffffff !important;
+}
+
+.app-shell--admin .app-nav .nav-link.active span {
+  color: #ffffff !important;
+}
+
+.app-shell--admin .nav-icon-img {
+  filter: none !important;
+}
+
+.app-shell--admin .app-nav .nav-link.active .nav-icon-img {
+  filter: brightness(0) invert(1) !important;
+}
+
+.app-shell--admin .user-avatar {
+  background: #2563eb !important;
+  border-color: #2563eb !important;
+  color: #ffffff !important;
+}
+
+.app-shell--admin .header-signout-btn.btn {
+  color: #2563eb !important;
+}
+
+.app-shell--admin .header-signout-btn.btn:hover:not(:disabled) {
+  background: #dbeafe !important;
+  border-color: #2563eb !important;
+  color: #1d4ed8 !important;
+}
+
 .admin-shell .admin-dashboard-page {
   background: #ffffff;
   color: #000000;
@@ -2495,14 +2659,14 @@
 }
 
 .admin-shell .admin-dashboard-page .admin-chart-range-btn {
-  border: 1px solid #234d3b !important;
+  border: 1px solid #2563eb !important;
   color: #ffffff !important;
-  background: #234d3b !important;
+  background: #2563eb !important;
 }
 
 .admin-shell .admin-dashboard-page .admin-chart-range-btn.is-active {
-  background: #1d4031 !important;
-  border-color: #1d4031 !important;
+  background: #1d4ed8 !important;
+  border-color: #1d4ed8 !important;
   color: #ffffff !important;
 }
 
@@ -2516,6 +2680,26 @@
   border: 1px solid #b5b5b5 !important;
 }
 
+.admin-shell .admin-dashboard-page .admin-trend-breakdown {
+  display: grid;
+  gap: 12px;
+  padding: 14px !important;
+  overflow: visible !important;
+}
+
+.admin-shell .admin-dashboard-page .admin-trend-breakdown-head {
+  padding: 0 6px 12px !important;
+}
+
+.admin-shell .admin-dashboard-page .admin-trend-table {
+  display: grid;
+  gap: 8px;
+}
+
+.admin-shell .admin-dashboard-page .admin-trend-row {
+  border-radius: 10px !important;
+}
+
 .admin-shell .admin-dashboard-page .admin-trend-chart-head,
 .admin-shell .admin-dashboard-page .admin-trend-breakdown-head,
 .admin-shell .admin-dashboard-page .admin-trend-head {
@@ -2524,16 +2708,21 @@
 
 .admin-shell .admin-dashboard-page .admin-trend-legend .dot,
 .admin-shell .admin-dashboard-page .admin-trend-progress i,
-.admin-shell .admin-dashboard-page .admin-sparkline-path,
 .admin-shell .admin-dashboard-page .admin-sparkline-point,
 .admin-shell .admin-dashboard-page .admin-sparkline-point--peak {
-  background: #234d3b !important;
-  fill: #234d3b !important;
-  stroke: #234d3b !important;
+  background: #2563eb !important;
+  fill: #2563eb !important;
+  stroke: #2563eb !important;
+}
+
+.admin-shell .admin-dashboard-page .admin-sparkline-path {
+  fill: none !important;
+  stroke: #2563eb !important;
+  stroke-width: 3 !important;
 }
 
 .admin-shell .admin-dashboard-page .admin-sparkline-area {
-  fill: rgba(35, 77, 59, 0.12) !important;
+  fill: rgba(37, 99, 235, 0.10) !important;
 }
 
 .admin-shell .admin-dashboard-page .admin-sparkline-grid {
@@ -2551,8 +2740,8 @@
 .admin-shell .admin-dashboard-page .admin-trend-status--mid,
 .admin-shell .admin-dashboard-page .admin-trend-status--high,
 .admin-shell .admin-dashboard-page .admin-trend-status--peak {
-  background: #234d3b !important;
-  border-color: #234d3b !important;
+  background: #2563eb !important;
+  border-color: #2563eb !important;
   color: #ffffff !important;
 }
 
@@ -2582,8 +2771,8 @@
 }
 
 .admin-shell .admin-sidebar {
-  background: #2d3950 !important;
-  border-color: #44536d !important;
+  background: #1e40af !important;
+  border-color: #1d4ed8 !important;
   border-radius: 0 !important;
 }
 
@@ -2600,7 +2789,7 @@
 .admin-shell .admin-sidebar .admin-nav-link,
 .admin-shell .admin-sidebar .admin-nav-link span,
 .admin-shell .admin-sidebar .admin-sidebar-toggle {
-  color: #f5ecd9 !important;
+  color: #eff6ff !important;
 }
 
 .admin-shell .admin-nav-link {
@@ -2609,31 +2798,31 @@
 }
 
 .admin-shell .admin-sidebar .admin-nav-link {
-  background: rgba(255, 255, 255, 0.04) !important;
-  border: 1px solid rgba(245, 236, 217, 0.18) !important;
+  background: #2563eb !important;
+  border: 1px solid rgba(255, 255, 255, 0.34) !important;
 }
 
 .admin-shell .admin-nav-link:hover {
   background: #ffffff !important;
-  border-color: #234d3b !important;
+  border-color: #2563eb !important;
 }
 
 .admin-shell .admin-sidebar .admin-nav-link:hover {
-  background: rgba(255, 255, 255, 0.1) !important;
-  border-color: rgba(245, 236, 217, 0.34) !important;
+  background: #3b82f6 !important;
+  border-color: #bfdbfe !important;
 }
 
 .admin-shell .admin-nav-link.active {
-  background: #234d3b !important;
-  border-color: #234d3b !important;
+  background: #2563eb !important;
+  border-color: #2563eb !important;
   color: #ffffff !important;
   transform: none !important;
 }
 
 .admin-shell .admin-sidebar .admin-nav-link.active {
-  background: #c6aa72 !important;
-  border-color: #c6aa72 !important;
-  color: #1d2638 !important;
+  background: #dbeafe !important;
+  border-color: #ffffff !important;
+  color: #0f172a !important;
 }
 
 .admin-shell .admin-nav-link.active span,
@@ -2643,7 +2832,7 @@
 
 .admin-shell .admin-sidebar .admin-nav-link.active span,
 .admin-shell .admin-sidebar .admin-nav-link.active .nav-icon {
-  color: #1d2638 !important;
+  color: #0f172a !important;
 }
 
 .admin-nav-icon-img {
@@ -2654,8 +2843,7 @@
 }
 
 .admin-shell .admin-sidebar .admin-nav-icon-img {
-  filter: brightness(0) saturate(100%) invert(92%) sepia(16%) saturate(351%) hue-rotate(338deg)
-    brightness(103%) contrast(93%);
+  filter: brightness(0) invert(1);
 }
 
 .admin-shell .admin-nav-link.active .admin-nav-icon-img {
@@ -2663,8 +2851,8 @@
 }
 
 .admin-shell .admin-sidebar .admin-nav-link.active .admin-nav-icon-img {
-  filter: brightness(0) saturate(100%) invert(14%) sepia(18%) saturate(955%) hue-rotate(184deg)
-    brightness(95%) contrast(90%);
+  filter: brightness(0) saturate(100%) invert(8%) sepia(21%) saturate(1308%) hue-rotate(181deg)
+    brightness(95%) contrast(94%);
 }
 
 .admin-stat-icon-img {
@@ -2711,14 +2899,14 @@
 }
 
 .admin-shell .admin-catalog-page .admin-actions .btn {
-  background: #234d3b !important;
-  border-color: #234d3b !important;
+  background: #2563eb !important;
+  border-color: #2563eb !important;
   color: #ffffff !important;
 }
 
 .admin-shell .admin-catalog-page .admin-actions .btn:hover:not(:disabled) {
-  background: #1d4031 !important;
-  border-color: #1d4031 !important;
+  background: #1d4ed8 !important;
+  border-color: #1d4ed8 !important;
   color: #ffffff !important;
 }
 
@@ -2733,7 +2921,7 @@
 
 .admin-shell .admin-catalog-page .admin-quick-link:hover {
   transform: none !important;
-  border-color: #234d3b !important;
+  border-color: #2563eb !important;
 }
 
 .admin-shell .admin-catalog-page .admin-quick-link::after {
@@ -2778,14 +2966,14 @@
 }
 
 .admin-shell .admin-sales-center-page .admin-actions .btn {
-  background: #234d3b !important;
-  border-color: #234d3b !important;
+  background: #2563eb !important;
+  border-color: #2563eb !important;
   color: #ffffff !important;
 }
 
 .admin-shell .admin-sales-center-page .admin-actions .btn:hover:not(:disabled) {
-  background: #1d4031 !important;
-  border-color: #1d4031 !important;
+  background: #1d4ed8 !important;
+  border-color: #1d4ed8 !important;
   color: #ffffff !important;
 }
 
@@ -2800,7 +2988,7 @@
 
 .admin-shell .admin-sales-center-page .admin-quick-link:hover {
   transform: none !important;
-  border-color: #234d3b !important;
+  border-color: #2563eb !important;
 }
 
 .admin-shell .admin-sales-center-page .admin-quick-link::after {
@@ -2871,15 +3059,15 @@
 
 .admin-shell .admin-products-page .admin-actions .btn,
 .admin-shell .admin-products-page .admin-product-actions .btn {
-  background: #234d3b !important;
-  border-color: #234d3b !important;
+  background: #2563eb !important;
+  border-color: #2563eb !important;
   color: #ffffff !important;
 }
 
 .admin-shell .admin-products-page .admin-actions .btn:hover:not(:disabled),
 .admin-shell .admin-products-page .admin-product-actions .btn:hover:not(:disabled) {
-  background: #1d4031 !important;
-  border-color: #1d4031 !important;
+  background: #1d4ed8 !important;
+  border-color: #1d4ed8 !important;
   color: #ffffff !important;
 }
 
@@ -2890,8 +3078,8 @@
 
 .admin-shell .admin-products-page .admin-product-actions .btn.btn-secondary,
 .admin-shell .admin-products-page .admin-product-actions .btn.btn-danger {
-  background: #234d3b !important;
-  border-color: #234d3b !important;
+  background: #2563eb !important;
+  border-color: #2563eb !important;
 }
 
 .admin-shell .admin-products-page .admin-products-count {
@@ -2972,8 +3160,8 @@
 .admin-shell .admin-categories-page .admin-actions .btn,
 .admin-shell .admin-categories-page .admin-row-actions .btn,
 .admin-shell .admin-categories-page .modal-actions .btn {
-  background: #234d3b !important;
-  border-color: #234d3b !important;
+  background: #2563eb !important;
+  border-color: #2563eb !important;
   color: #ffffff !important;
 }
 
@@ -2986,15 +3174,15 @@
 .admin-shell .admin-categories-page .admin-actions .btn:hover:not(:disabled),
 .admin-shell .admin-categories-page .admin-row-actions .btn:hover:not(:disabled),
 .admin-shell .admin-categories-page .modal-actions .btn:hover:not(:disabled) {
-  background: #1d4031 !important;
-  border-color: #1d4031 !important;
+  background: #1d4ed8 !important;
+  border-color: #1d4ed8 !important;
   color: #ffffff !important;
 }
 
 .admin-shell .admin-categories-page .chip-active,
 .admin-shell .admin-categories-page .chip-inactive {
-  background: #234d3b !important;
-  border-color: #234d3b !important;
+  background: #2563eb !important;
+  border-color: #2563eb !important;
   color: #ffffff !important;
 }
 
@@ -3056,8 +3244,8 @@
 
 .admin-shell .admin-recipes-page .admin-row-actions .btn,
 .admin-shell .admin-recipes-page .modal-actions .btn {
-  background: #234d3b !important;
-  border-color: #234d3b !important;
+  background: #2563eb !important;
+  border-color: #2563eb !important;
   color: #ffffff !important;
   font-size: 13px !important;
   font-weight: 700 !important;
@@ -3094,8 +3282,8 @@
 
 .admin-shell .admin-recipes-page .admin-row-actions .btn:hover:not(:disabled),
 .admin-shell .admin-recipes-page .modal-actions .btn:hover:not(:disabled) {
-  background: #1d4031 !important;
-  border-color: #1d4031 !important;
+  background: #1d4ed8 !important;
+  border-color: #1d4ed8 !important;
   color: #ffffff !important;
 }
 
@@ -4023,7 +4211,7 @@
 .kds-board-header h1 {
   margin: 0;
   font-family: 'IBM Plex Sans', sans-serif;
-  font-size: 1.75rem;
+  font-size: 2rem;
   font-weight: 800;
   letter-spacing: -0.02em;
   color: #000000;
@@ -4045,12 +4233,12 @@
 }
 
 .kds-board-clock strong {
-  font-size: 1.25rem;
+  font-size: 1.45rem;
   font-weight: 800;
 }
 
 .kds-board-clock span {
-  font-size: 0.82rem;
+  font-size: 0.95rem;
   color: #000000;
   font-weight: 700;
 }
@@ -4085,27 +4273,11 @@
 .kds-board-column-head h2 {
   margin: 0;
   font-family: 'IBM Plex Sans', sans-serif;
-  font-size: 0.88rem;
+  font-size: 1.05rem;
   font-weight: 800;
   letter-spacing: 0.08em;
   text-transform: uppercase;
   color: #000000;
-}
-
-.kds-board-column-head span {
-  display: inline-flex;
-  min-width: 34px;
-  height: 24px;
-  align-items: center;
-  justify-content: center;
-  padding: 0 8px;
-  border: 1px solid #9f9f9f;
-  background: #bfbfbf;
-  color: #000000;
-  font-family: 'IBM Plex Mono', monospace;
-  font-size: 0.82rem;
-  font-weight: 800;
-  border-radius: 8px;
 }
 
 .kds-board-list {
@@ -4130,7 +4302,7 @@
 .kds-board-card h3 {
   margin: 0;
   font-family: 'IBM Plex Mono', monospace;
-  font-size: 1.65rem;
+  font-size: 1.9rem;
   line-height: 1;
   font-weight: 800;
   letter-spacing: -0.02em;
@@ -4159,12 +4331,12 @@
 .kds-board-status {
   display: inline-flex;
   align-items: center;
-  min-height: 24px;
-  padding: 0 8px;
+  min-height: 28px;
+  padding: 0 10px;
   border: 1px solid #9f9f9f;
   background: #bfbfbf;
   font-family: 'IBM Plex Mono', monospace;
-  font-size: 0.72rem;
+  font-size: 0.84rem;
   font-weight: 800;
   letter-spacing: 0.08em;
   text-transform: uppercase;
@@ -4184,53 +4356,6 @@
   color: #000000;
 }
 
-.kds-board-stations {
-  display: flex;
-  align-items: center;
-  flex-wrap: wrap;
-  gap: 6px;
-}
-
-.kds-board-station-dot {
-  width: 10px;
-  height: 10px;
-  border: 1px solid #0b0d10;
-  background: #58636f;
-  border-radius: 999px;
-}
-
-.kds-board-station-dot.station-grill {
-  background: #f97316;
-}
-
-.kds-board-station-dot.station-fry {
-  background: #ef4444;
-}
-
-.kds-board-station-dot.station-pantry {
-  background: #06b6d4;
-}
-
-.kds-board-station-dot.station-pizza {
-  background: #a855f7;
-}
-
-.kds-board-station-dot.station-bar {
-  background: #3b82f6;
-}
-
-.kds-board-station-dot.station-dessert {
-  background: #eab308;
-}
-
-.kds-board-station-dot.station-assembly {
-  background: #22c55e;
-}
-
-.kds-board-station-dot.station-unassigned {
-  background: #6b7280;
-}
-
 .kds-board-card-meta {
   display: flex;
   align-items: center;
@@ -4238,7 +4363,7 @@
   gap: 12px;
   color: #000000;
   font-family: 'IBM Plex Mono', monospace;
-  font-size: 0.84rem;
+  font-size: 1rem;
   font-weight: 700;
 }
 
@@ -4254,7 +4379,7 @@
 }
 
 .kds-board-wait span {
-  font-size: 0.76rem;
+  font-size: 0.9rem;
   letter-spacing: 0.08em;
   text-transform: uppercase;
   color: #000000;
@@ -4262,7 +4387,7 @@
 }
 
 .kds-board-wait strong {
-  font-size: 1.05rem;
+  font-size: 1.25rem;
   font-weight: 800;
   color: #000000;
 }
@@ -4279,7 +4404,7 @@
   background: #ffffff;
   text-align: center;
   font-family: 'IBM Plex Mono', monospace;
-  font-size: 0.88rem;
+  font-size: 1.05rem;
   color: #000000;
   font-weight: 700;
   border-radius: 10px;
@@ -4547,4 +4672,5 @@
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }
+
 

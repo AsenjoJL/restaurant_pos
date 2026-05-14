@@ -6,7 +6,7 @@ import type { Role } from '../../../features/auth/auth.types'
 import { getDefaultRouteForRole } from '../../../features/auth/auth.utils'
 
 type RequireAuthProps = {
-  allowedRoles?: Role[]
+  allowedRoles?: readonly Role[]
   children: ReactNode
 }
 

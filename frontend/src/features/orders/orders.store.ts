@@ -10,6 +10,7 @@ import type {
   ReplacementRequestStatus,
   ReplacementTicket,
 } from '../../shared/types/order'
+import { isRecord, readLocalStorageJson } from '../../shared/lib/jsonStorage'
 import { ordersRepository } from './api'
 import { kitchenRepository } from '../kitchen/api'
 import type { CapturePaymentInput, CreateOrderInput, UpdateOrderInput } from './types/contracts'
@@ -23,38 +24,23 @@ export type OrdersState = {
 }
 
 const loadStoredOrders = () => {
-  if (typeof window === 'undefined') {
-    return null
+  const parsed = readLocalStorageJson(ORDERS_STORAGE_KEY)
+  if (Array.isArray(parsed)) {
+    return {
+      list: parsed as Order[],
+      replacementRequests: [],
+      replacementTickets: [],
+    } satisfies OrdersState
   }
-  try {
-    const raw = localStorage.getItem(ORDERS_STORAGE_KEY)
-    if (!raw) {
-      return null
-    }
-    const parsed = JSON.parse(raw) as unknown
-    if (Array.isArray(parsed)) {
-      return {
-        list: parsed as Order[],
-        replacementRequests: [],
-        replacementTickets: [],
-      } satisfies OrdersState
-    }
-    if (
-      typeof parsed === 'object' &&
-      parsed !== null &&
-      'list' in parsed &&
-      Array.isArray((parsed as OrdersState).list) &&
-      'replacementRequests' in parsed &&
-      Array.isArray((parsed as OrdersState).replacementRequests) &&
-      'replacementTickets' in parsed &&
-      Array.isArray((parsed as OrdersState).replacementTickets)
-    ) {
-      return parsed as OrdersState
-    }
-    return null
-  } catch {
-    return null
+  if (
+    isRecord(parsed) &&
+    Array.isArray(parsed.list) &&
+    Array.isArray(parsed.replacementRequests) &&
+    Array.isArray(parsed.replacementTickets)
+  ) {
+    return parsed as OrdersState
   }
+  return null
 }
 
 const initialState: OrdersState = {

@@ -1,7 +1,8 @@
-import { Suspense, lazy } from 'react'
+import { Suspense, lazy, type ReactNode } from 'react'
 import { BrowserRouter, HashRouter, Navigate, Route, Routes } from 'react-router-dom'
 import RequireAuth from './guards/RequireAuth'
 import AppShell from '../layout/AppShell'
+import type { Role } from '../../features/auth/auth.types'
 
 const LoginPage = lazy(() => import('../../features/auth/pages/LoginPage'))
 const PosPage = lazy(() => import('../../features/pos/pages/PosPage'))
@@ -36,6 +37,55 @@ const KioskMenuPage = lazy(() => import('../../features/kiosk/pages/KioskMenuPag
 const KioskSuccessPage = lazy(() => import('../../features/kiosk/pages/KioskSuccessPage'))
 const KioskPrintSlipPage = lazy(() => import('../../features/kiosk/pages/KioskPrintSlipPage'))
 
+type ProtectedShellRoute = {
+  allowedRoles: readonly Role[]
+  element: ReactNode
+  path: string
+}
+
+type AdminChildRoute = {
+  element: ReactNode
+  path: string
+}
+
+const STAFF_ROUTES = [
+  {
+    path: '/pos',
+    allowedRoles: ['admin', 'cashier'],
+    element: <PosPage />,
+  },
+  {
+    path: '/orders',
+    allowedRoles: ['admin', 'cashier'],
+    element: <OrdersPage />,
+  },
+  {
+    path: '/kitchen',
+    allowedRoles: ['admin', 'kitchen'],
+    element: <KitchenDisplayPage />,
+  },
+] satisfies ProtectedShellRoute[]
+
+const ADMIN_ROLES = ['admin'] as const
+
+const ADMIN_CHILD_ROUTES = [
+  { path: 'dashboard', element: <AdminDashboardPage /> },
+  { path: 'catalog', element: <AdminCatalogPage /> },
+  { path: 'orders-dashboard', element: <OrderAndInventoryDashboard /> },
+  { path: 'sales-center', element: <AdminSalesCenterPage /> },
+  { path: 'sales', element: <AdminSalesPage /> },
+  { path: 'products', element: <AdminProductsPage /> },
+  { path: 'categories', element: <AdminCategoriesPage /> },
+  { path: 'replacements', element: <AdminReplacementsPage /> },
+  { path: 'cash-adjustments', element: <AdminCashAdjustmentsPage /> },
+  { path: 'audit-logs', element: <AdminAuditLogsPage /> },
+  { path: 'inventory', element: <AdminInventoryPage /> },
+  { path: 'recipes', element: <AdminRecipesPage /> },
+  { path: 'users', element: <AdminUsersPage /> },
+  { path: 'settings', element: <AdminSettingsPage /> },
+  { path: 'administration', element: <AdminAdministrationPage /> },
+] satisfies AdminChildRoute[]
+
 function RouteLoadingFallback() {
   return (
     <div className="page-center">
@@ -44,6 +94,20 @@ function RouteLoadingFallback() {
         <p className="muted">Preparing the next screen.</p>
       </div>
     </div>
+  )
+}
+
+function ProtectedShell({
+  allowedRoles,
+  children,
+}: {
+  allowedRoles: readonly Role[]
+  children: ReactNode
+}) {
+  return (
+    <RequireAuth allowedRoles={allowedRoles}>
+      <AppShell>{children}</AppShell>
+    </RequireAuth>
   )
 }
 
@@ -57,11 +121,11 @@ function AppRouter() {
     <Router>
       <Suspense fallback={<RouteLoadingFallback />}>
         <Routes>
-            <Route path="/" element={<Navigate to="/kiosk" replace />} />
-            <Route path="/login" element={<LoginPage />} />
-            <Route path="/KDS" element={<KitchenQueueBoardPage />} />
-            <Route path="/kds-board" element={<Navigate to="/KDS" replace />} />
-            <Route path="/kiosk" element={<KioskShell />}>
+          <Route path="/" element={<Navigate to="/kiosk" replace />} />
+          <Route path="/login" element={<LoginPage />} />
+          <Route path="/KDS" element={<KitchenQueueBoardPage />} />
+          <Route path="/kds-board" element={<Navigate to="/KDS" replace />} />
+          <Route path="/kiosk" element={<KioskShell />}>
             <Route index element={<KioskWelcomePage />} />
             <Route path="order-type" element={<Navigate to="/kiosk" replace />} />
             <Route path="menu" element={<KioskMenuPage />} />
@@ -70,63 +134,33 @@ function AppRouter() {
             <Route path="success/:orderNo" element={<KioskSuccessPage />} />
             <Route path="print/:orderNo" element={<KioskPrintSlipPage />} />
           </Route>
-          <Route
-            path="/pos"
-            element={
-              <RequireAuth allowedRoles={['admin', 'cashier']}>
-                <AppShell>
-                  <PosPage />
-                </AppShell>
-              </RequireAuth>
-            }
-          />
-          <Route
-            path="/orders"
-            element={
-              <RequireAuth allowedRoles={['admin', 'cashier']}>
-                <AppShell>
-                  <OrdersPage />
-                </AppShell>
-              </RequireAuth>
-            }
-          />
-          <Route
-            path="/kitchen"
-            element={
-              <RequireAuth allowedRoles={['admin', 'kitchen']}>
-                <AppShell>
-                  <KitchenDisplayPage />
-                </AppShell>
-              </RequireAuth>
-            }
-          />
+
+          {STAFF_ROUTES.map((route) => (
+            <Route
+              key={route.path}
+              path={route.path}
+              element={
+                <ProtectedShell allowedRoles={route.allowedRoles}>
+                  {route.element}
+                </ProtectedShell>
+              }
+            />
+          ))}
+
           <Route
             path="/admin"
-              element={
-                <RequireAuth allowedRoles={['admin']}>
-                  <AppShell>
-                    <AdminLayout />
-                  </AppShell>
-                </RequireAuth>
+            element={
+              <ProtectedShell allowedRoles={ADMIN_ROLES}>
+                <AdminLayout />
+              </ProtectedShell>
             }
           >
             <Route index element={<Navigate to="dashboard" replace />} />
-            <Route path="dashboard" element={<AdminDashboardPage />} />
-            <Route path="catalog" element={<AdminCatalogPage />} />
-            <Route path="orders-dashboard" element={<OrderAndInventoryDashboard />} />
-            <Route path="sales-center" element={<AdminSalesCenterPage />} />
-            <Route path="sales" element={<AdminSalesPage />} />
-            <Route path="products" element={<AdminProductsPage />} />
-            <Route path="categories" element={<AdminCategoriesPage />} />
-            <Route path="replacements" element={<AdminReplacementsPage />} />
-            <Route path="cash-adjustments" element={<AdminCashAdjustmentsPage />} />
-            <Route path="audit-logs" element={<AdminAuditLogsPage />} />
-            <Route path="inventory" element={<AdminInventoryPage />} />
-            <Route path="recipes" element={<AdminRecipesPage />} />
-            <Route path="users" element={<AdminUsersPage />} />
-            <Route path="settings" element={<AdminSettingsPage />} />
-            <Route path="administration" element={<AdminAdministrationPage />} />
+            {ADMIN_CHILD_ROUTES.map((route) => (
+              <Route key={route.path} path={route.path} element={route.element} />
+            ))}
           </Route>
+
           <Route path="*" element={<Navigate to="/kiosk" replace />} />
         </Routes>
       </Suspense>

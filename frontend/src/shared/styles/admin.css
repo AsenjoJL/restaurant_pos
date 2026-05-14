@@ -210,6 +210,69 @@
   height: 290px;
 }
 
+.admin-trend-chart-plot {
+  position: relative;
+  min-width: 0;
+}
+
+.admin-trend-chart-tooltip {
+  position: absolute;
+  z-index: 5;
+  display: grid;
+  gap: 2px;
+  min-width: 118px;
+  padding: 8px 10px;
+  border: 1px solid #bfdbfe;
+  border-radius: 8px;
+  background: #ffffff;
+  color: #0f172a;
+  box-shadow: 0 14px 28px rgba(15, 23, 42, 0.18);
+  font-size: 0.78rem;
+  line-height: 1.25;
+  text-align: center;
+  pointer-events: none;
+  transform: translate(-50%, calc(-100% - 12px));
+}
+
+.admin-trend-chart-tooltip::after {
+  content: '';
+  position: absolute;
+  left: 50%;
+  bottom: -6px;
+  width: 10px;
+  height: 10px;
+  border-right: 1px solid #bfdbfe;
+  border-bottom: 1px solid #bfdbfe;
+  background: #ffffff;
+  transform: translateX(-50%) rotate(45deg);
+}
+
+.admin-trend-chart-tooltip span {
+  color: #475569;
+  font-weight: 700;
+}
+
+.admin-trend-chart-tooltip strong {
+  color: #2563eb;
+  font-size: 0.92rem;
+  font-weight: 800;
+}
+
+.admin-sparkline-point-group {
+  cursor: pointer;
+  outline: none;
+}
+
+.admin-sparkline-hit-target {
+  fill: transparent;
+  stroke: transparent;
+  pointer-events: all;
+}
+
+.admin-sparkline-point-group:focus-visible .admin-sparkline-point {
+  stroke-width: 4;
+}
+
 .admin-trend-suite .admin-sparkline-grid {
   stroke: #e4e7ec;
   stroke-width: 1;
@@ -326,7 +389,7 @@
   height: 100%;
   min-width: 6px;
   border-radius: inherit;
-  background: linear-gradient(90deg, #53dbc8, #45d99f);
+  background: #45d99f;
 }
 
 .admin-trend-status {
@@ -492,7 +555,7 @@
 
 .admin-shell .admin-table-row.inventory.inventory-row--critical {
   border-color: var(--admin-danger-border);
-  background: linear-gradient(90deg, #fff8f8 0%, #ffffff 40%);
+  background: #fff8f8;
 }
 
 .admin-shell .admin-table-row.inventory.inventory-row--critical::before {
@@ -714,7 +777,7 @@
 .admin-metrics .admin-stat-card {
   border: 1px solid var(--border);
   box-shadow: var(--shadow-sm);
-  background: linear-gradient(140deg, #ffffff 0%, #f7f9fc 100%);
+  background: #ffffff;
 }
 
 .admin-toolbar.admin-toolbar-surface {
@@ -951,10 +1014,10 @@
   --primary-light: #1e293b;
   --primary-lighter: #334155;
 
-  --accent: #10b981;
-  --accent-light: #34d399;
-  --accent-dark: #059669;
-  --accent-subtle: #d1fae5;
+  --accent: #2563eb;
+  --accent-light: #60a5fa;
+  --accent-dark: #1d4ed8;
+  --accent-subtle: #dbeafe;
 
   --surface: #ffffff;
   --surface-muted: #f8fafc;
@@ -1057,7 +1120,8 @@
   padding: var(--space-sm);
   border-radius: 0;
   box-shadow: var(--shadow-md);
-  border: 2px solid var(--border);
+  border: 2px solid #1d4ed8;
+  background: #1e40af;
   border-left: 0;
 }
 
@@ -1140,7 +1204,7 @@
 
 .admin-shell .admin-nav-link {
   text-decoration: none;
-  color: var(--text-secondary);
+  color: #eff6ff;
   font-weight: 400;
   font-size: 1.55rem;
   padding: calc(var(--space-lg) - 2px) calc(var(--space-lg) - 2px);
@@ -1155,19 +1219,19 @@
 }
 
 .admin-shell .admin-nav-link:hover {
-  color: var(--text-primary);
-  background: var(--surface-hover);
+  color: #ffffff;
+  background: #2563eb;
 }
 
 .admin-shell .admin-nav-link.active {
-  background: var(--accent);
-  color: var(--text-inverse);
+  background: #dbeafe;
+  color: #0f172a;
   box-shadow: var(--shadow-md), var(--shadow-glow);
   transform: translateY(-1px);
 }
 
 .admin-shell .admin-nav-link.active:hover {
-  background: var(--accent-dark);
+  background: #bfdbfe;
 }
 
 @media (max-width: 768px) {
@@ -1259,7 +1323,7 @@
   left: 0;
   right: 0;
   height: 3px;
-  background: linear-gradient(90deg, var(--accent), var(--accent-light));
+  background: var(--accent);
   transform: scaleX(0);
   transform-origin: left;
   transition: transform var(--transition-bounce);
@@ -1325,11 +1389,7 @@
   content: '';
   position: absolute;
   inset: 0;
-  background: linear-gradient(
-    135deg,
-    rgba(16, 185, 129, 0.05),
-    rgba(16, 185, 129, 0)
-  );
+  background: rgba(16, 185, 129, 0.05);
   opacity: 0;
   transition: opacity var(--transition-base);
   pointer-events: none;
@@ -1574,13 +1634,13 @@
 }
 
 .admin-shell .btn-primary {
-  background: linear-gradient(135deg, var(--accent), var(--accent-light));
+  background: var(--accent);
   color: var(--text-inverse);
   box-shadow: var(--shadow-sm);
 }
 
 .admin-shell .btn-primary:hover {
-  background: linear-gradient(135deg, var(--accent-dark), var(--accent));
+  background: var(--accent-dark);
   box-shadow: var(--shadow-md), var(--shadow-glow);
 }
 
@@ -1770,13 +1830,13 @@
 }
 
 .recipe-header-actions .recipe-action-save {
-  background: linear-gradient(135deg, #10b981, #34d399);
+  background: #10b981;
   border-color: #10b981;
   color: #ffffff;
 }
 
 .recipe-header-actions .recipe-action-save:hover {
-  background: linear-gradient(135deg, #059669, #10b981);
+  background: #059669;
   border-color: #059669;
 }
 

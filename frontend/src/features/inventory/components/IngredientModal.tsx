@@ -16,7 +16,6 @@ type IngredientModalProps = {
   onClose: () => void
   onSave: () => void
   onFormChange: (next: IngredientFormState) => void
-  onUnitCostManualChange: (isManual: boolean) => void
 }
 
 function IngredientModal({
@@ -31,7 +30,6 @@ function IngredientModal({
   onClose,
   onSave,
   onFormChange,
-  onUnitCostManualChange,
 }: IngredientModalProps) {
   return (
     <Modal
@@ -64,7 +62,6 @@ function IngredientModal({
         errors={errors}
         form={form}
         onFormChange={onFormChange}
-        onUnitCostManualChange={onUnitCostManualChange}
       />
     </Modal>
   )

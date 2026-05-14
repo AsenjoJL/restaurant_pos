@@ -1,7 +1,6 @@
 import { formatEnumLabel } from '../../shared/lib/orders'
 import type { Order } from '../../shared/types/order'
 import { formatDuration, getOrderElapsed } from './kitchen.logic'
-import { getKitchenStationLabel, resolveKitchenStation } from './kitchen.utils'
 
 export function getKitchenBoardStatusLabel(status: string) {
   if (status === 'SENT_TO_KITCHEN') {
@@ -11,10 +10,6 @@ export function getKitchenBoardStatusLabel(status: string) {
     return 'Preparing'
   }
   return 'Ready'
-}
-
-export function getKitchenBoardStations(order: Order) {
-  return Array.from(new Set(order.items.map((item) => resolveKitchenStation(item.id))))
 }
 
 export function getKitchenBoardItemCount(order: Order) {
@@ -31,8 +26,4 @@ export function getKitchenBoardWaitLabel(order: Order) {
     ...elapsed,
     durationLabel: formatDuration(elapsed.elapsedMs),
   }
-}
-
-export function getKitchenBoardStationAriaLabel(station: ReturnType<typeof resolveKitchenStation>) {
-  return getKitchenStationLabel(station)
 }

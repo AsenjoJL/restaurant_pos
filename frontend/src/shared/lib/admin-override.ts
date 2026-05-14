@@ -1,3 +1,10 @@
+import {
+  isRecord,
+  readLocalStorageJson,
+  removeLocalStorageItem,
+  writeLocalStorageJson,
+} from './jsonStorage'
+
 export type AdminOverrideScope = 'cashier' | 'kitchen'
 
 const KEY_PREFIX = 'pos.admin.override.v1'
@@ -10,22 +17,11 @@ type OverridePayload = {
 const keyFor = (scope: AdminOverrideScope) => `${KEY_PREFIX}.${scope}`
 
 const readPayload = (scope: AdminOverrideScope): OverridePayload | null => {
-  if (typeof window === 'undefined') {
+  const parsed = readLocalStorageJson(keyFor(scope))
+  if (!isRecord(parsed) || !Number.isFinite(parsed.expiresAt)) {
     return null
   }
-  try {
-    const raw = localStorage.getItem(keyFor(scope))
-    if (!raw) {
-      return null
-    }
-    const parsed = JSON.parse(raw) as OverridePayload
-    if (!parsed || !Number.isFinite(parsed.expiresAt)) {
-      return null
-    }
-    return parsed
-  } catch {
-    return null
-  }
+  return parsed as OverridePayload
 }
 
 export const isAdminOverrideActive = (scope: AdminOverrideScope) => {
@@ -34,8 +30,8 @@ export const isAdminOverrideActive = (scope: AdminOverrideScope) => {
     return false
   }
   const active = payload.expiresAt > Date.now()
-  if (!active && typeof window !== 'undefined') {
-    localStorage.removeItem(keyFor(scope))
+  if (!active) {
+    removeLocalStorageItem(keyFor(scope))
   }
   return active
 }
@@ -53,17 +49,14 @@ export const setAdminOverride = (
   active: boolean,
   durationMs = DEFAULT_DURATION_MS,
 ) => {
-  if (typeof window === 'undefined') {
-    return
-  }
   if (!active) {
-    localStorage.removeItem(keyFor(scope))
+    removeLocalStorageItem(keyFor(scope))
     return
   }
   const payload: OverridePayload = {
     expiresAt: Date.now() + durationMs,
   }
-  localStorage.setItem(keyFor(scope), JSON.stringify(payload))
+  writeLocalStorageJson(keyFor(scope), payload)
 }
 
 export const formatOverrideRemaining = (remainingMs: number) => {
