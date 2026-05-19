@@ -37,15 +37,9 @@ export const calculateKioskTotals = (
   }
 }
 
-const ORDER_PREFIX = 'A'
-
 export const generateOrderNumber = () => {
-  const timePart = Date.now().toString(36).toUpperCase()
-  const randomPart = Math.floor(Math.random() * 1296)
-    .toString(36)
-    .toUpperCase()
-    .padStart(2, '0')
-  return `${ORDER_PREFIX}-${timePart}-${randomPart}`
+  const number = Math.floor(100 + Math.random() * 9900)
+  return `S-${number}`
 }
 
 export const toSharedOrderType = (orderType: OrderType): Order['order_type'] => {

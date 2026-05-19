@@ -1,76 +1,212 @@
-UI Style Spec
-This is the source of truth for how the Restaurant POS frontend should look and behave. Follow this when building or updating any screen.
+UI Style Notes
 
-Visual Direction
-The overall feel should be clean, professional, and operational — like a well-designed back-office dashboard. Use white and light neutral backgrounds, dark text for readability, and subtle borders for structure. Keep interactions calm and precise. This isn't a marketing site; it's a tool people use all day.
+The Restaurant POS is used during real work, so the screens need to be clear, fast, and easy to read. The design is not meant to look like a landing page. It needs to feel like a simple restaurant work system.
+
+
+General look
+
+Keep the background white or very light.
+Use dark text.
+Use blue for main actions.
+Use soft borders to separate sections.
+Keep shadows light.
+Do not use decorative gradients.
+Do not use busy backgrounds.
+
+The goal is a clean working screen where a cashier, kitchen staff, or admin can understand what to do right away.
+
 
 Colors
-Stick to the design tokens:
 
-Page background → --bg
-Cards and surfaces → --panel
-Muted surfaces → --panel-muted
-Body text → --text, secondary text → --muted
-Borders → --border
-Brand accent → --accent
-Status → --success, --warning, --danger, --info
+Use the shared tokens first.
 
-Don't use dark cards with light text on admin pages unless it's intentional. Keep borders soft, not pure black. Use status colors for what they mean — don't repurpose --danger as a decorative accent.
+--bg
+Page background.
 
-Typography
+--panel
+Cards, panels, and main surfaces.
 
-Body font: --font-body
-Headings: --font-display
-Numbers, IDs, amounts: --font-mono
+--panel-muted
+Light secondary areas.
 
-Size guidance:
-ContextSizePage title28–32pxSection title20–24pxCard title16–18pxBody14–16pxHelper/meta text12–14px
-Keep the type scale consistent. Don't use oversized text in dense tables.
+--text
+Main text.
 
-Spacing and Layout
-Use only spacing tokens (--space-1 through --space-7). Card padding should be 16–24px. Section gaps are typically 12, 16, or 24px. Keep horizontal alignment consistent across headers, filters, and tables. No random one-off values.
+--muted
+Small helper text.
 
-Borders, Radius, and Shadows
-Use --border for color, --radius-md or --radius-lg for cards, and --radius-sm or --radius-md for controls. Use --shadow-sm for subtle lift, --shadow for major cards. Reach for borders before shadows, and don't stack heavy shadows on everything.
+--border
+Border color.
 
-Components
-Buttons — Primary is for the main action only. Secondary/outline for neutral actions. Danger for destructive actions. Ghost for low-priority utilities. One primary button per section.
-Inputs — Always include a label. Show helper text when it's useful, show validation inline, and make disabled fields visibly distinct.
-Tables — Light header background, consistent row height and padding, compact semantic status chips, and a vertically aligned action column.
+--accent
+Main blue action color.
 
-Required States
-Every screen needs to handle:
+--success
+Positive status.
 
-Loading — while data is fetching
-Empty — when there's no data yet
-Error — when something goes wrong
-No results — when a search or filter returns nothing
-Success — a toast or inline confirmation after an action
+--warning
+Warning status.
 
-No silent failures. No blank panels without any explanation.
+--danger
+Delete, cancel, reject, void, or other risky actions.
+
+--info
+Neutral information.
+
+Do not use status colors just for decoration.
+
+
+Text
+
+Use normal readable text. Avoid very small text on operational pages.
+
+Body text uses --font-body.
+Headings use --font-display.
+Order numbers, totals, IDs, and amounts use --font-mono.
+
+Good size range:
+
+Page title: 28 to 32px
+Section title: 20 to 24px
+Card title: 16 to 18px
+Normal text: 14 to 16px
+Helper text: 12 to 14px
+
+Do not place oversized display text inside tables, sidebars, or compact panels.
+
+
+Spacing
+
+Keep spacing even.
+
+Small gaps use --space-1 or --space-2.
+Normal gaps use --space-3 to --space-5.
+Large page gaps use --space-6 or --space-7.
+
+Most cards look good with 16px to 24px padding.
+
+Make sure text does not touch borders.
+Make sure buttons have space around them.
+Make sure rows do not look squeezed.
+
+
+Borders and depth
+
+Use borders first.
+Use shadows only when a panel needs a little lift.
+
+Use --radius-sm for small controls.
+Use --radius-md for normal buttons and cards.
+Use --radius-lg only for larger panels.
+
+Keep the border color soft. Avoid pure black borders.
+
+
+Buttons
+
+Primary buttons are blue.
+
+Use one main primary action in a section when possible.
+
+Use outline or secondary buttons for normal actions.
+
+Use danger buttons only for risky actions.
+
+Keep destructive actions away from normal actions so the user does not click them by mistake.
+
+
+Inputs
+
+Every input needs a label.
+
+Add helper text when the field might be confusing.
+
+Show validation near the field.
+
+Disabled fields need to look disabled.
+
+
+Tables
+
+Use a light header.
+Keep rows aligned.
+Keep action buttons in the same area.
+Use status chips for statuses.
+
+If a row has too much information, move the details into a modal or details page.
+
+
+Screen states
+
+Each screen needs a clear state for:
+
+Loading
+Empty data
+Error
+No search results
+Successful action
+
+Do not leave an empty white panel with no explanation.
+
 
 Accessibility
-Make sure text and controls have readable contrast. Show visible focus states for keyboard navigation. Label all form controls and icon-only actions properly. Never rely on color alone to communicate status.
+
+Use readable contrast.
+Show keyboard focus.
+Label form controls.
+Add labels to icon-only buttons.
+Do not rely on color alone to explain a status.
+
 
 Motion
-Use --transition-fast and --transition-base. Keep animations subtle. Avoid flashy transitions on dense operational screens.
 
-Responsive Behavior
-Design desktop-first, but keep it usable on tablets. On small screens, collapse side-by-side layouts to vertical stacks, keep key actions visible, and either preserve table readability or switch to card rows.
+Keep movement small and quick.
+Avoid flashy animation.
+The system needs to feel steady during service.
 
-Context-Specific Notes
-Admin — White surfaces, dark text, subtle borders. Dense data should feel calm, not cluttered. Clarity over decoration.
-POS (staff) — The ordering flow needs to be fast and easy to scan. Cart and totals should be immediately readable. Keep high-risk actions like cancel and void clearly separated from everything else.
-Kiosk — Can be a bit more visual than admin, but must stay readable. Use large tap targets and make the next step obvious.
 
-CSS Authoring
-Use comment headers for each stylesheet and major section. Always reach for a token before hardcoding a value. Don't create duplicate style blocks that conflict with each other. Keep feature-specific styles in their own stylesheet.
+Responsive layout
 
-Definition of Done
-A screen is finished when it:
+Desktop is the main target, but tablet sizes still need to work.
 
-Uses token-based typography, spacing, color, and borders throughout
-Handles loading, empty, error, no-results, and success states
-Passes basic keyboard navigation and contrast checks
-Fits the white, professional back-office aesthetic
-Works on both desktop and mobile breakpoints
+On smaller screens, stack columns vertically.
+
+Keep the important actions visible.
+
+For tables, either keep the columns readable or switch to card-style rows.
+
+
+Page notes
+
+Admin
+White surfaces, dark text, clear cards, and readable tables.
+
+POS
+Fast scanning matters most. The order panel, totals, and checkout action need to be easy to see.
+
+Kitchen
+Use large readable tickets and simple status actions.
+
+Kiosk
+Use large touch targets and simple next steps.
+
+
+CSS notes
+
+Use existing tokens before adding new values.
+Keep feature styles in their feature stylesheet.
+Put shared styles in the shared styles folder.
+Avoid duplicate rules that fight each other.
+Add comments only when a section needs a label.
+
+
+Final check
+
+Before calling a screen finished, check these:
+
+Text is readable.
+Buttons have enough space.
+Borders are not touching text.
+There is no overlapping content.
+The page works on desktop and smaller screens.
+Loading, empty, error, and no-results states are handled.

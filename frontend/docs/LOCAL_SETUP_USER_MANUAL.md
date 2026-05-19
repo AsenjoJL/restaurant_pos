@@ -1,123 +1,103 @@
-Restaurant POS - Local Setup Guide
+Restaurant POS Local Setup
 
-This guide is for anyone setting up, running, testing, or packaging the Restaurant POS frontend on their own machine.
+These notes are for running the frontend on a local computer.
 
 
-Before You Start
-
-Make sure you have these installed:
+Tools to install
 
 Node.js
-Required version: ^20.19.0 or >=22.12.0.
-This is required because the project uses Vite 7.
+Use version 20.19.0 or newer. Version 22.12.0 or newer is also fine.
 
 npm
 Comes with Node.js.
 
 Git
-Optional, but useful if you are cloning or pulling updates.
+Needed for cloning, pulling, committing, and pushing.
 
 Browser
-Chrome or Edge is recommended.
+Chrome or Edge works best for testing.
 
 Terminal
-PowerShell on Windows, Terminal on macOS/Linux.
+Use PowerShell on Windows.
 
-If you are testing hardware features, you may also need:
+
+Optional hardware for testing
 
 Thermal printer
-Used for testing receipts and order slips.
+For receipt and order slip tests.
 
 Touchscreen monitor
-Used for kiosk and cashier POS use.
+For kiosk or cashier POS testing.
 
-Dedicated kiosk PC
-Used for running the packaged Electron kiosk build.
+Kiosk computer
+For testing the Electron kiosk build.
 
 
-Project Location
+Open the frontend folder
 
-The frontend lives inside the frontend folder. Navigate there before running any commands:
+From the project root:
 
 cd "C:\Users\John Lester\Desktop\restaurant_pos\frontend"
 
-Here is what is inside:
+Run all npm commands from this frontend folder.
 
-src/
-Main React, TypeScript, Redux, and CSS source code.
 
-src/features/
-Feature modules: kiosk, POS, kitchen, admin, inventory, and sales.
+Main folders
 
-src/shared/styles/
+src
+React, TypeScript, Redux, and CSS source code.
+
+src/features
+Feature areas like kiosk, POS, kitchen, admin, inventory, and sales.
+
+src/shared/styles
 Shared CSS files.
 
-public/
-Static images and assets.
+public
+Images and static assets.
 
-electron/
-Electron kiosk entry point.
+electron
+Electron kiosk files.
 
-docs/
-Project documentation.
+docs
+Project documents.
 
-dist/
-Web production build output.
+dist
+Production web build.
 
-release/
+release
 Electron installer output.
 
-Run all npm commands from the frontend folder, not the repository root.
 
-
-Installing Dependencies
+Install packages
 
 Run:
 
 npm install
 
-This reads package.json and installs everything into node_modules.
+This installs the dependencies from package.json.
 
-Key packages include:
+Main packages:
 
-react, react-dom
-Used for UI rendering.
-
-react-router-dom
-Used for page routing.
-
-@reduxjs/toolkit, react-redux
-Used for state management.
-
-xlsx
-Used for Excel, CSV, and JSON import/export.
-
-vite, @vitejs/plugin-react
-Used for the dev server and production builds.
-
-typescript
-Used for type checking.
-
-eslint
-Used for linting.
-
-tailwindcss, postcss, autoprefixer
-Used for CSS tooling.
-
-electron, electron-builder
-Used for the native kiosk app.
-
-concurrently, wait-on
-Used to run Vite and Electron together.
+react and react-dom for the UI.
+react-router-dom for routes.
+@reduxjs/toolkit and react-redux for state.
+xlsx for Excel, CSV, and JSON import/export.
+vite and @vitejs/plugin-react for local running and builds.
+typescript for type checking.
+eslint for linting.
+tailwindcss, postcss, and autoprefixer for CSS tooling.
+electron and electron-builder for the kiosk app.
+concurrently and wait-on for running Vite and Electron together.
 
 
-Environment Variables
+Environment file
 
-Copy the example env file to create your local one:
+Create the local env file:
 
 Copy-Item .env.example .env
 
-Default values in .env.example:
+Default values:
 
 VITE_SYNC_KITCHEN_MS=5000
 VITE_SYNC_SALES_MS=5000
@@ -126,287 +106,202 @@ VITE_SYNC_BACKOFF_MULTIPLIER=1.8
 VITE_SYNC_MAX_INTERVAL_MULTIPLIER=4
 VITE_SYNC_JITTER_RATIO=0.15
 
-What each one does:
+The sync values control how often kitchen, sales, and orders refresh during local use.
 
-VITE_SYNC_KITCHEN_MS
-How often the kitchen syncs, in milliseconds.
-
-VITE_SYNC_SALES_MS
-How often sales syncs.
-
-VITE_SYNC_ORDERS_MS
-How often orders sync.
-
-VITE_SYNC_BACKOFF_MULTIPLIER
-How much longer each retry waits after a sync failure.
-
-VITE_SYNC_MAX_INTERVAL_MULTIPLIER
-Upper limit on retry interval growth.
-
-VITE_SYNC_JITTER_RATIO
-Adds slight randomness to sync timing.
-
-There is also an optional router setting for packaged or file-based runs:
+Optional router setting:
 
 VITE_ROUTER_MODE=hash
 
-The app also detects file:// automatically and switches to hash routing on its own.
+Hash routing is useful for packaged or file-based runs.
 
 
-Running the App Locally
+Run the app
 
-Run:
+Start the dev server:
 
 npm run dev
 
-Vite will print a local URL, usually:
+Vite usually opens on:
 
 http://localhost:5173
 
-The default page loads /kiosk.
-
-To get to the staff login, go to:
-
-http://localhost:5173/login
-
-If port 5173 is taken, Vite will pick another port. Use the URL shown in the terminal.
+If that port is busy, Vite will show a different one. Use the port shown in the terminal.
 
 
-Local Links and Navigation
+Useful local links
 
-Use these links after running npm run dev:
-
-Customer kiosk
+Customer kiosk:
 http://localhost:5173/kiosk
-Customer order screen.
 
-Staff login
+Staff login:
 http://localhost:5173/login
-Login page for admin, cashier, and kitchen users.
 
-POS screen
+Cashier POS:
 http://localhost:5173/pos
-Cashier order-taking screen. Login is required.
 
-Kitchen display
+Orders and payments:
+http://localhost:5173/orders
+
+Kitchen display:
 http://localhost:5173/kitchen
-Back-of-house kitchen screen. Login is required.
 
-Customer KDS board
+Customer KDS board:
 http://localhost:5173/KDS
-Customer-facing kitchen queue board.
 
-KDS shortcut
+KDS shortcut:
 http://localhost:5173/kds-board
-Redirects to /KDS.
 
+Admin dashboard:
+http://localhost:5173/admin/dashboard
 
-How to Open the Login Page
+Hash route examples:
 
-1. Start the app with npm run dev.
-2. Open the Vite URL in the browser, usually http://localhost:5173.
-3. Type /login after the port, or open http://localhost:5173/login directly.
-4. Enter the username and PIN from the Test Accounts section.
-5. After login, the app sends the user to the correct page based on the role.
-
-
-How to Open the KDS Customer Board
-
-1. Direct link: open http://localhost:5173/KDS in a browser tab or customer-facing monitor.
-2. From the kitchen page: log in as kitchen or admin.
-3. Go to http://localhost:5173/kitchen.
-4. Click Open Customer Board.
-5. Shortcut link: http://localhost:5173/kds-board also works and redirects to /KDS.
-6. If Vite uses another port, replace 5173 with the port shown in the terminal.
-
-If VITE_ROUTER_MODE=hash is enabled, use hash links instead:
-
-Login
 http://localhost:5173/#/login
-
-KDS
 http://localhost:5173/#/KDS
 
 
-Test Accounts
+Login page
 
-These accounts are seeded locally for testing:
+1. Run npm run dev.
+2. Open the local Vite URL.
+3. Go to /login.
+4. Enter the username and PIN.
+5. The app redirects based on the role.
+
+
+Customer KDS board
+
+Open:
+
+http://localhost:5173/KDS
+
+Another option is:
+
+http://localhost:5173/kds-board
+
+From the kitchen screen, the customer board can also be opened after logging in as kitchen or admin.
+
+
+Test accounts
 
 Admin
 Username: admin
-Password / PIN: 1111
-Opens on login: /admin/dashboard
+PIN: 1111
+Opens: /admin/dashboard
 
 Cashier
 Username: cashier
-Password / PIN: 2222
-Opens on login: /pos
+PIN: 2222
+Opens: /pos
 
 Kitchen
 Username: kitchen
-Password / PIN: 3333
-Opens on login: /kitchen
+PIN: 3333
+Opens: /kitchen
 
 
 Routes
 
-Customer-Facing Routes
+Customer:
 
 /
-Redirects to /kiosk.
-
 /kiosk
-Customer welcome screen.
-
 /kiosk/menu
-Menu ordering.
-
 /kiosk/success/:orderNo
-Order confirmation.
-
 /kiosk/print/:orderNo
-Order slip print view.
-
 /KDS
-Customer-facing kitchen queue board.
 
-
-Staff Routes
+Staff:
 
 /login
-Public staff login.
-
 /pos
-Admin and cashier route for POS ordering.
-
 /orders
-Admin and cashier route for queue, payments, and cash drawer.
-
 /kitchen
-Admin and kitchen route for the kitchen display.
 
-
-Admin Routes
+Admin:
 
 /admin/dashboard
-Sales and operations overview.
-
+/admin/catalog
 /admin/products
-Menu products.
-
 /admin/categories
-Product categories.
-
 /admin/recipes
-Recipes and ingredient usage.
-
 /admin/inventory
-Stock management.
-
+/admin/sales-center
 /admin/sales
-Sales records.
-
 /admin/orders-dashboard
-Orders and inventory deductions.
-
 /admin/cash-adjustments
-Cash adjustment review.
-
 /admin/replacements
-Replacement and remake review.
-
 /admin/users
-Staff accounts.
-
 /admin/audit-logs
-Audit history.
-
 /admin/settings
-Store, tax, receipt, and sync settings.
+/admin/administration
 
 
-Quality Checks
+Check the project
 
-Run the linter:
+Lint:
 
 npm run lint
 
-Run TypeScript type checking:
+Type check:
 
 npx tsc -b
 
-Run a full production build:
+Production build:
 
 npm run build
 
-The build runs TypeScript first, then outputs the production bundle to frontend/dist.
-
-
-Previewing the Production Build
-
-After building, run:
+Preview build:
 
 npm run preview
 
-Use this to verify the built version looks and behaves correctly before packaging or deploying.
+The production files go to frontend/dist.
 
 
-Running the Kiosk App With Electron
+Electron kiosk
 
-To run the kiosk in development:
+Run kiosk development mode:
 
 npm run kiosk:dev
 
-This starts the Vite dev server, waits for it to be ready, then opens Electron in fullscreen kiosk mode.
-
-The window is locked for customer use. The native menu is hidden, and printing uses silent native print with a browser fallback.
-
-
-Building Installers
-
-Build for all platforms:
+Build installers:
 
 npm run kiosk:build
 
-Or build for a specific one:
+Build Windows installer:
 
 npm run kiosk:build:win
+
+Build macOS installer:
+
 npm run kiosk:build:mac
+
+Build Linux installer:
+
 npm run kiosk:build:linux
 
-Output goes to frontend/release/:
-
-Windows
-NSIS installer .exe
-
-macOS
-DMG
-
-Linux
-AppImage
-
-Build on the target OS when you can, especially for Windows installers.
+Installer files are placed in frontend/release.
 
 
-Local Data
+Local data
 
-The app runs frontend-only with mock repositories. No backend or database is needed.
+The local version stores data in browser localStorage.
 
-All data is saved in browser localStorage, so it stays on the same browser and device.
+There is no backend database in this setup.
 
-Storage keys used:
+Storage keys:
 
 pos.auth.v1
-Logged-in user session.
+Login session.
 
 pos.orders.v2
 Orders.
 
 pos.inventory.v2
-Ingredients, recipes, and stock adjustments.
+Ingredients, recipes, and stock movement.
 
 pos.cash.v1
-Cash drawer and adjustments.
+Cash drawer data.
 
 pos.sales.v2
 Sales records.
@@ -417,97 +312,72 @@ Audit logs.
 pos.admin.v4
 Products, categories, users, and settings.
 
-To reset everything during testing:
 
-1. Open DevTools.
-2. Go to Application.
+Reset test data
+
+1. Open browser DevTools.
+2. Open Application.
 3. Open Local Storage.
 4. Delete the POS keys.
 5. Refresh the browser.
 
-This wipes local orders, sales, inventory edits, and settings. Only do this with test data.
+Only do this for test data.
 
 
-Inventory Import
+Inventory import
 
-The inventory page accepts .xlsx, .xls, .csv, and .json files.
+Accepted file types:
 
-When you import a file, the app matches rows by inventory ID or name. It updates matches and creates new ingredients for anything it does not recognize.
+.xlsx
+.xls
+.csv
+.json
 
-You will get a summary of what was imported, updated, skipped, or errored.
+The import matches rows by inventory ID or ingredient name.
 
-Template columns:
-
-inventory id
-Required: No
-Notes: Updates existing ingredients when matched.
-
-ingredient type
-Required: No
-Notes: RAW or NON_RAW. Defaults to raw if blank.
+Required fields:
 
 name
-Required: Yes
-Notes: Ingredient name.
-
 category
-Required: Yes
-Notes: Ingredient category.
-
 base unit
-Required: Yes
-Notes: g, ml, or pcs.
+unit cost, unless bulk price is used
 
+Optional fields:
+
+inventory id
+ingredient type
 on hand
-Required: No
-Notes: Current stock. Defaults to 0.
-
 reorder level
-Required: No
-Notes: Low-stock threshold. Defaults to 0.
-
-unit cost
-Required: Yes, unless bulk pricing is provided.
-Notes: Cost per base unit.
-
-bulk qty
-Required: No
-Notes: Used with bulk unit and price to calculate unit cost.
-
+bulk quantity
 bulk unit
-Required: No
-Notes: kg, l, pcs, or the base unit.
-
 bulk price
-Required: No
-Notes: Total cost of the bulk pack.
 
 
 Troubleshooting
 
 npm install fails
-Check your internet connection, confirm you are in the frontend folder, and verify your Node version.
+Check the internet connection, folder location, and Node.js version.
 
-Vite says Node is unsupported
-Upgrade to Node 20.19.0+ or 22.12.0+.
+Node version warning
+Install Node.js 20.19.0 or newer.
 
-Page is blank after changes
-Stop the dev server, run npm install, then restart with npm run dev.
+Blank page
+Stop the server, run npm install, then run npm run dev again.
 
 Login fails
-Double-check the username and PIN, or check if an admin created a different account.
+Check the username, PIN, and account status.
 
 Electron does not open
-Make sure Vite is running on port 5173 and nothing else is using it.
+Check that Vite is running and the port is available.
 
 Receipt does not print
-Check your default printer, browser print permissions, and Electron print behavior.
+Check the printer and browser or Electron print settings.
 
 Old data is still showing
-Clear the POS keys from Local Storage and refresh.
+Clear the POS localStorage keys.
 
 Inventory import fails
-Re-download the template and make sure the required columns are present.
+Download a new template and check the columns.
 
-VS Code schema timeout warning
-This is a VS Code or network editor issue, not a POS runtime error. It is safe to ignore.
+VS Code schema warning
+This is an editor or network warning. It does not mean the POS app failed.

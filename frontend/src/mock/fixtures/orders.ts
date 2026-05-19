@@ -14,7 +14,7 @@ const buildOrder = (order: Omit<Order, 'subtotal' | 'tax' | 'total'>): Order => 
 export const orders: Order[] = [
   buildOrder({
     id: 'O-1201',
-    order_no: 'A-102',
+    order_no: 'S-102',
     source: 'KIOSK',
     status: 'PENDING_PAYMENT',
     order_type: 'TAKEOUT',
@@ -29,7 +29,7 @@ export const orders: Order[] = [
   }),
   buildOrder({
     id: 'O-1202',
-    order_no: 'A-103',
+    order_no: 'S-103',
     source: 'KIOSK',
     status: 'SENT_TO_KITCHEN',
     order_type: 'DINE_IN',
@@ -77,7 +77,7 @@ export const orders: Order[] = [
   }),
   buildOrder({
     id: 'O-1205',
-    order_no: 'A-104',
+    order_no: 'S-104',
     source: 'KIOSK',
     status: 'READY_FOR_PICKUP',
     order_type: 'TAKEOUT',

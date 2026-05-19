@@ -42,11 +42,9 @@ export const calculateTotals = (
 export const sanitizeNote = (value: string) =>
   limitLength(sanitizeText(value), MAX_NOTE_LENGTH)
 
-const ORDER_PREFIX = 'S'
-
 export const generateStaffOrderNumber = () => {
-  const number = Math.floor(100 + Math.random() * 900)
-  return `${ORDER_PREFIX}-${number}`
+  const number = Math.floor(100 + Math.random() * 9900)
+  return `S-${number}`
 }
 
 export const toSharedOrderType = (orderType: DraftOrder['orderType']): Order['order_type'] => {

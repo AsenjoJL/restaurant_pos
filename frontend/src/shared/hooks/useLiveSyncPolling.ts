@@ -1,5 +1,11 @@
 import { useEffect } from 'react'
 
+const DEFAULT_INTERVAL_MS = 5000
+const DEFAULT_BACKOFF_MULTIPLIER = 1.8
+const DEFAULT_JITTER_RATIO = 0.15
+const MIN_DELAY_MS = 250
+const MAX_JITTER_RATIO = 0.5
+
 export type LiveSyncPollingOptions = {
   enabled: boolean
   sync: () => void | Promise<void>
@@ -11,13 +17,49 @@ export type LiveSyncPollingOptions = {
   pauseWhenHidden?: boolean
 }
 
+const clampDelay = (value: number) => Math.max(MIN_DELAY_MS, Math.round(value))
+
+const clampJitterRatio = (value: number) => Math.max(0, Math.min(value, MAX_JITTER_RATIO))
+
+const getJitteredDelay = (delayMs: number, jitterRatio: number) => {
+  const safeRatio = clampJitterRatio(jitterRatio)
+
+  if (safeRatio === 0) {
+    return clampDelay(delayMs)
+  }
+
+  const spread = delayMs * safeRatio
+  const minDelay = delayMs - spread
+  const maxDelay = delayMs + spread
+
+  return clampDelay(minDelay + Math.random() * (maxDelay - minDelay))
+}
+
+const getNextBackoffDelay = ({
+  backoffMultiplier,
+  currentIntervalMs,
+  maxIntervalMs,
+}: {
+  backoffMultiplier: number
+  currentIntervalMs: number
+  maxIntervalMs: number
+}) => {
+  const safeMultiplier = Math.max(1, backoffMultiplier)
+  const nextDelay = clampDelay(currentIntervalMs * safeMultiplier)
+
+  return Math.min(maxIntervalMs, nextDelay)
+}
+
+const canRunInCurrentTab = (pauseWhenHidden: boolean) =>
+  !pauseWhenHidden || typeof document === 'undefined' || !document.hidden
+
 export const useLiveSyncPolling = ({
   enabled,
   sync,
-  intervalMs = 5000,
-  maxIntervalMs = Math.max(intervalMs * 4, intervalMs),
-  backoffMultiplier = 1.8,
-  jitterRatio = 0.15,
+  intervalMs = DEFAULT_INTERVAL_MS,
+  maxIntervalMs,
+  backoffMultiplier = DEFAULT_BACKOFF_MULTIPLIER,
+  jitterRatio = DEFAULT_JITTER_RATIO,
   runOnMount = true,
   pauseWhenHidden = true,
 }: LiveSyncPollingOptions) => {
@@ -26,24 +68,12 @@ export const useLiveSyncPolling = ({
       return
     }
 
+    const maxDelayMs = maxIntervalMs ?? Math.max(intervalMs * 4, intervalMs)
+
     let timeoutId: number | null = null
     let disposed = false
     let inFlight = false
     let currentIntervalMs = intervalMs
-
-    const clampDelay = (value: number) => Math.max(250, Math.round(value))
-    const jitter = (value: number) => {
-      const safeRatio = Math.max(0, Math.min(jitterRatio, 0.5))
-      if (safeRatio === 0) {
-        return clampDelay(value)
-      }
-      const spread = value * safeRatio
-      const min = value - spread
-      const max = value + spread
-      return clampDelay(min + Math.random() * (max - min))
-    }
-
-    const shouldRun = () => !pauseWhenHidden || !document.hidden
 
     const clearSchedule = () => {
       if (timeoutId !== null) {
@@ -54,28 +84,36 @@ export const useLiveSyncPolling = ({
 
     const scheduleNext = (delayMs: number) => {
       clearSchedule()
-      if (disposed || !shouldRun()) {
+
+      if (disposed || !canRunInCurrentTab(pauseWhenHidden)) {
         return
       }
+
       timeoutId = window.setTimeout(() => {
         void run()
-      }, jitter(delayMs))
+      }, getJitteredDelay(delayMs, jitterRatio))
     }
 
     const run = async () => {
-      if (disposed || inFlight || !shouldRun()) {
+      if (disposed || inFlight || !canRunInCurrentTab(pauseWhenHidden)) {
         return
       }
+
       inFlight = true
+
       try {
         await sync()
         currentIntervalMs = intervalMs
       } catch {
-        const multiplied = currentIntervalMs * Math.max(1, backoffMultiplier)
-        currentIntervalMs = Math.min(maxIntervalMs, clampDelay(multiplied))
+        currentIntervalMs = getNextBackoffDelay({
+          backoffMultiplier,
+          currentIntervalMs,
+          maxIntervalMs: maxDelayMs,
+        })
       } finally {
         inFlight = false
       }
+
       scheduleNext(currentIntervalMs)
     }
 
@@ -83,10 +121,12 @@ export const useLiveSyncPolling = ({
       if (!pauseWhenHidden) {
         return
       }
+
       if (document.hidden) {
         clearSchedule()
         return
       }
+
       currentIntervalMs = intervalMs
       void run()
     }
@@ -103,9 +143,11 @@ export const useLiveSyncPolling = ({
 
     return () => {
       disposed = true
+
       if (pauseWhenHidden) {
         document.removeEventListener('visibilitychange', handleVisibilityChange)
       }
+
       clearSchedule()
     }
   }, [
