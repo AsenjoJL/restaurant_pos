@@ -23,11 +23,13 @@ export type OrdersState = {
   replacementTickets: ReplacementTicket[]
 }
 
+const isTemporaryClientOrder = (order: Order) => order.id === order.order_no
+
 const loadStoredOrders = () => {
   const parsed = readLocalStorageJson(ORDERS_STORAGE_KEY)
   if (Array.isArray(parsed)) {
     return {
-      list: parsed as Order[],
+      list: (parsed as Order[]).filter((order) => !isTemporaryClientOrder(order)),
       replacementRequests: [],
       replacementTickets: [],
     } satisfies OrdersState
@@ -38,7 +40,10 @@ const loadStoredOrders = () => {
     Array.isArray(parsed.replacementRequests) &&
     Array.isArray(parsed.replacementTickets)
   ) {
-    return parsed as OrdersState
+    return {
+      ...(parsed as OrdersState),
+      list: (parsed as OrdersState).list.filter((order) => !isTemporaryClientOrder(order)),
+    } satisfies OrdersState
   }
   return null
 }
@@ -84,10 +89,18 @@ export const hydrateOrdersFromRepository = createAsyncThunk(
   async () => ordersRepository.list(),
 )
 
-export const syncCreateOrder = createAsyncThunk<void, { order: Order }>(
+export const syncCreateOrder = createAsyncThunk<
+  { tempId: string; order: Order },
+  { order: Order }
+>(
   'orders/syncCreate',
   async ({ order }) => {
-    await ordersRepository.create(toCreateOrderInput(order))
+    const createdOrder = await ordersRepository.create(toCreateOrderInput(order))
+
+    return {
+      tempId: order.id,
+      order: createdOrder,
+    }
   },
 )
 
@@ -118,27 +131,25 @@ export const syncOrderVoid = createAsyncThunk<
 })
 
 export const syncCapturedPayment = createAsyncThunk<
-  void,
-  { id: string },
-  { state: RootState }
->('orders/syncPayment', async ({ id }, { getState }) => {
-  const order = getState().orders.list.find((item) => item.id === id)
-  if (!order || !order.payment_method || order.payment_amount === undefined) {
-    return
+  Order,
+  {
+    id: string
+    payment: CapturePaymentInput
+  }
+>('orders/syncPayment', async ({ id, payment }) => {
+  let finalOrder: Order
+
+  try {
+    finalOrder = await ordersRepository.capturePayment(id, payment)
+  } catch (error) {
+    const message =
+      error instanceof Error && error.message.trim().length > 0
+        ? error.message
+        : 'Could not capture payment.'
+    throw new Error(message)
   }
 
-  const paymentPayload: CapturePaymentInput = {
-    method: order.payment_method,
-    amount: order.payment_amount,
-    reference: order.payment_reference,
-    payer: order.payment_payer,
-  }
-
-  await ordersRepository.capturePayment(order.id, paymentPayload)
-
-  if (order.status !== 'PAID') {
-    await ordersRepository.update(order.id, { status: order.status })
-  }
+  return finalOrder
 })
 
 export const hydrateKitchenQueueFromRepository = createAsyncThunk(
@@ -539,6 +550,22 @@ const ordersSlice = createSlice({
   extraReducers: (builder) => {
     builder.addCase(hydrateOrdersFromRepository.fulfilled, (state, action) => {
       state.list = action.payload
+    })
+    builder.addCase(syncCreateOrder.fulfilled, (state, action) => {
+      const index = state.list.findIndex((order) => order.id === action.payload.tempId)
+      if (index >= 0) {
+        state.list[index] = action.payload.order
+        return
+      }
+      state.list.unshift(action.payload.order)
+    })
+    builder.addCase(syncCapturedPayment.fulfilled, (state, action) => {
+      const index = state.list.findIndex((order) => order.id === action.payload.id)
+      if (index >= 0) {
+        state.list[index] = action.payload
+        return
+      }
+      state.list.unshift(action.payload)
     })
     builder.addCase(hydrateKitchenQueueFromRepository.fulfilled, (state, action) => {
       const nextList = [...state.list]

@@ -43,6 +43,10 @@ export function KioskProvider({ children }: { children: ReactNode }) {
     () => dispatch({ type: 'CLEAR_CART' }),
     [],
   )
+  const rememberOrder = useCallback<KioskContextValue['rememberOrder']>(
+    (order) => dispatch({ type: 'STORE_ORDER', payload: order }),
+    [],
+  )
   const reset = useCallback<KioskContextValue['reset']>(() => dispatch({ type: 'RESET' }), [])
 
   const placeOrder = useCallback<KioskContextValue['placeOrder']>(() => {
@@ -59,14 +63,6 @@ export function KioskProvider({ children }: { children: ReactNode }) {
       note: state.note,
       totals,
       placedAt,
-    })
-    dispatch({
-      type: 'PLACE_ORDER',
-      payload: {
-        orderNumber,
-        placedAt,
-        order,
-      },
     })
     return { orderNumber, order }
   }, [
@@ -89,12 +85,14 @@ export function KioskProvider({ children }: { children: ReactNode }) {
       setNote,
       clearCart,
       placeOrder,
+      rememberOrder,
       reset,
     }),
     [
       addItem,
       clearCart,
       placeOrder,
+      rememberOrder,
       removeItem,
       reset,
       setNote,

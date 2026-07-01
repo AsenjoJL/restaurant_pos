@@ -14,10 +14,7 @@ function AdminProductsPage() {
     setQuery,
     categoryFilter,
     setCategoryFilter,
-    classFilter,
-    setClassFilter,
     categoryOptions,
-    classOptions,
     filteredProducts,
     isModalOpen,
     editing,
@@ -43,10 +40,8 @@ function AdminProductsPage() {
     handleAdditionalIngredientSelect,
     handleAddIngredientLink,
     handleRemoveIngredientLink,
-    handleRecipeIngredientChange,
     handleRecipeQtyChange,
     clearPendingImage,
-    loadDemoProduct,
   } = useAdminProductsPageController()
 
   return (
@@ -61,10 +56,7 @@ function AdminProductsPage() {
       <AdminProductsFilters
         categoryFilter={categoryFilter}
         categoryOptions={categoryOptions}
-        classFilter={classFilter}
-        classOptions={classOptions}
         onCategoryFilterChange={setCategoryFilter}
-        onClassFilterChange={setClassFilter}
         onQueryChange={setQuery}
         query={query}
       />
@@ -98,8 +90,6 @@ function AdminProductsPage() {
         onImageFileChange={handleImageFileChange}
         onIngredientSelect={handleIngredientSelect}
         onAdditionalIngredientSelect={handleAdditionalIngredientSelect}
-        onLoadDemoProduct={loadDemoProduct}
-        onRecipeIngredientChange={handleRecipeIngredientChange}
         onRecipeQtyChange={handleRecipeQtyChange}
         onRemoveIngredientLink={handleRemoveIngredientLink}
         onSave={handleSaveAction}

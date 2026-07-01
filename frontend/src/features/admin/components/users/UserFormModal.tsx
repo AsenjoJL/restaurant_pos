@@ -73,6 +73,26 @@ function UserFormModal({
         options={roleOptions}
         error={errors.role}
       />
+      {!isEditing ? (
+        <>
+          <Input
+            label="Password"
+            type="password"
+            placeholder="At least 8 characters"
+            value={form.password}
+            onChange={(event) => onFormChange({ ...form, password: event.target.value })}
+            error={errors.password}
+          />
+          <Input
+            label="Confirm password"
+            type="password"
+            placeholder="Re-enter password"
+            value={form.confirmPassword}
+            onChange={(event) => onFormChange({ ...form, confirmPassword: event.target.value })}
+            error={errors.confirmPassword}
+          />
+        </>
+      ) : null}
     </Modal>
   )
 }

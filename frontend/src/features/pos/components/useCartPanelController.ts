@@ -4,7 +4,6 @@ import { formatCurrency } from '../../../shared/lib/format'
 import { pushToast } from '../../../shared/store/ui.store'
 import { selectAuthUser } from '../../auth/auth.selectors'
 import {
-  addOrder,
   syncCreateOrder,
   syncOrderUpdate,
   updatePendingOrder,
@@ -29,6 +28,21 @@ import {
 import type { CartItem, OrderType } from '../pos.types'
 import { buildStaffOrder, generateStaffOrderNumber, mapDraftItemsToOrderItems } from '../pos.utils'
 import { evaluatePromoCode, normalizePromoCode } from '../promo.engine'
+
+const extractErrorMessage = (error: unknown) => {
+  if (error instanceof Error && error.message.trim().length > 0) {
+    return error.message
+  }
+
+  if (error && typeof error === 'object' && 'message' in error) {
+    const value = (error as { message?: unknown }).message
+    if (typeof value === 'string' && value.trim().length > 0) {
+      return value
+    }
+  }
+
+  return null
+}
 
 function useCartPanelController() {
   const dispatch = useAppDispatch()
@@ -119,7 +133,7 @@ function useCartPanelController() {
     return true
   }
 
-  const handleCheckout = () => {
+  const handleCheckout = async () => {
     if (!validateCheckout('Add items before checkout.')) {
       return
     }
@@ -136,9 +150,20 @@ function useCartPanelController() {
       placedAt,
     })
 
-    dispatch(addOrder(order))
-    void dispatch(syncCreateOrder({ order }))
-    dispatch(openPaymentModal({ orderId: order.id }))
+    try {
+      const created = await dispatch(syncCreateOrder({ order })).unwrap()
+      dispatch(openPaymentModal({ orderId: created.order.id }))
+    } catch (error) {
+      dispatch(
+        pushToast({
+          title: 'Order save failed',
+          description:
+            extractErrorMessage(error) ??
+            'Could not create the order in the backend. Payment cannot continue yet.',
+          variant: 'error',
+        }),
+      )
+    }
   }
 
   const handleUpdateAndPay = () => {
@@ -178,11 +203,11 @@ function useCartPanelController() {
   }
 
   const handleCheckoutAction = () =>
-    withPayLock(() => {
+    withPayLock(async () => {
       if (isEditing) {
         handleUpdateAndPay()
       } else {
-        handleCheckout()
+        await handleCheckout()
       }
     })
 

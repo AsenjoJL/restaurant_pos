@@ -2,9 +2,11 @@ import Button from '../../../shared/components/ui/Button'
 import { formatCurrency } from '../../../shared/lib/format'
 import { formatIngredientQty } from '../inventory.logic'
 import type { Ingredient } from '../inventory.types'
+import type { IngredientRecipeCoverage } from '../inventory.page'
 
 type InventoryTableProps = {
   ingredients: Ingredient[]
+  recipeCoverageMap: Map<string, IngredientRecipeCoverage>
   onEdit: (ingredient: Ingredient) => void
   onRestock: (ingredientId: string) => void
   onAdjust: (ingredientId: string) => void
@@ -12,6 +14,7 @@ type InventoryTableProps = {
 
 function InventoryTable({
   ingredients,
+  recipeCoverageMap,
   onEdit,
   onRestock,
   onAdjust,
@@ -29,6 +32,7 @@ function InventoryTable({
           <span>Reorder</span>
           <span>Unit Cost</span>
           <span>Status</span>
+          <span>Recipe Check</span>
           <span>Actions</span>
         </div>
         {ingredients.length === 0 ? (
@@ -39,6 +43,7 @@ function InventoryTable({
         ) : (
           ingredients.map((ingredient) => {
             const isLow = ingredient.onHand <= ingredient.reorderLevel
+            const recipeCoverage = recipeCoverageMap.get(ingredient.id)
             return (
               <div
                 key={ingredient.id}
@@ -81,8 +86,22 @@ function InventoryTable({
                       isLow ? 'inventory-badge--low' : 'inventory-badge--ok'
                     }`}
                   >
-                    {isLow ? 'Low' : 'OK'}
+                    {isLow ? 'Below reorder' : 'Above reorder'}
                   </span>
+                </div>
+                <div className="inventory-table-field inventory-recipe-status" data-label="Recipe Check">
+                  <span
+                    className={`inventory-badge ${
+                      recipeCoverage?.tone === 'warn'
+                        ? 'inventory-badge--recipe-warn'
+                        : recipeCoverage?.tone === 'ok'
+                          ? 'inventory-badge--recipe-ok'
+                          : 'inventory-badge--recipe-neutral'
+                    }`}
+                  >
+                    {recipeCoverage?.label ?? 'Unused in recipes'}
+                  </span>
+                  <span className="muted">{recipeCoverage?.detail ?? 'This ingredient is not part of any saved recipe yet.'}</span>
                 </div>
                 <div className="admin-row-actions inventory-row-actions" data-label="Actions">
                   <Button

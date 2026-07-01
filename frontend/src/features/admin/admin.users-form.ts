@@ -4,24 +4,31 @@ export type UserFormState = {
   name: string
   username: string
   role: AdminUser['role']
+  password: string
+  confirmPassword: string
 }
 
 export type UserErrors = {
   name?: string
   username?: string
   role?: string
+  password?: string
+  confirmPassword?: string
 }
 
 export type UserPayload = {
   name: string
   username: string
   role: AdminUser['role']
+  password?: string
 }
 
 export const emptyUserForm: UserFormState = {
   name: '',
   username: '',
   role: 'cashier',
+  password: '',
+  confirmPassword: '',
 }
 
 export const adminUserRoleOptions = [
@@ -38,6 +45,7 @@ export const validateUserForm = ({
   form: UserFormState
   users: AdminUser[]
   editingId?: string
+  isEditing?: boolean
 }): UserErrors => {
   const errors: UserErrors = {}
 
@@ -62,6 +70,18 @@ export const validateUserForm = ({
     errors.role = 'Role is required.'
   }
 
+  if (!editingId) {
+    const trimmedPassword = form.password.trim()
+
+    if (trimmedPassword.length < 8) {
+      errors.password = 'Password must be at least 8 characters.'
+    }
+
+    if (trimmedPassword !== form.confirmPassword.trim()) {
+      errors.confirmPassword = 'Password confirmation does not match.'
+    }
+  }
+
   return errors
 }
 
@@ -69,6 +89,7 @@ export const buildUserPayload = (form: UserFormState): UserPayload => ({
   name: form.name.trim(),
   username: form.username.trim(),
   role: form.role,
+  ...(form.password.trim() ? { password: form.password.trim() } : {}),
 })
 
 export const validatePasswordChangeInput = ({
@@ -85,12 +106,12 @@ export const validatePasswordChangeInput = ({
   }
 
   const trimmedPassword = newPassword.trim()
-  if (trimmedPassword.length < 4) {
-    return 'PIN must be at least 4 characters.'
+  if (trimmedPassword.length < 8) {
+    return 'Password must be at least 8 characters.'
   }
 
   if (trimmedPassword !== confirmPassword.trim()) {
-    return 'PIN confirmation does not match.'
+    return 'Password confirmation does not match.'
   }
 
   return null

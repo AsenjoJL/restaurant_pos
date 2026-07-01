@@ -37,6 +37,8 @@ export const isKitchenStatus = (status: OrderStatus) =>
   status === 'COMPLETED'
 
 export const isPaymentCaptured = (order: Order) =>
+  Boolean(order.paid_at) ||
+  (typeof order.payment_amount === 'number' && order.payment_amount > 0) ||
   order.audit_log.some((entry) => entry.action === 'PAYMENT')
 
 export const getKitchenStatusLabel = (status: OrderStatus) => {

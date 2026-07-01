@@ -27,7 +27,13 @@ function CartActions({
         disabled={itemCount === 0 || isPaying}
         onClick={onCheckout}
       >
-        {isEditing ? 'Update & Take Payment' : 'Checkout / Take Payment'}
+        {isPaying
+          ? isEditing
+            ? 'Saving changes...'
+            : 'Saving order...'
+          : isEditing
+            ? 'Update & Take Payment'
+            : 'Checkout / Take Payment'}
       </Button>
       {isEditing ? (
         <Button variant="ghost" className="cart-secondary-btn" onClick={onCancelEdit}>

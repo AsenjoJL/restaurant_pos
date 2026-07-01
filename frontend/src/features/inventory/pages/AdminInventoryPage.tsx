@@ -1,6 +1,9 @@
+import { useState } from 'react'
+import Modal from '../../../shared/components/ui/Modal'
 import AdminStatCard from '../../admin/components/AdminStatCard'
 import AdjustmentModal from '../components/AdjustmentModal'
 import IngredientModal from '../components/IngredientModal'
+import InventoryAdjustmentsTable from '../components/InventoryAdjustmentsTable'
 import InventoryAlertsCenter from '../components/InventoryAlertsCenter'
 import InventoryFiltersBar from '../components/InventoryFiltersBar'
 import InventoryPageHeader from '../components/InventoryPageHeader'
@@ -8,12 +11,16 @@ import InventoryTable from '../components/InventoryTable'
 import useAdminInventoryPageController from '../hooks/useAdminInventoryPageController'
 
 function AdminInventoryPage() {
+  const [isMovementsModalOpen, setIsMovementsModalOpen] = useState(false)
+
   const {
     ingredients,
     adjustments,
     stats,
     alerts,
+    recipeCoverageMap,
     filteredIngredients,
+    filteredAdjustments,
     query,
     categoryFilter,
     ingredientTypeFilter,
@@ -21,6 +28,11 @@ function AdminInventoryPage() {
     categoryOptions,
     ingredientTypeOptions,
     statusOptions,
+    adjustmentQuery,
+    setAdjustmentQuery,
+    adjustmentReasonFilter,
+    setAdjustmentReasonFilter,
+    adjustmentReasonOptions,
     isIngredientModalOpen,
     editing,
     form,
@@ -65,6 +77,7 @@ function AdminInventoryPage() {
         onDownloadTemplate={handleDownloadTemplate}
         onExportInventory={handleExportInventory}
         onImport={handleImport}
+        onOpenInventoryMovements={() => setIsMovementsModalOpen(true)}
         onOpenImportFilePicker={openImportFilePicker}
       />
 
@@ -103,6 +116,7 @@ function AdminInventoryPage() {
 
       <InventoryTable
         ingredients={filteredIngredients}
+        recipeCoverageMap={recipeCoverageMap}
         onEdit={openEditModal}
         onRestock={(ingredientId) => openAdjustModal(ingredientId, 'restock')}
         onAdjust={(ingredientId) => openAdjustModal(ingredientId)}
@@ -133,6 +147,25 @@ function AdminInventoryPage() {
         onSave={handleAdjustStock}
         onFormChange={setAdjustForm}
       />
+
+      <Modal
+        isOpen={isMovementsModalOpen}
+        title="Recent Inventory Movements"
+        onClose={() => setIsMovementsModalOpen(false)}
+        className="inventory-movements-modal"
+        bodyClassName="inventory-movements-modal-body"
+      >
+        <InventoryAdjustmentsTable
+          compact
+          adjustments={filteredAdjustments}
+          adjustmentQuery={adjustmentQuery}
+          adjustmentReasonFilter={adjustmentReasonFilter}
+          ingredients={ingredients}
+          reasonOptions={adjustmentReasonOptions}
+          onAdjustmentQueryChange={setAdjustmentQuery}
+          onAdjustmentReasonFilterChange={setAdjustmentReasonFilter}
+        />
+      </Modal>
     </div>
   )
 }

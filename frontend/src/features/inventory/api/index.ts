@@ -1,3 +1,3 @@
-import { inventoryRepositoryMock } from './inventory.repository.mock'
+import { inventoryRepositoryHttp } from './inventory.repository.http'
 
-export const inventoryRepository = inventoryRepositoryMock
+export const inventoryRepository = inventoryRepositoryHttp

@@ -1417,6 +1417,78 @@
   color: #1c1a15;
 }
 
+.pos-payment-shortage {
+  display: grid;
+  gap: 12px;
+  padding: 16px;
+  border-radius: 18px;
+  border: 1px solid #f3c6ba;
+  background: #fff4f0;
+}
+
+.pos-payment-shortage__header {
+  display: grid;
+  gap: 4px;
+}
+
+.pos-payment-shortage__header h4 {
+  margin: 0;
+  font-size: 15px;
+  color: #8c2f1d;
+}
+
+.pos-payment-shortage__header p {
+  margin: 0;
+  font-size: 12px;
+  line-height: 1.5;
+  color: #8f5a4b;
+}
+
+.pos-payment-shortage__list {
+  display: grid;
+  gap: 10px;
+}
+
+.pos-payment-shortage__item {
+  display: grid;
+  gap: 6px;
+  padding: 12px 14px;
+  border-radius: 14px;
+  border: 1px solid #f2d3ca;
+  background: #fffaf8;
+}
+
+.pos-payment-shortage__item-head {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  align-items: baseline;
+}
+
+.pos-payment-shortage__item-head strong {
+  color: #2d241b;
+}
+
+.pos-payment-shortage__deficit {
+  font-size: 12px;
+  font-weight: 600;
+  color: #b5442f;
+}
+
+.pos-payment-shortage__item-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 14px;
+  font-size: 12px;
+  color: #6f5c50;
+}
+
+.pos-payment-shortage__reason {
+  margin: 0;
+  font-size: 12px;
+  color: #8c2f1d;
+}
+
 .payment-panel {
   gap: 14px;
   padding: 18px;

@@ -22,7 +22,10 @@ export const selectRuntimeMenuCategories = createSelector(
 )
 
 export const selectRuntimeMenuProducts = createSelector([selectAdminProducts], (adminProducts) =>
-  mergeMenuProductsWithAdmin([], adminProducts),
+  mergeMenuProductsWithAdmin(
+    [],
+    adminProducts.filter((product) => product.productClass === 'NON_RAW'),
+  ),
 )
 
 export const selectRuntimeMenuProductsById = createSelector(

@@ -28,6 +28,7 @@ export type CapturePaymentInput = {
   amount: number
   reference?: string
   payer?: string
+  next_status?: 'PAID' | 'SENT_TO_KITCHEN' | 'PREPARING'
 }
 
 export type VoidOrderInput = {

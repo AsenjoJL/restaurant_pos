@@ -1664,10 +1664,15 @@
 .admin-shell .admin-inventory-page .inventory-alert-center__badge,
 .admin-shell .admin-inventory-page .inventory-type-badge,
 .admin-shell .admin-inventory-page .inventory-badge {
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
   border-radius: 0 !important;
   border: 1px solid #2563eb !important;
   background: #2563eb !important;
   color: #ffffff !important;
+  text-align: center !important;
+  white-space: nowrap !important;
 }
 
 .admin-shell .admin-inventory-page .inventory-stock--low,
@@ -2029,6 +2034,16 @@
 .admin-shell .admin-users-page .admin-user-form-modal-footer .modal-actions .btn,
 .admin-shell .admin-users-page .admin-change-pin-modal-footer .modal-actions .btn {
   min-width: 120px !important;
+}
+
+.admin-shell .admin-users-page .admin-table-head.users,
+.admin-shell .admin-users-page .admin-table-row.users {
+  box-sizing: border-box;
+  width: 100%;
+}
+
+.admin-shell .admin-users-page .admin-row-actions {
+  align-items: center;
 }
 
 .admin-shell .admin-audit-page .admin-filters {

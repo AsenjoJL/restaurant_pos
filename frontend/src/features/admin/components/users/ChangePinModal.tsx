@@ -31,7 +31,7 @@ function ChangePinModal({
   return (
     <Modal
       isOpen={isOpen}
-      title={target ? `Change PIN - ${target.username}` : 'Change PIN'}
+      title={target ? `Change Password - ${target.username}` : 'Change Password'}
       onClose={onClose}
       className="admin-change-pin-modal"
       bodyClassName="admin-change-pin-modal-body"
@@ -42,25 +42,25 @@ function ChangePinModal({
             Cancel
           </Button>
           <Button variant="primary" onClick={onSave} disabled={isSaving}>
-            {isSaving ? 'Saving...' : 'Save PIN'}
+            {isSaving ? 'Saving...' : 'Save Password'}
           </Button>
         </div>
       }
     >
       {error ? <div className="form-error">{error}</div> : null}
       <Input
-        label="New PIN"
-        placeholder="Enter new PIN"
+        label="New Password"
+        placeholder="Enter new password"
         type="password"
         autoComplete="new-password"
         value={newPassword}
         onChange={(event) => onNewPasswordChange(event.target.value)}
-        helperText="Use at least 4 characters."
+        helperText="Use at least 8 characters."
         required
       />
       <Input
-        label="Confirm PIN"
-        placeholder="Re-enter PIN"
+        label="Confirm Password"
+        placeholder="Re-enter password"
         type="password"
         autoComplete="new-password"
         value={confirmPassword}

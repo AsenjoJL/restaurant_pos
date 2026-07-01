@@ -25,7 +25,7 @@ function AdminDashboardPage() {
         <AdminStatCard
           label="Total Sales Today"
           value={formatCurrency(analytics.todaySales)}
-          icon="/sales.png"
+          icon="/saless.webp"
         />
         <AdminStatCard
           label="Total Orders"

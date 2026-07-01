@@ -81,14 +81,12 @@ export const kioskReducer = (state: KioskState, action: KioskAction): KioskState
         ...state,
         cart: [],
       }
-    case 'PLACE_ORDER':
+    case 'STORE_ORDER':
       return {
         ...state,
-        orderNumber: action.payload.orderNumber,
-        placedAt: action.payload.placedAt,
         ordersByNo: {
           ...state.ordersByNo,
-          [action.payload.orderNumber]: action.payload.order,
+          [action.payload.order_no]: action.payload,
         },
       }
     case 'RESET':
@@ -97,8 +95,6 @@ export const kioskReducer = (state: KioskState, action: KioskAction): KioskState
         tableLabel: '',
         cart: [],
         note: '',
-        orderNumber: null,
-        placedAt: null,
         ordersByNo: state.ordersByNo,
       }
     default:

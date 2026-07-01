@@ -3,6 +3,7 @@ import type { RootState } from '../../app/store/store'
 import type {
   Ingredient,
   IngredientBaseUnit,
+  InventoryAdjustment,
   IngredientType,
   InventoryAdjustmentType,
   InventoryAdjustmentReason,
@@ -198,10 +199,10 @@ export const syncUpsertIngredient = createAsyncThunk<
   await inventoryRepository.upsertIngredient(payload)
 })
 
-export const syncStockAdjustment = createAsyncThunk<void, AdjustStockPayload>(
+export const syncStockAdjustment = createAsyncThunk<InventoryAdjustment, AdjustStockPayload>(
   'inventory/syncStockAdjustment',
   async (payload) => {
-    await inventoryRepository.createAdjustment(payload)
+    return inventoryRepository.createAdjustment(payload)
   },
 )
 
@@ -422,10 +423,25 @@ const inventorySlice = createSlice({
     },
   },
   extraReducers: (builder) => {
+    builder.addCase(syncStockAdjustment.fulfilled, (state, action) => {
+      const target = state.ingredients.find((item) => item.id === action.payload.ingredientId)
+      if (!target) {
+        return
+      }
+
+      target.onHand = action.payload.afterQty ?? target.onHand
+
+      state.adjustments = [
+        action.payload,
+        ...state.adjustments.filter((adjustment) => adjustment.id !== action.payload.id),
+      ]
+    })
+
     builder.addCase(hydrateInventoryFromRepository.fulfilled, (state, action) => {
       state.ingredients = normalizeIngredients(action.payload.ingredients)
       state.recipes = action.payload.recipes
-      state.adjustments = action.payload.adjustments
+      state.adjustments =
+        action.payload.adjustments.length > 0 ? action.payload.adjustments : state.adjustments
     })
   },
 })

@@ -34,7 +34,7 @@ function KioskCartFooterActions({
         onClick={onPlaceOrder}
         disabled={isEmpty || isPlacing}
       >
-        {KIOSK_CART_COPY.placeOrder}
+        {isPlacing ? 'Placing order...' : KIOSK_CART_COPY.placeOrder}
       </button>
     </div>
   )

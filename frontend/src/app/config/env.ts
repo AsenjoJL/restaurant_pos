@@ -15,6 +15,7 @@ const parsePositiveFloat = (value: string | undefined, fallback: number) => {
 }
 
 export const env = {
+  apiBaseUrl: (import.meta.env.VITE_API_BASE_URL ?? 'http://localhost:8000').replace(/\/$/, ''),
   syncKitchenMs: parsePositiveInt(import.meta.env.VITE_SYNC_KITCHEN_MS, 5000),
   syncSalesMs: parsePositiveInt(import.meta.env.VITE_SYNC_SALES_MS, 5000),
   syncOrdersMs: parsePositiveInt(import.meta.env.VITE_SYNC_ORDERS_MS, 5000),

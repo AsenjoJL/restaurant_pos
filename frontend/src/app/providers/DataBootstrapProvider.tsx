@@ -15,9 +15,14 @@ function DataBootstrapProvider({ children }: DataBootstrapProviderProps) {
   const inventoryCount = useAppSelector((state) => state.inventory.ingredients.length)
   const salesCount = useAppSelector((state) => state.sales.records.length)
   const adminProductCount = useAppSelector((state) => state.admin.products.length)
+  const authStatus = useAppSelector((state) => state.auth.status)
 
   useEffect(() => {
     void (async () => {
+      if (authStatus !== 'authenticated') {
+        return
+      }
+
       const tasks: Array<Promise<unknown>> = []
 
       if (ordersCount === 0) {
@@ -39,7 +44,7 @@ function DataBootstrapProvider({ children }: DataBootstrapProviderProps) {
 
       await Promise.allSettled(tasks)
     })()
-  }, [adminProductCount, dispatch, inventoryCount, ordersCount, salesCount])
+  }, [adminProductCount, authStatus, dispatch, inventoryCount, ordersCount, salesCount])
 
   return <>{children}</>
 }

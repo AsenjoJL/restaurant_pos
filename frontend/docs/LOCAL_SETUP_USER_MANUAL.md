@@ -165,7 +165,7 @@ Login page
 1. Run npm run dev.
 2. Open the local Vite URL.
 3. Go to /login.
-4. Enter the username and PIN.
+4. Enter the username and password.
 5. The app redirects based on the role.
 
 
@@ -182,22 +182,14 @@ http://localhost:5173/kds-board
 From the kitchen screen, the customer board can also be opened after logging in as kitchen or admin.
 
 
-Test accounts
+Default seeded account
 
 Admin
 Username: admin
-PIN: 1111
+Password: password123
 Opens: /admin/dashboard
 
-Cashier
-Username: cashier
-PIN: 2222
-Opens: /pos
-
-Kitchen
-Username: kitchen
-PIN: 3333
-Opens: /kitchen
+Additional cashier and kitchen users should be created from the backend admin users screen or seeded in Laravel.
 
 
 Routes
@@ -283,45 +275,11 @@ npm run kiosk:build:linux
 Installer files are placed in frontend/release.
 
 
-Local data
+Application data
 
-The local version stores data in browser localStorage.
+The frontend uses the Laravel backend API.
 
-There is no backend database in this setup.
-
-Storage keys:
-
-pos.auth.v1
-Login session.
-
-pos.orders.v2
-Orders.
-
-pos.inventory.v2
-Ingredients, recipes, and stock movement.
-
-pos.cash.v1
-Cash drawer data.
-
-pos.sales.v2
-Sales records.
-
-pos.audit.v1
-Audit logs.
-
-pos.admin.v4
-Products, categories, users, and settings.
-
-
-Reset test data
-
-1. Open browser DevTools.
-2. Open Application.
-3. Open Local Storage.
-4. Delete the POS keys.
-5. Refresh the browser.
-
-Only do this for test data.
+Persistent data is stored in PostgreSQL through the backend, not in browser localStorage.
 
 
 Inventory import
@@ -365,7 +323,7 @@ Blank page
 Stop the server, run npm install, then run npm run dev again.
 
 Login fails
-Check the username, PIN, and account status.
+Check the username, password, and account status.
 
 Electron does not open
 Check that Vite is running and the port is available.

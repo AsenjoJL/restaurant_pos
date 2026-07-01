@@ -23,13 +23,19 @@ function useLoginPageController() {
 
   const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault()
-    if (!canSubmit) return
+    const formData = new FormData(event.currentTarget)
+    const submittedUsername = String(formData.get('username') ?? '').trim()
+    const submittedPassword = String(formData.get('password') ?? '')
+
+    if (!submittedUsername || !submittedPassword || isSubmitting) {
+      return
+    }
 
     void withLock(async () => {
       setIsVerifying(true)
       setIsShaking(false)
       const [result] = await Promise.all([
-        dispatch(login({ username: username.trim(), password })),
+        dispatch(login({ username: submittedUsername, password: submittedPassword })),
         new Promise((resolve) => window.setTimeout(resolve, 900)),
       ])
 

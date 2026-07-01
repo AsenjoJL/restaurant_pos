@@ -7,8 +7,6 @@ export type KioskState = {
   tableLabel: string
   cart: KioskCartItem[]
   note: string
-  orderNumber: string | null
-  placedAt: string | null
   ordersByNo: Record<string, Order>
 }
 
@@ -26,7 +24,7 @@ export type KioskAction =
   | { type: 'REMOVE_ITEM'; payload: string }
   | { type: 'SET_NOTE'; payload: string }
   | { type: 'CLEAR_CART' }
-  | { type: 'PLACE_ORDER'; payload: { orderNumber: string; placedAt: string; order: Order } }
+  | { type: 'STORE_ORDER'; payload: Order }
   | { type: 'RESET' }
 
 export type KioskContextValue = {
@@ -40,5 +38,6 @@ export type KioskContextValue = {
   setNote: (value: string) => void
   clearCart: () => void
   placeOrder: () => { orderNumber: string; order: Order } | null
+  rememberOrder: (order: Order) => void
   reset: () => void
 }

@@ -35,6 +35,7 @@ function LoginCredentialsPanel({
         </label>
         <input
           id="staff-username"
+          name="username"
           className="mb-5 w-full rounded-[12px] border border-[#d1d5db] bg-white px-4 py-3 text-[17px] text-[#111827] outline-none placeholder:text-[#9ca3af] focus:border-[#285943] focus:ring-2 focus:ring-[#285943]/10"
           placeholder="Enter username"
           value={username}
@@ -53,6 +54,7 @@ function LoginCredentialsPanel({
         </label>
         <input
           id="staff-password"
+          name="password"
           className={`mb-6 w-full rounded-[12px] border border-[#d1d5db] bg-white px-4 py-3 text-[17px] text-[#111827] outline-none placeholder:text-[#9ca3af] focus:border-[#285943] focus:ring-2 focus:ring-[#285943]/10 ${
             isShaking ? 'animate-[shake_0.4s_ease]' : ''
           }`}

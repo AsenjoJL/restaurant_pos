@@ -1,13 +1,18 @@
-import { nanoid } from '@reduxjs/toolkit'
-import { useCallback, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 import { useAppDispatch, useAppSelector } from '../../../app/store/hooks'
 import { hasValidationErrors } from '../../../shared/lib/validation'
 import { pushToast } from '../../../shared/store/ui.store'
 import { selectInventoryIngredients, selectInventoryRecipes } from '../../inventory/inventory.selectors'
 import { runInventorySync } from '../../inventory/inventory.sync'
-import { syncSaveRecipe, syncUpsertIngredient } from '../../inventory/inventory.store'
+import {
+  hydrateInventoryFromRepository,
+  saveRecipe,
+  syncSaveRecipe,
+  syncUpsertIngredient,
+} from '../../inventory/inventory.store'
 import type { IngredientBaseUnit, RecipeLine } from '../../inventory/inventory.types'
 import { dispatchAndSyncAdmin } from '../admin.actions'
+import { adminRepository } from '../api'
 import {
   buildProductFormForEdit,
   buildRecipeLinesForSave,
@@ -16,9 +21,7 @@ import {
   type ProductErrors,
   type ProductFormState,
 } from '../admin.products-form'
-import type { DemoProductKey } from '../admin.product-demos'
 import {
-  buildDemoProductForm,
   buildIngredientSelectOptions,
   buildProductCategoryOptions,
   buildProductPayload,
@@ -26,10 +29,9 @@ import {
   filterProducts,
   getFirstProductFormError,
   getProductProfitMetrics,
-  PRODUCT_CLASS_OPTIONS,
 } from '../admin.products-page'
 import { selectAdminCategories, selectAdminProducts } from '../admin.selectors'
-import { addProduct, toggleProductActive, updateProduct } from '../admin.store'
+import { toggleProductActive, upsertCanonicalProduct } from '../admin.store'
 import type { AdminProduct } from '../admin.types'
 import useProductFormHandlers from './useProductFormHandlers'
 import useProductImageDraft from './useProductImageDraft'
@@ -37,19 +39,31 @@ import useProductImageDraft from './useProductImageDraft'
 export function useAdminProductsPageModel() {
   const dispatch = useAppDispatch()
   const categories = useAppSelector(selectAdminCategories)
-  const products = useAppSelector(selectAdminProducts)
+  const products = useAppSelector(selectAdminProducts).filter(
+    (product) => product.productClass === 'NON_RAW',
+  )
   const recipes = useAppSelector(selectInventoryRecipes)
   const ingredients = useAppSelector(selectInventoryIngredients)
 
   const [query, setQuery] = useState('')
   const [categoryFilter, setCategoryFilter] = useState('all')
-  const [classFilter, setClassFilter] = useState<'all' | 'RAW' | 'NON_RAW'>('all')
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [editing, setEditing] = useState<AdminProduct | null>(null)
   const [form, setForm] = useState<ProductFormState>(emptyProductForm)
   const [errors, setErrors] = useState<ProductErrors>({})
   const [formError, setFormError] = useState('')
   const [isSaving, setIsSaving] = useState(false)
+
+  const ingredientCategoriesNeedRefresh =
+    ingredients.length > 0 && ingredients.every((ingredient) => ingredient.category === 'Inventory')
+
+  useEffect(() => {
+    if (!ingredientCategoriesNeedRefresh) {
+      return
+    }
+
+    void dispatch(hydrateInventoryFromRepository())
+  }, [dispatch, ingredientCategoriesNeedRefresh])
 
   const categoryOptions = useMemo(() => buildProductCategoryOptions(categories), [categories])
 
@@ -59,8 +73,6 @@ export function useAdminProductsPageModel() {
   )
 
   const stats = useMemo(() => buildProductStats(products, categories.length), [categories.length, products])
-
-  const classOptions = useMemo(() => PRODUCT_CLASS_OPTIONS, [])
 
   const {
     handleAddIngredientLink,
@@ -75,11 +87,10 @@ export function useAdminProductsPageModel() {
     () =>
       filterProducts({
         categoryFilter,
-        classFilter,
         products,
         query,
       }),
-    [categoryFilter, classFilter, products, query],
+    [categoryFilter, products, query],
   )
 
   const failSave = useCallback(
@@ -214,52 +225,26 @@ export function useAdminProductsPageModel() {
   const upsertProductRecord = useCallback(
     async (payload: ReturnType<typeof buildProductPayload>) => {
       if (editing) {
-        const synced = await dispatchAndSyncAdmin(
-          dispatch,
-          updateProduct({
-            id: editing.id,
-            isActive: editing.isActive,
+        try {
+          return await adminRepository.updateProduct(editing.id, {
             ...payload,
-          }),
-        )
-        if (!synced) {
+            sku: editing.sku,
+            isActive: editing.isActive,
+          })
+        } catch {
           failSave('Unable to save product right now. Please try again.')
           return null
         }
-
-        dispatch(
-          pushToast({
-            title: 'Product updated',
-            description: `${payload.name} was saved.`,
-            variant: 'success',
-          }),
-        )
-        return editing.id
       }
 
-      const newProductId = nanoid()
-      const synced = await dispatchAndSyncAdmin(
-        dispatch,
-        addProduct({
-          ...payload,
-          id: newProductId,
-        }),
-      )
-      if (!synced) {
+      try {
+        return await adminRepository.createProduct(payload)
+      } catch {
         failSave('Unable to save product right now. Please try again.')
         return null
       }
-
-      dispatch(
-        pushToast({
-          title: 'Product added',
-          description: `${payload.name} was created.`,
-          variant: 'success',
-        }),
-      )
-      return newProductId
     },
-    [dispatch, editing, failSave],
+    [editing, failSave],
   )
 
   const syncRecipeForProduct = useCallback(
@@ -273,19 +258,10 @@ export function useAdminProductsPageModel() {
         lines,
       }
 
-      const recipeSynced = await runInventorySync(
-        dispatch,
-        async () => {
-          await dispatch(syncSaveRecipe(recipePayload)).unwrap()
-        },
-        {
-          errorTitle: 'Recipe sync failed',
-          errorDescription:
-            'Product was saved, but recipe sync failed. Inventory deduction may not work yet.',
-        },
-      )
-
-      if (!recipeSynced) {
+      try {
+        await dispatch(syncSaveRecipe(recipePayload)).unwrap()
+        dispatch(saveRecipe(recipePayload))
+      } catch {
         failSave('Recipe sync failed. Please retry saving.')
         return false
       }
@@ -328,27 +304,37 @@ export function useAdminProductsPageModel() {
     }
 
     const payload = buildProductPayload(form, imageResult.imageUrl)
-    const validRecipeLines = buildRecipeLinesForSave(form)
+    const validRecipeLines = buildRecipeLinesForSave(form, ingredients)
     if (form.productType === 'non_raw' && validRecipeLines.length === 0) {
       failSave('At least one valid ingredient line is required.')
       return
     }
 
-    const productId = await upsertProductRecord(payload)
-    if (!productId) {
+    const savedProduct = await upsertProductRecord(payload)
+    if (!savedProduct) {
       return
     }
 
-    const recipeSynced = await syncRecipeForProduct(productId, validRecipeLines)
+    dispatch(upsertCanonicalProduct(savedProduct))
+
+    const recipeSynced = await syncRecipeForProduct(savedProduct.id, validRecipeLines)
     if (!recipeSynced) {
       return
     }
 
+    dispatch(
+      pushToast({
+        title: editing ? 'Product updated' : 'Product added',
+        description: `${savedProduct.name} was ${editing ? 'saved' : 'created'}.`,
+        variant: 'success',
+      }),
+    )
     setIsSaving(false)
     closeModal()
   }, [
     closeModal,
     dispatch,
+    editing,
     failSave,
     form,
     isSaving,
@@ -386,21 +372,6 @@ export function useAdminProductsPageModel() {
     [form],
   )
 
-  const loadDemoProduct = useCallback(
-    (key: DemoProductKey) => {
-      setForm(
-        buildDemoProductForm({
-          categories,
-          key,
-          emptyForm: emptyProductForm,
-        }),
-      )
-      setErrors({})
-      setFormError('')
-    },
-    [categories],
-  )
-
   return {
     // data
     categories,
@@ -413,10 +384,7 @@ export function useAdminProductsPageModel() {
     setQuery,
     categoryFilter,
     setCategoryFilter,
-    classFilter,
-    setClassFilter,
     categoryOptions,
-    classOptions,
     filteredProducts,
 
     // modal
@@ -446,6 +414,5 @@ export function useAdminProductsPageModel() {
     handleRecipeIngredientChange,
     handleRecipeQtyChange,
     clearPendingImage,
-    loadDemoProduct,
   } as const
 }

@@ -113,12 +113,15 @@ export const buildProductFormForEdit = ({
   ingredients: Ingredient[]
 }): ProductFormState => {
   const recipeLines: RecipeLineDraft[] = recipe
-    ? recipe.lines.map((line) => ({
+    ? recipe.lines.map((line) => {
+        const ingredient = ingredients.find((item) => item.id === line.ingredientId)
+        return {
         id: nanoid(),
         ingredientId: line.ingredientId,
         qty: Number(line.qty) > 0 ? String(line.qty) : '1',
-        unit: line.unit || '',
-      }))
+        unit: line.unit || ingredient?.baseUnit || '',
+      }
+      })
     : [createEmptyRecipeLine()]
 
   const rawLinkedIngredientIds =
@@ -206,21 +209,22 @@ export const validateProductForm = (form: ProductFormState): ProductErrors => {
   const hasPartialRecipeLine = form.recipeLines.some((line) => {
     const hasIngredient = line.ingredientId.trim().length > 0
     const hasQty = line.qty.trim().length > 0
-    if (!hasIngredient && !hasQty) {
+    const hasUnit = line.unit.trim().length > 0
+    if (!hasIngredient && !hasQty && !hasUnit) {
       return false
     }
-    if (!hasIngredient || !hasQty) {
+    if (!hasIngredient || !hasQty || !hasUnit) {
       return true
     }
     const qty = Number(line.qty)
     return !Number.isFinite(qty) || qty <= 0
   })
   if (hasPartialRecipeLine) {
-    errors.recipeLines = 'Each ingredient line needs a valid quantity greater than 0.'
+    errors.recipeLines = 'Each ingredient line needs an ingredient, unit, and quantity greater than 0.'
     return errors
   }
 
-  const validRecipeLines = normalizeNonRawRecipeLines(form.recipeLines)
+  const validRecipeLines = normalizeNonRawRecipeLines(form.recipeLines, [])
   if (validRecipeLines.length === 0) {
     errors.recipeLines = 'At least one ingredient is required.'
     return errors
@@ -234,17 +238,30 @@ export const validateProductForm = (form: ProductFormState): ProductErrors => {
   return errors
 }
 
-const normalizeNonRawRecipeLines = (lines: RecipeLineDraft[]): RecipeLine[] =>
+const normalizeNonRawRecipeLines = (
+  lines: RecipeLineDraft[],
+  ingredients: Ingredient[],
+): RecipeLine[] =>
   lines
-    .filter((line) => line.ingredientId.trim().length > 0 && line.qty.trim().length > 0)
-    .map((line) => ({
+    .filter(
+      (line) =>
+        line.ingredientId.trim().length > 0 &&
+        line.qty.trim().length > 0,
+    )
+    .map((line) => {
+      const ingredient = ingredients.find((item) => item.id === line.ingredientId)
+      return {
       ingredientId: line.ingredientId,
       qty: Number(line.qty),
-      unit: (line.unit as MeasurementUnit) || undefined,
-    }))
-    .filter((line) => Number.isFinite(line.qty) && line.qty > 0)
+      unit: ((line.unit || ingredient?.baseUnit) as MeasurementUnit | undefined) ?? undefined,
+      }
+    })
+    .filter((line) => Number.isFinite(line.qty) && line.qty > 0 && Boolean(line.unit))
 
-export const buildRecipeLinesForSave = (form: ProductFormState): RecipeLine[] =>
+export const buildRecipeLinesForSave = (
+  form: ProductFormState,
+  ingredients: Ingredient[],
+): RecipeLine[] =>
   form.productType === 'raw'
     ? Array.from(
         new Set(
@@ -256,7 +273,7 @@ export const buildRecipeLinesForSave = (form: ProductFormState): RecipeLine[] =>
         ingredientId,
         qty: 1,
       }))
-    : normalizeNonRawRecipeLines(form.recipeLines)
+    : normalizeNonRawRecipeLines(form.recipeLines, ingredients)
 
 export const validateProductImageFile = (
   file: File,

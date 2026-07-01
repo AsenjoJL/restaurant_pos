@@ -23,7 +23,7 @@ function ProductImageUploadField({
         className="product-editor-photo-input"
       />
       <div className="product-editor-photo-hint">
-        JPG/PNG up to 5MB.
+        JPG, PNG, WEBP, or AVIF up to 5MB.
       </div>
       {(pendingImagePreview || currentImageUrl) && (
         <div className="product-editor-photo-preview-row">

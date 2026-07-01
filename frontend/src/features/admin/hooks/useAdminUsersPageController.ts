@@ -4,9 +4,8 @@ import { useAppDispatch, useAppSelector } from '../../../app/store/hooks'
 import { hasValidationErrors } from '../../../shared/lib/validation'
 import { pushToast } from '../../../shared/store/ui.store'
 import { selectAuthUser } from '../../auth/auth.selectors'
-import { dispatchAndSyncAdmin } from '../admin.actions'
 import { selectAdminUsers } from '../admin.selectors'
-import { addUser, toggleUserActive, updateUser } from '../admin.store'
+import { hydrateAdminFromRepository } from '../admin.store'
 import type { AdminUser } from '../admin.types'
 import {
   adminUserRoleOptions,
@@ -72,6 +71,8 @@ function useAdminUsersPageController() {
       name: user.name,
       username: user.username,
       role: user.role,
+      password: '',
+      confirmPassword: '',
     })
     setErrors({})
     setFormError('')
@@ -105,10 +106,21 @@ function useAdminUsersPageController() {
     setFormError(message)
   }
 
+  const refreshUsers = async () => {
+    await dispatch(hydrateAdminFromRepository()).unwrap()
+  }
+
   const upsertUserRecord = async (payload: UserPayload): Promise<boolean> => {
     if (editing) {
-      const synced = await dispatchAndSyncAdmin(dispatch, updateUser({ id: editing.id, ...payload }))
-      if (!synced) {
+      try {
+        await adminRepository.updateUser(editing.id, {
+          name: payload.name,
+          username: payload.username,
+          role: payload.role,
+          isActive: editing.isActive,
+        })
+        await refreshUsers()
+      } catch {
         failSave('Unable to save user right now. Please try again.')
         return false
       }
@@ -123,8 +135,21 @@ function useAdminUsersPageController() {
       return true
     }
 
-    const synced = await dispatchAndSyncAdmin(dispatch, addUser(payload))
-    if (!synced) {
+    if (!payload.password) {
+      failSave('Password is required for new staff users.')
+      return false
+    }
+
+    try {
+      await adminRepository.createUser({
+        name: payload.name,
+        username: payload.username,
+        role: payload.role,
+        password: payload.password,
+        isActive: true,
+      })
+      await refreshUsers()
+    } catch {
       failSave('Unable to save user right now. Please try again.')
       return false
     }
@@ -132,7 +157,7 @@ function useAdminUsersPageController() {
     dispatch(
       pushToast({
         title: 'User created',
-        description: `${payload.name} was added. Default PIN is 1111.`,
+        description: `${payload.name} was added.`,
         variant: 'success',
       }),
     )
@@ -173,13 +198,22 @@ function useAdminUsersPageController() {
   }
 
   const handleToggleActive = async (user: AdminUser) => {
-    const synced = await dispatchAndSyncAdmin(dispatch, toggleUserActive(user.id))
-    if (synced) {
+    try {
+      await adminRepository.setUserActive(user.id, !user.isActive)
+      await refreshUsers()
       dispatch(
         pushToast({
           title: user.isActive ? 'User disabled' : 'User enabled',
           description: user.name,
           variant: 'info',
+        }),
+      )
+    } catch {
+      dispatch(
+        pushToast({
+          title: 'Update failed',
+          description: 'Could not update user status.',
+          variant: 'error',
         }),
       )
     }
@@ -215,14 +249,14 @@ function useAdminUsersPageController() {
       dispatch(
         pushToast({
           title: 'Password updated',
-          description: `${passwordTarget.username}'s PIN was changed.`,
+          description: `${passwordTarget.username}'s password was changed.`,
           variant: 'success',
         }),
       )
       closePasswordModal()
     } catch {
       setIsUpdatingPassword(false)
-      setPasswordError('Unable to update PIN right now. Please try again.')
+      setPasswordError('Unable to update password right now. Please try again.')
       dispatch(
         pushToast({
           title: 'Update failed',

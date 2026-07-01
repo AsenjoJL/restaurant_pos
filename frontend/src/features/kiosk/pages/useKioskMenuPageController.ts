@@ -6,13 +6,28 @@ import { MAX_NOTE_LENGTH } from '../../../shared/lib/validators'
 import { pushToast } from '../../../shared/store/ui.store'
 import { useKiosk } from '../useKiosk'
 import type { MenuProduct } from '../../pos/pos.types'
-import { addOrder, syncCreateOrder } from '../../orders/orders.store'
+import { syncCreateOrder } from '../../orders/orders.store'
 import {
   selectInventoryIngredients,
   selectInventoryRecipes,
 } from '../../inventory/inventory.selectors'
 import { selectRuntimeMenuCategories, selectRuntimeMenuProducts } from '../../pos/menu.selectors'
 import { useKioskMenuModel } from '../menu/useKioskMenuModel'
+
+const extractErrorMessage = (error: unknown) => {
+  if (error instanceof Error && error.message.trim().length > 0) {
+    return error.message
+  }
+
+  if (error && typeof error === 'object' && 'message' in error) {
+    const value = (error as { message?: unknown }).message
+    if (typeof value === 'string' && value.trim().length > 0) {
+      return value
+    }
+  }
+
+  return null
+}
 
 export function useKioskMenuPageController() {
   const navigate = useNavigate()
@@ -24,6 +39,7 @@ export function useKioskMenuPageController() {
     updateQuantity,
     removeItem,
     clearCart,
+    rememberOrder,
     setNote,
     placeOrder,
   } = useKiosk()
@@ -85,7 +101,7 @@ export function useKioskMenuPageController() {
       .slice(0, 2)
   }, [model, runtimeProducts])
 
-  const handlePlaceOrder = () => {
+  const handlePlaceOrder = async () => {
     if (isPlacing) {
       return
     }
@@ -144,16 +160,29 @@ export function useKioskMenuPageController() {
       return
     }
 
-    dispatch(addOrder(result.order))
-    void dispatch(syncCreateOrder({ order: result.order }))
-    dispatch(
-      pushToast({
-        title: 'Order placed',
-        description: `Order ${result.orderNumber} is ready for payment.`,
-        variant: 'success',
-      }),
-    )
-    navigate(`/kiosk/print/${result.orderNumber}`)
+    try {
+      const created = await dispatch(syncCreateOrder({ order: result.order })).unwrap()
+      rememberOrder(created.order)
+      dispatch(
+        pushToast({
+          title: 'Order placed',
+          description: `Order ${created.order.order_no} is ready for payment.`,
+          variant: 'success',
+        }),
+      )
+      navigate(`/kiosk/print/${created.order.order_no}`)
+    } catch (error) {
+      dispatch(
+        pushToast({
+          title: 'Order save failed',
+          description:
+            extractErrorMessage(error) ?? 'Could not create the customer order in the backend.',
+          variant: 'error',
+        }),
+      )
+    } finally {
+      setIsPlacing(false)
+    }
   }
 
   const handleAddDirect = (product: MenuProduct) => {

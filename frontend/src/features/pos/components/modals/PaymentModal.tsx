@@ -3,6 +3,7 @@ import Modal from '../../../../shared/components/ui/Modal'
 import { formatCurrency } from '../../../../shared/lib/format'
 import OrderReceiptPreview from '../../../../shared/components/receipt/OrderReceiptPreview'
 import OrderReceiptSheet from '../../../../shared/components/receipt/OrderReceiptSheet'
+import { formatIngredientQty } from '../../../inventory/inventory.logic'
 import usePaymentModalController from '../../payment/usePaymentModalController'
 import PaymentFormPanel from '../payment/PaymentFormPanel'
 
@@ -18,6 +19,7 @@ function PaymentModal() {
     handleMethodChange,
     handleWalletPayerChange,
     handleWalletReferenceChange,
+    inventoryShortages,
     isProcessing,
     order,
     printOrderId,
@@ -82,6 +84,40 @@ function PaymentModal() {
               <strong>{formatCurrency(derived.total)}</strong>
             </div>
           </div>
+
+          {inventoryShortages.length > 0 ? (
+            <div className="pos-payment-shortage">
+              <div className="pos-payment-shortage__header">
+                <h4>Inventory shortage</h4>
+                <p>
+                  Some ingredients may be above reorder level but still below the amount needed
+                  for this order.
+                </p>
+              </div>
+              <div className="pos-payment-shortage__list">
+                {inventoryShortages.map((shortage) => (
+                  <div key={`${shortage.ingredientId}-${shortage.name}`} className="pos-payment-shortage__item">
+                    <div className="pos-payment-shortage__item-head">
+                      <strong>{shortage.name}</strong>
+                      <span className="pos-payment-shortage__deficit">
+                        Short by {formatIngredientQty(shortage.deficit, shortage.unit)}
+                      </span>
+                    </div>
+                    <div className="pos-payment-shortage__item-meta">
+                      <span>Need {formatIngredientQty(shortage.required, shortage.unit)}</span>
+                      <span>On hand {formatIngredientQty(shortage.available, shortage.unit)}</span>
+                      {typeof shortage.reorderLevel === 'number' ? (
+                        <span>Reorder {formatIngredientQty(shortage.reorderLevel, shortage.unit)}</span>
+                      ) : null}
+                    </div>
+                    {shortage.reason ? (
+                      <p className="pos-payment-shortage__reason">{shortage.reason}</p>
+                    ) : null}
+                  </div>
+                ))}
+              </div>
+            </div>
+          ) : null}
 
           <PaymentFormPanel
             activeOrderId={activeOrderId}

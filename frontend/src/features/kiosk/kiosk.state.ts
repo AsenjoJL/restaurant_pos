@@ -27,8 +27,6 @@ export const initialKioskState: KioskState = {
   tableLabel: '',
   cart: [],
   note: '',
-  orderNumber: null,
-  placedAt: null,
   ordersByNo: {},
 }
 

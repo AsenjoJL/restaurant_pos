@@ -1,3 +1,3 @@
-import { adminRepositoryMock } from './admin.repository.mock'
+import { adminRepositoryHttp } from './admin.repository.http'
 
-export const adminRepository = adminRepositoryMock
+export const adminRepository = adminRepositoryHttp

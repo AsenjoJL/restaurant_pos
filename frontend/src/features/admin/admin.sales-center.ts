@@ -11,7 +11,7 @@ export const SALES_CENTER_LINKS = [
     title: 'Sales History',
     description: 'Daily sales records and performance.',
     to: '/admin/sales',
-    icon: '/sales.png',
+    icon: '/saless.webp',
   },
   {
     title: 'Cash Adjustments',

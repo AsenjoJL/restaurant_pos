@@ -2,10 +2,9 @@ import type { Dispatch, SetStateAction } from 'react'
 import type { Ingredient } from '../../../inventory/inventory.types'
 import type { AdminCategory, AdminProduct } from '../../admin.types'
 import type { ProductErrors, ProductFormState } from '../../admin.products-form'
-import type { DemoProductKey } from '../../admin.product-demos'
+import type { IngredientSelectOption } from '../../admin.products-page'
 import NonRawProductFields from './NonRawProductFields'
 import ProductDetailsFields from './ProductDetailsFields'
-import ProductEditorDemoBar from './ProductEditorDemoBar'
 import ProductEditorFooter from './ProductEditorFooter'
 import RawProductFields from './RawProductFields'
 
@@ -15,7 +14,7 @@ export type ProductEditorModalProps = {
   errors: ProductErrors
   form: ProductFormState
   formError: string
-  ingredientSelectOptions: Array<{ value: string; label: string }>
+  ingredientSelectOptions: IngredientSelectOption[]
   ingredients: Ingredient[]
   isOpen: boolean
   isSaving: boolean
@@ -31,8 +30,6 @@ export type ProductEditorModalProps = {
   onImageFileChange: (file: File | null) => void
   onIngredientSelect: (ingredientId: string) => void
   onAdditionalIngredientSelect: (index: number, ingredientId: string) => void
-  onLoadDemoProduct: (key: DemoProductKey) => void
-  onRecipeIngredientChange: (index: number, ingredientId: string) => void
   onRecipeQtyChange: (index: number, qty: string) => void
   onRemoveIngredientLink: (index: number) => void
   onSave: () => void
@@ -60,8 +57,6 @@ function ProductEditorModal({
   onImageFileChange,
   onIngredientSelect,
   onAdditionalIngredientSelect,
-  onLoadDemoProduct,
-  onRecipeIngredientChange,
   onRecipeQtyChange,
   onRemoveIngredientLink,
   onSave,
@@ -81,8 +76,6 @@ function ProductEditorModal({
             x
           </button>
         </div>
-
-        <ProductEditorDemoBar isVisible={!editing} onLoadDemoProduct={onLoadDemoProduct} />
 
         <div className="product-editor-body">
           {formError ? <div className="product-editor-error-banner">{formError}</div> : null}
@@ -106,6 +99,7 @@ function ProductEditorModal({
             <NonRawProductFields
               errors={errors}
               form={form}
+              ingredients={ingredients}
               ingredientSelectOptions={ingredientSelectOptions}
               markupPercentage={markupPercentage}
               pendingImagePreview={pendingImagePreview}
@@ -113,7 +107,6 @@ function ProductEditorModal({
               profitPerItem={profitPerItem}
               onClearPendingImage={onClearPendingImage}
               onImageFileChange={onImageFileChange}
-              onRecipeIngredientChange={onRecipeIngredientChange}
               onRecipeQtyChange={onRecipeQtyChange}
               setForm={setForm}
             />

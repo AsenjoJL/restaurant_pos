@@ -21,7 +21,7 @@ type SalesStatsCardsProps = {
 function SalesStatsCards({ metrics, formatCurrency }: SalesStatsCardsProps) {
   return (
     <div className="admin-stats">
-      <AdminStatCard label="Total Sales" value={formatCurrency(metrics.totalSales)} icon="/sales.png" />
+      <AdminStatCard label="Total Sales" value={formatCurrency(metrics.totalSales)} icon="/saless.webp" />
       <AdminStatCard label="Total Orders" value={String(metrics.totalOrders)} icon="/total orders.png" />
       <AdminStatCard label="Profit" value={formatCurrency(metrics.profit)} icon="/profit.png" />
       <AdminStatCard label="Average Ticket" value={formatCurrency(metrics.avgTicket)} icon="/ticket.png" />

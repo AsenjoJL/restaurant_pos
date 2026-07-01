@@ -1,0 +1,22 @@
+<?php
+
+use Illuminate\Database\Migrations\Migration;
+use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\Schema;
+
+return new class extends Migration
+{
+    public function up(): void
+    {
+        Schema::table('purchase_orders', function (Blueprint $table) {
+            $table->timestamp('received_inventory_applied_at')->nullable()->after('received_at')->index();
+        });
+    }
+
+    public function down(): void
+    {
+        Schema::table('purchase_orders', function (Blueprint $table) {
+            $table->dropColumn('received_inventory_applied_at');
+        });
+    }
+};

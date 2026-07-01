@@ -21,6 +21,7 @@ export type ReplacementRequestStatus = 'PENDING' | 'APPROVED' | 'REJECTED'
 
 export type OrderItem = {
   id: string
+  product_id?: string
   name: string
   price: number
   quantity: number
@@ -28,6 +29,7 @@ export type OrderItem = {
   note?: string
   bundle_items?: {
     id: string
+    product_id?: string
     name: string
     price: number
     quantity: number
@@ -102,6 +104,7 @@ export type Order = {
   payment_change?: number
   payment_reference?: string
   payment_payer?: string
+  paid_at?: string
   processed_by?: {
     id: string
     name: string

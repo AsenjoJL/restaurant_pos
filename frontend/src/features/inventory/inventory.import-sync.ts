@@ -27,8 +27,24 @@ export type InventoryImportSummary = {
   errors: number
 }
 
+const canonicalizeInventoryCode = (value?: string | null) => {
+  const normalized = value?.trim().toUpperCase() ?? ''
+  if (!normalized) {
+    return ''
+  }
+
+  const compact = normalized.replace(/[^A-Z0-9]/g, '')
+  const match = compact.match(/^ING(\d+)$/)
+
+  if (!match) {
+    return compact
+  }
+
+  return `ING-${match[1].padStart(4, '0')}`
+}
+
 const getExistingIngredient = (payload: ImportPayload, lookup: ImportLookupMaps) => {
-  const inventoryId = payload.inventoryId?.trim().toUpperCase()
+  const inventoryId = canonicalizeInventoryCode(payload.inventoryId)
   if (inventoryId) {
     const byInventoryId = lookup.ingredientByInventoryId.get(inventoryId)
     if (byInventoryId) {

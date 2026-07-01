@@ -1,3 +1,3 @@
-import { ordersRepositoryMock } from './orders.repository.mock'
+import { ordersRepositoryHttp } from './orders.repository.http'
 
-export const ordersRepository = ordersRepositoryMock
+export const ordersRepository = ordersRepositoryHttp

@@ -1,3 +1,3 @@
-import { salesRepositoryMock } from './sales.repository.mock'
+import { salesRepositoryHttp } from './sales.repository.http'
 
-export const salesRepository = salesRepositoryMock
+export const salesRepository = salesRepositoryHttp

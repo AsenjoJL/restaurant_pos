@@ -14,6 +14,10 @@ const formatQtyValue = (value: number) =>
 export const formatIngredientQty = (value: number, unit: Ingredient['baseUnit']) =>
   `${formatQtyValue(value)} ${unit}`
 
+const resolveOrderItemProductId = (
+  item: Pick<Order['items'][number], 'id' | 'product_id'>,
+) => item.product_id ?? item.id
+
 const buildInventoryDeductionsWithValidation = (
   order: Order,
   recipes: Recipe[],
@@ -39,6 +43,7 @@ const buildInventoryDeductionsWithValidation = (
         required: qty * multiplier,
         available: 0,
         deficit: qty * multiplier,
+        reorderLevel: 0,
         reason: 'Missing ingredient definition.',
       })
       return
@@ -52,6 +57,7 @@ const buildInventoryDeductionsWithValidation = (
         required: qty * multiplier,
         available: ingredient.onHand,
         deficit: Math.max(qty * multiplier - ingredient.onHand, 0),
+        reorderLevel: ingredient.reorderLevel,
         reason: conversion.reason,
       })
       return
@@ -63,7 +69,7 @@ const buildInventoryDeductionsWithValidation = (
   order.items.forEach((item) => {
     if (item.bundle_items && item.bundle_items.length > 0) {
       item.bundle_items.forEach((bundleItem) => {
-        const recipe = recipeMap.get(bundleItem.id)
+        const recipe = recipeMap.get(bundleItem.product_id ?? bundleItem.id)
         if (!recipe) {
           return
         }
@@ -79,7 +85,7 @@ const buildInventoryDeductionsWithValidation = (
       return
     }
 
-    const recipe = recipeMap.get(item.id)
+    const recipe = recipeMap.get(resolveOrderItemProductId(item))
     if (!recipe) {
       return
     }
@@ -152,6 +158,7 @@ export const validateInventoryForOrder = (
         required: deduction.qty,
         available,
         deficit: deduction.qty - available,
+        reorderLevel: ingredient?.reorderLevel ?? 0,
       })
     }
   })
@@ -163,17 +170,31 @@ export const buildInventoryShortageMessage = (shortages: InventoryShortage[]) =>
   if (shortages.length === 0) {
     return ''
   }
-  return shortages
+
+  const hasAboveReorderShortage = shortages.some(
+    (shortage) =>
+      shortage.reason === undefined &&
+      shortage.reorderLevel !== undefined &&
+      shortage.available > shortage.reorderLevel,
+  )
+
+  const shortageDetails = shortages
     .map(
       (shortage) =>
         shortage.reason
           ? `${shortage.name}: ${shortage.reason}`
-          : `${shortage.name}: need ${formatIngredientQty(
-              shortage.required,
+          : `${shortage.name}: need ${formatIngredientQty(shortage.required, shortage.unit)}, on hand ${formatIngredientQty(
+              shortage.available,
               shortage.unit,
-            )}, on hand ${formatIngredientQty(shortage.available, shortage.unit)}`,
+            )}${shortage.reorderLevel !== undefined ? `, reorder ${formatIngredientQty(shortage.reorderLevel, shortage.unit)}` : ''}`,
     )
     .join(' • ')
+
+  if (hasAboveReorderShortage) {
+    return `Some items are above reorder level but still below the recipe needed for this order. ${shortageDetails}`
+  }
+
+  return shortageDetails
 }
 
 export const buildInventoryDeductionNote = (

@@ -191,7 +191,7 @@ function KioskMenuCartPanel({
           onClick={onPlaceOrder}
           disabled={isEmpty || isPlacing}
         >
-          Place order
+          {isPlacing ? 'Placing order...' : 'Place order'}
         </button>
         <button
           type="button"

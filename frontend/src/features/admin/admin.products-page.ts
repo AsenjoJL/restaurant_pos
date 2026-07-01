@@ -3,13 +3,19 @@ import type {
   ProductErrors,
   ProductFormState,
 } from './admin.products-form'
-import { demoProducts, mapDemoRecipeUnits, type DemoProductKey } from './admin.product-demos'
 import type { AdminCategory, AdminProduct } from './admin.types'
 
+export type IngredientSelectOption = {
+  value: string
+  label: string
+  category: string
+  unit: string
+}
+
 export const PRODUCT_CLASS_OPTIONS: Array<{ value: 'all' | 'RAW' | 'NON_RAW'; label: string }> = [
-  { value: 'all', label: 'All classes' },
-  { value: 'RAW', label: 'Raw' },
-  { value: 'NON_RAW', label: 'Non-Raw' },
+  { value: 'all', label: 'All item types' },
+  { value: 'RAW', label: 'Ingredient / stock item' },
+  { value: 'NON_RAW', label: 'Menu product' },
 ]
 
 export const buildProductCategoryOptions = (categories: AdminCategory[]) => [
@@ -20,11 +26,22 @@ export const buildProductCategoryOptions = (categories: AdminCategory[]) => [
   })),
 ]
 
-export const buildIngredientSelectOptions = (ingredients: Ingredient[]) =>
-  ingredients.map((ingredient) => ({
-    value: ingredient.id,
-    label: `${ingredient.name} (${ingredient.baseUnit})`,
-  }))
+export const buildIngredientSelectOptions = (ingredients: Ingredient[]): IngredientSelectOption[] =>
+  ingredients
+    .map((ingredient) => ({
+      value: ingredient.id,
+      label: ingredient.name,
+      category: ingredient.category || 'Uncategorized',
+      unit: ingredient.baseUnit,
+    }))
+    .sort((left, right) => {
+      const categoryOrder = left.category.localeCompare(right.category)
+      if (categoryOrder !== 0) {
+        return categoryOrder
+      }
+
+      return left.label.localeCompare(right.label)
+    })
 
 export const buildProductStats = (products: AdminProduct[], categoryCount: number) => {
   const activeCount = products.filter((product) => product.isActive).length
@@ -38,12 +55,10 @@ export const buildProductStats = (products: AdminProduct[], categoryCount: numbe
 
 export const filterProducts = ({
   categoryFilter,
-  classFilter,
   products,
   query,
 }: {
   categoryFilter: string
-  classFilter: 'all' | 'RAW' | 'NON_RAW'
   products: AdminProduct[]
   query: string
 }) => {
@@ -51,10 +66,6 @@ export const filterProducts = ({
 
   return products.filter((product) => {
     if (categoryFilter !== 'all' && product.categoryId !== categoryFilter) {
-      return false
-    }
-
-    if (classFilter !== 'all' && product.productClass !== classFilter) {
       return false
     }
 
@@ -120,24 +131,3 @@ export const buildProductPayload = (form: ProductFormState, imageUrl: string | n
   categoryId: form.category,
   imageUrl,
 })
-
-export const buildDemoProductForm = ({
-  categories,
-  key,
-  emptyForm,
-}: {
-  categories: AdminCategory[]
-  key: DemoProductKey
-  emptyForm: ProductFormState
-}) => {
-  const demo = demoProducts[key]
-  const categoryExists = categories.some((category) => category.id === demo.category)
-  const fallbackCategoryId = categories[0]?.id ?? ''
-
-  return {
-    ...emptyForm,
-    ...demo,
-    category: categoryExists ? demo.category : fallbackCategoryId,
-    recipeLines: mapDemoRecipeUnits(demo),
-  }
-}

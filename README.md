@@ -1,14 +1,15 @@
 # Restaurant POS
 
-This repository contains the frontend-only workspace for a restaurant point-of-sale system.
+This repository contains a React frontend and a Laravel backend API for a restaurant point-of-sale system.
 
 ## Project Structure
 - `frontend/` - React + TypeScript + Vite application (POS, kiosk, kitchen, admin modules)
+- `backend/` - Laravel 13 REST API with Sanctum and PostgreSQL-ready schema
 
 ## Runtime
-- Frontend-only
-- Mock data and local state persistence
-- No bundled backend or database
+- Frontend can still run in mock mode
+- Backend API is available under `backend/`
+- PostgreSQL is the intended production database
 
 ## Frontend Tech Stack
 - TypeScript + TSX
@@ -22,3 +23,4 @@ This repository contains the frontend-only workspace for a restaurant point-of-s
 ## Docs
 - Frontend guide: `frontend/README.md`
 - Frontend architecture: `frontend/docs/FRONTEND_ARCHITECTURE.md`
+- Backend guide: `backend/README.md`

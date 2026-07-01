@@ -71,6 +71,7 @@ export type InventoryShortage = {
   required: number
   available: number
   deficit: number
+  reorderLevel?: number
   reason?: string
 }
 

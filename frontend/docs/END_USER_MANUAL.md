@@ -21,29 +21,23 @@ Customers do not log in.
 Staff users log in from /login.
 
 
-Test accounts
+Default seeded account
 
 Admin
 Username: admin
-PIN: 1111
+Password: password123
 
-Cashier
-Username: cashier
-PIN: 2222
-
-Kitchen
-Username: kitchen
-PIN: 3333
+Other staff accounts should be created by an admin.
 
 
 Login
 
 1. Open /login.
 2. Type the username.
-3. Type the PIN.
+3. Type the password.
 4. Select Sign In.
 
-If the login fails, check the username and PIN. If it still fails, ask an admin to check the account.
+If the login fails, check the username and password. If it still fails, ask an admin to check the account.
 
 To change users, sign out first and log in again with another account.
 
@@ -341,17 +335,13 @@ Export an inventory backup if needed.
 
 Data note
 
-This frontend version saves data in the browser on the same device.
-
-Clearing browser storage removes the POS data.
-
-Exports are the backup while there is no backend database.
+The system stores data through the Laravel backend and PostgreSQL database.
 
 
 Common problems
 
 Invalid login
-Username or PIN is wrong.
+Username or password is wrong.
 
 Not authorized
 The account role cannot open that page.

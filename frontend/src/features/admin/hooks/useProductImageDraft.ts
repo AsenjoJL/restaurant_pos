@@ -62,10 +62,15 @@ function useProductImageDraft({ onUploadFailure }: UseProductImageDraftOptions) 
           ok: true as const,
           imageUrl: uploaded.imageUrl,
         }
-      } catch {
-        onUploadFailure('Image upload failed. Please try another image.', {
+      } catch (error) {
+        const message =
+          error instanceof Error && error.message
+            ? error.message
+            : 'Unable to upload the product image right now.'
+
+        onUploadFailure(message, {
           title: 'Upload failed',
-          description: 'Unable to upload the product image right now.',
+          description: message,
         })
         return { ok: false as const }
       }

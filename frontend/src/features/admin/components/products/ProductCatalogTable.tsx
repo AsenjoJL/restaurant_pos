@@ -77,10 +77,10 @@ function ProductCatalogTable({
       <div className="admin-products-catalog-head mb-4 flex items-end justify-between gap-3">
         <div>
           <p className="mb-1 font-mono text-[11px] uppercase tracking-[.18em] text-slate-400">
-            Visual catalog
+            Menu catalog
           </p>
           <h3 className="m-0 text-[24px] font-semibold text-slate-900">
-            Products as shown to kiosk customers
+            Sellable menu items shown to customers
           </h3>
         </div>
         <span className="admin-products-count rounded-full bg-[#f4efe4] px-3 py-1 font-mono text-[11px] uppercase tracking-[.12em] text-[#6f624d]">
@@ -112,7 +112,7 @@ function ProductCatalogTable({
                 <span className="pointer-events-none absolute inset-[14%_28%] rounded-full border border-white/15" />
                 <div className="absolute left-3 top-3 z-20 flex flex-wrap gap-2">
                   <span className="rounded-[4px] bg-[#2c2418]/90 px-2.5 py-1 font-mono text-[10px] uppercase tracking-[.1em] text-[#c8bca8]">
-                    {product.productClass === 'RAW' ? 'Raw' : 'Menu'}
+                    {product.productClass === 'RAW' ? 'Ingredient' : 'Menu'}
                   </span>
                   <span
                     className={`rounded-[4px] px-2.5 py-1 font-mono text-[10px] uppercase tracking-[.1em] ${

@@ -2,7 +2,7 @@ Frontend Architecture Notes
 
 The frontend is a React, TypeScript, Redux Toolkit, React Router, and Vite app for the Restaurant POS system.
 
-For local testing, it does not need a backend. The app uses mock repositories and stores data in the browser.
+For local testing, the app uses the Laravel backend API and PostgreSQL database.
 
 
 App startup
@@ -160,10 +160,10 @@ Component
 Controller hook
 Redux selector or action
 Feature slice
-Mock repository
-localStorage
+HTTP repository
+Laravel API
 
-The screen reads from Redux selectors and writes through Redux actions. The mock repository keeps the data saved in the browser.
+The screen reads from Redux selectors and writes through Redux actions. Repositories sync data with the Laravel API.
 
 
 Folder map
@@ -214,13 +214,13 @@ store
 Redux slices, actions, and selectors.
 
 api
-Repository contracts and mock storage.
+Repository contracts and HTTP integrations.
 
 types
 TypeScript types for the feature.
 
-mock or seed
-Starter data for local testing.
+backend
+Laravel API and database source of truth.
 
 
 Files to know

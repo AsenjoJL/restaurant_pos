@@ -1,5 +1,5 @@
 import { useCallback, type Dispatch, type SetStateAction } from 'react'
-import type { Ingredient } from '../../inventory/inventory.types'
+import type { Ingredient, MeasurementUnit } from '../../inventory/inventory.types'
 import type { ProductFormState } from '../admin.products-form'
 
 type UseProductFormHandlersOptions = {
@@ -70,6 +70,7 @@ function useProductFormHandlers({
 
   const handleRecipeIngredientChange = useCallback(
     (index: number, ingredientId: string) => {
+      const selectedIngredient = ingredients.find((ingredient) => ingredient.id === ingredientId)
       setForm((prev) => {
         const updated = prev.recipeLines.map((line, rowIndex) => {
           if (rowIndex !== index) {
@@ -84,12 +85,15 @@ function useProductFormHandlers({
             ...line,
             ingredientId,
             qty: ingredientId ? nextQty : line.qty,
+            unit: ingredientId
+              ? ((selectedIngredient?.baseUnit ?? '') as MeasurementUnit | '')
+              : '',
           }
         })
         return { ...prev, recipeLines: updated }
       })
     },
-    [setForm],
+    [ingredients, setForm],
   )
 
   const handleRecipeQtyChange = useCallback(

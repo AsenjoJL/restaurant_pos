@@ -1,4 +1,6 @@
 import type { Dispatch, SetStateAction } from 'react'
+import { getCompatibleUnits } from '../../../inventory/inventory.conversions'
+import type { Ingredient } from '../../../inventory/inventory.types'
 import type { MeasurementUnit } from '../../../inventory/inventory.types'
 import {
   createEmptyRecipeLine,
@@ -6,19 +8,21 @@ import {
   type ProductFormState,
   type RecipeLineDraft,
 } from '../../admin.products-form'
+import type { IngredientSelectOption } from '../../admin.products-page'
+import IngredientSearchSelect, { type IngredientSelectionDraft } from './IngredientSearchSelect'
 import ProductImageUploadField from './ProductImageUploadField'
 
 type NonRawProductFieldsProps = {
   errors: ProductErrors
   form: ProductFormState
-  ingredientSelectOptions: Array<{ value: string; label: string }>
+  ingredients: Ingredient[]
+  ingredientSelectOptions: IngredientSelectOption[]
   markupPercentage: number | null
   pendingImagePreview: string
   profitMarginPercent: number | null
   profitPerItem: number | null
   onClearPendingImage: () => void
   onImageFileChange: (file: File | null) => void
-  onRecipeIngredientChange: (index: number, ingredientId: string) => void
   onRecipeQtyChange: (index: number, qty: string) => void
   setForm: Dispatch<SetStateAction<ProductFormState>>
 }
@@ -35,6 +39,7 @@ const updateRecipeLines =
 function NonRawProductFields({
   errors,
   form,
+  ingredients,
   ingredientSelectOptions,
   markupPercentage,
   pendingImagePreview,
@@ -42,7 +47,6 @@ function NonRawProductFields({
   profitPerItem,
   onClearPendingImage,
   onImageFileChange,
-  onRecipeIngredientChange,
   onRecipeQtyChange,
   setForm,
 }: NonRawProductFieldsProps) {
@@ -133,7 +137,11 @@ function NonRawProductFields({
         Add ingredients that make up this product for inventory tracking and auto-deduction
       </div>
 
-      {form.recipeLines.map((line, index) => (
+      {form.recipeLines.map((line, index) => {
+        const selectedIngredient = ingredients.find((ingredient) => ingredient.id === line.ingredientId)
+        const unitOptions = selectedIngredient ? getCompatibleUnits(selectedIngredient) : []
+
+        return (
         <div
           key={line.id}
           className="product-editor-recipe-line"
@@ -142,18 +150,76 @@ function NonRawProductFields({
             {index === 0 ? (
               <label className="product-editor-label">Ingredient *</label>
             ) : null}
-            <select
+            <IngredientSearchSelect
               value={line.ingredientId}
-              onChange={(event) => onRecipeIngredientChange(index, event.target.value)}
-              className="product-editor-control"
-            >
-              <option value="">Select ingredient</option>
-              {ingredientSelectOptions.map((option) => (
-                <option key={option.value} value={option.value}>
-                  {option.label}
-                </option>
-              ))}
-            </select>
+              currentQty={line.qty}
+              currentUnit={line.unit}
+              ingredients={ingredients}
+              options={ingredientSelectOptions}
+              onApply={(drafts) =>
+                setRecipeLines((lines) => {
+                  const uniqueDrafts = drafts.filter(
+                    (draft, position, current) =>
+                      current.findIndex((item) => item.ingredientId === draft.ingredientId) ===
+                      position,
+                  )
+
+                  if (uniqueDrafts.length === 0) {
+                    return lines.map((item, rowIndex) =>
+                      rowIndex === index ? { ...item, ingredientId: '', unit: '' } : item,
+                    )
+                  }
+
+                  const usedElsewhere = new Set(
+                    lines
+                      .filter((_, rowIndex) => rowIndex !== index)
+                      .map((item) => item.ingredientId)
+                      .filter(Boolean),
+                  )
+                  const nextSelectedDrafts = uniqueDrafts.filter(
+                    (draft) => !usedElsewhere.has(draft.ingredientId),
+                  )
+
+                  if (nextSelectedDrafts.length === 0) {
+                    return lines
+                  }
+
+                  const [firstDraft, ...restDrafts] = nextSelectedDrafts
+
+                  const updatedLines = lines.map((item, rowIndex) => {
+                    if (rowIndex !== index) {
+                      return item
+                    }
+
+                    return {
+                      ...item,
+                      ingredientId: firstDraft.ingredientId,
+                      qty: firstDraft.qty.trim() || '1',
+                      unit: firstDraft.unit,
+                    }
+                  })
+
+                  if (restDrafts.length === 0) {
+                    return updatedLines
+                  }
+
+                  const appendedLines = restDrafts.map((draft: IngredientSelectionDraft) => {
+                    return {
+                      ...createEmptyRecipeLine(),
+                      ingredientId: draft.ingredientId,
+                      qty: draft.qty.trim() || '1',
+                      unit: draft.unit,
+                    }
+                  })
+
+                  return [
+                    ...updatedLines.slice(0, index + 1),
+                    ...appendedLines,
+                    ...updatedLines.slice(index + 1),
+                  ]
+                })
+              }
+            />
           </div>
           <div>
             {index === 0 ? <label className="product-editor-label">Qty *</label> : null}
@@ -183,14 +249,11 @@ function NonRawProductFields({
               className="product-editor-control"
             >
               <option value="">Select unit</option>
-              <option value="g">g</option>
-              <option value="kg">kg</option>
-              <option value="ml">ml</option>
-              <option value="l">l</option>
-              <option value="pcs">pcs</option>
-              <option value="tbsp">tbsp</option>
-              <option value="tsp">tsp</option>
-              <option value="cup">cup</option>
+              {unitOptions.map((unit) => (
+                <option key={unit} value={unit}>
+                  {unit}
+                </option>
+              ))}
             </select>
           </div>
           <button
@@ -209,7 +272,8 @@ function NonRawProductFields({
             x
           </button>
         </div>
-      ))}
+        )
+      })}
 
       <button
         type="button"

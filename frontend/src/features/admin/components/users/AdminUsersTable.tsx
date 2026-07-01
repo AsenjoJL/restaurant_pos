@@ -46,7 +46,7 @@ function AdminUsersTable({
                 {user.isActive ? 'Disable' : 'Enable'}
               </Button>
               <Button variant="outline" onClick={() => onChangePin(user)}>
-                Change PIN
+                Change Password
               </Button>
             </div>
           </div>

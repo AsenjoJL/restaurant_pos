@@ -152,7 +152,7 @@ export function useAdminRecipesPageModel() {
       },
       {
         errorTitle: 'Recipe sync failed',
-        errorDescription: 'Unable to save recipe in mock data.',
+        errorDescription: 'Unable to save recipe.',
       },
     )
 
@@ -182,7 +182,7 @@ export function useAdminRecipesPageModel() {
       },
       {
         errorTitle: 'Recipe sync failed',
-        errorDescription: 'Unable to clear recipe in mock data.',
+        errorDescription: 'Unable to clear recipe.',
       },
     )
     if (!synced) {
@@ -228,7 +228,7 @@ export function useAdminRecipesPageModel() {
       },
       {
         errorTitle: 'Ingredient sync failed',
-        errorDescription: 'Unable to create ingredient in mock data.',
+        errorDescription: 'Unable to create ingredient.',
       },
     )
     if (!synced) {

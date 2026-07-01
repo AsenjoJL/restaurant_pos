@@ -1,3 +1,3 @@
-import { kioskRepositoryMock } from './kiosk.repository.mock'
+import { kioskRepositoryHttp } from './kiosk.repository.http'
 
-export const kioskRepository = kioskRepositoryMock
+export const kioskRepository = kioskRepositoryHttp

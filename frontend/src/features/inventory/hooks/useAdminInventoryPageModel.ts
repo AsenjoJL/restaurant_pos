@@ -1,5 +1,6 @@
 import { useCallback, useMemo, useState } from 'react'
 import { useAppDispatch, useAppSelector } from '../../../app/store/hooks'
+import { runSync } from '../../../shared/lib/sync'
 import { pushToast } from '../../../shared/store/ui.store'
 import { hasValidationErrors } from '../../../shared/lib/validation'
 import type { Ingredient, IngredientType } from '../inventory.types'
@@ -22,6 +23,7 @@ import {
   buildInventoryCategories,
   buildInventoryCategoryOptions,
   buildInventoryIngredientOptions,
+  buildInventoryRecipeCoverageMap,
   buildInventoryStats,
   filterInventoryIngredients,
   INVENTORY_INGREDIENT_TYPE_OPTIONS,
@@ -32,7 +34,11 @@ import {
   buildIngredientEditForm,
   resolveAdjustmentQuantity,
 } from '../inventory.adjustments'
-import { selectInventoryAdjustments, selectInventoryIngredients } from '../inventory.selectors'
+import {
+  selectInventoryAdjustments,
+  selectInventoryIngredients,
+  selectInventoryRecipes,
+} from '../inventory.selectors'
 import { runInventorySync } from '../inventory.sync'
 import {
   syncStockAdjustment,
@@ -44,11 +50,14 @@ export function useAdminInventoryPageModel() {
   const dispatch = useAppDispatch()
   const ingredients = useAppSelector(selectInventoryIngredients)
   const adjustments = useAppSelector(selectInventoryAdjustments)
+  const recipes = useAppSelector(selectInventoryRecipes)
 
   const [query, setQuery] = useState('')
   const [categoryFilter, setCategoryFilter] = useState('all')
   const [ingredientTypeFilter, setIngredientTypeFilter] = useState<'all' | IngredientType>('all')
   const [statusFilter, setStatusFilter] = useState<'all' | 'low' | 'ok'>('all')
+  const [adjustmentQuery, setAdjustmentQuery] = useState('')
+  const [adjustmentReasonFilter, setAdjustmentReasonFilter] = useState('all')
 
   const [isIngredientModalOpen, setIsIngredientModalOpen] = useState(false)
   const [isAdjustModalOpen, setIsAdjustModalOpen] = useState(false)
@@ -91,9 +100,27 @@ export function useAdminInventoryPageModel() {
 
   const ingredientOptions = useMemo(() => buildInventoryIngredientOptions(ingredients), [ingredients])
 
+  const adjustmentReasonOptions = useMemo(
+    () => [
+      { value: 'all', label: 'All reasons' },
+      { value: 'RESTOCK', label: 'Restock' },
+      { value: 'SALE', label: 'Sale' },
+      { value: 'WASTE', label: 'Waste' },
+      { value: 'VARIANCE', label: 'Variance' },
+      { value: 'RETURN', label: 'Return' },
+      { value: 'MANUAL', label: 'Manual' },
+    ],
+    [],
+  )
+
   const stats = useMemo(() => buildInventoryStats(ingredients, categories.length), [categories.length, ingredients])
 
   const alerts = useMemo(() => buildInventoryAlerts(ingredients, adjustments), [adjustments, ingredients])
+
+  const recipeCoverageMap = useMemo(
+    () => buildInventoryRecipeCoverageMap(ingredients, recipes),
+    [ingredients, recipes],
+  )
 
   const filteredIngredients = useMemo(
     () =>
@@ -106,6 +133,33 @@ export function useAdminInventoryPageModel() {
       }),
     [categoryFilter, ingredientTypeFilter, ingredients, query, statusFilter],
   )
+
+  const filteredAdjustments = useMemo(() => {
+    const normalized = adjustmentQuery.trim().toLowerCase()
+
+    return adjustments
+      .filter((adjustment) => {
+        if (adjustmentReasonFilter !== 'all' && adjustment.reasonType !== adjustmentReasonFilter) {
+          return false
+        }
+
+        if (!normalized) {
+          return true
+        }
+
+        const ingredient = ingredients.find((item) => item.id === adjustment.ingredientId)
+
+        return (
+          ingredient?.name.toLowerCase().includes(normalized) === true ||
+          ingredient?.inventoryId?.toLowerCase().includes(normalized) === true ||
+          adjustment.reference?.toLowerCase().includes(normalized) === true ||
+          adjustment.reason.toLowerCase().includes(normalized)
+        )
+      })
+      .slice()
+      .sort((left, right) => new Date(right.at).getTime() - new Date(left.at).getTime())
+      .slice(0, 25)
+  }, [adjustmentQuery, adjustmentReasonFilter, adjustments, ingredients])
 
   const openEditModal = useCallback((ingredient: Ingredient) => {
     setEditing(ingredient)
@@ -216,7 +270,7 @@ export function useAdminInventoryPageModel() {
       },
       {
         errorTitle: 'Inventory sync failed',
-        errorDescription: 'Unable to save ingredient in mock data.',
+        errorDescription: 'Unable to save ingredient.',
       },
     )
 
@@ -305,14 +359,14 @@ export function useAdminInventoryPageModel() {
       countedQty: adjustForm.reasonType === 'VARIANCE' ? Number(adjustForm.countedQty) : undefined,
     }
 
-    const synced = await runInventorySync(
+    const synced = await runSync(
       dispatch,
       async () => {
         await dispatch(syncStockAdjustment(adjustmentPayload)).unwrap()
       },
       {
         errorTitle: 'Adjustment failed',
-        errorDescription: 'Unable to apply stock adjustment in mock data.',
+        errorDescription: 'Unable to apply stock adjustment.',
       },
     )
 
@@ -338,7 +392,9 @@ export function useAdminInventoryPageModel() {
     adjustments,
     stats,
     alerts,
+    recipeCoverageMap,
     filteredIngredients,
+    filteredAdjustments,
 
     // filters
     query,
@@ -352,6 +408,11 @@ export function useAdminInventoryPageModel() {
     categoryOptions,
     ingredientTypeOptions,
     statusOptions,
+    adjustmentQuery,
+    setAdjustmentQuery,
+    adjustmentReasonFilter,
+    setAdjustmentReasonFilter,
+    adjustmentReasonOptions,
 
     // ingredient modal
     isIngredientModalOpen,

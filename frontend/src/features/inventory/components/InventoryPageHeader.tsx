@@ -10,6 +10,7 @@ type InventoryPageHeaderProps = {
   onDownloadTemplate: (format: InventoryFileFormat) => void
   onExportInventory: (format: InventoryFileFormat) => void
   onImport: (event: ChangeEvent<HTMLInputElement>) => void
+  onOpenInventoryMovements: () => void
   onOpenImportFilePicker: (format: InventoryFileFormat) => void
 }
 
@@ -58,6 +59,7 @@ function InventoryPageHeader({
   onDownloadTemplate,
   onExportInventory,
   onImport,
+  onOpenInventoryMovements,
   onOpenImportFilePicker,
 }: InventoryPageHeaderProps) {
   return (
@@ -95,6 +97,17 @@ function InventoryPageHeader({
             ))}
           </div>
         </InventoryActionMenu>
+        <button
+          type="button"
+          className="icon-btn inventory-header-icon-btn"
+          onClick={onOpenInventoryMovements}
+          aria-label="View recent inventory movements"
+          title="Recent inventory movements"
+        >
+          <span className="material-symbols-rounded" aria-hidden="true">
+            history
+          </span>
+        </button>
         <InventoryActionMenu
           label={isImporting ? 'Importing...' : 'Import Inventory'}
           disabled={isImporting}

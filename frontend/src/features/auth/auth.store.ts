@@ -1,10 +1,4 @@
 import { createAsyncThunk, createSlice } from '@reduxjs/toolkit'
-import {
-  isRecord,
-  readLocalStorageJson,
-  removeLocalStorageItem,
-  writeLocalStorageJson,
-} from '../../shared/lib/jsonStorage'
 import type { AuthSession, User } from './auth.types'
 import { authService } from './services/auth.service'
 
@@ -15,41 +9,22 @@ type AuthState = {
   error: string | null
 }
 
-type StoredAuthSession = {
-  token: string
-  user: User
-}
-
-export const AUTH_STORAGE_KEY = 'pos.auth.v1'
-
-const loadStoredSession = (): StoredAuthSession | null => {
-  const parsed = readLocalStorageJson(AUTH_STORAGE_KEY)
-  if (!isRecord(parsed) || !parsed.user || typeof parsed.token !== 'string') {
-    return null
-  }
-  return parsed as StoredAuthSession
-}
-
-const storedSession = loadStoredSession()
-
-const initialState: AuthState = storedSession
-  ? {
-      status: 'authenticated',
-      user: storedSession.user,
-      token: storedSession.token,
-      error: null,
-    }
-  : {
-      status: 'unauthenticated',
-      user: null,
-      token: null,
-      error: null,
-    }
-
 type LoginPayload = {
   username: string
   password: string
 }
+
+export const restoreSession = createAsyncThunk<AuthSession | null>(
+  'auth/restoreSession',
+  async (_, { rejectWithValue }) => {
+    try {
+      return await authService.getCurrentSession()
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Unable to restore session'
+      return rejectWithValue(message)
+    }
+  },
+)
 
 export const login = createAsyncThunk<AuthSession, LoginPayload>(
   'auth/login',
@@ -65,18 +40,46 @@ export const login = createAsyncThunk<AuthSession, LoginPayload>(
 
 const authSlice = createSlice({
   name: 'auth',
-  initialState,
+  initialState: {
+    status: 'loading',
+    user: null,
+    token: null,
+    error: null,
+  } as AuthState,
   reducers: {
     logout: (state) => {
       state.status = 'unauthenticated'
       state.user = null
       state.token = null
       state.error = null
-      removeLocalStorageItem(AUTH_STORAGE_KEY)
     },
   },
   extraReducers: (builder) => {
     builder
+      .addCase(restoreSession.pending, (state) => {
+        state.status = 'loading'
+        state.error = null
+      })
+      .addCase(restoreSession.fulfilled, (state, action) => {
+        if (!action.payload) {
+          state.status = 'unauthenticated'
+          state.user = null
+          state.token = null
+          state.error = null
+          return
+        }
+
+        state.status = 'authenticated'
+        state.user = action.payload.user
+        state.token = action.payload.token
+        state.error = null
+      })
+      .addCase(restoreSession.rejected, (state) => {
+        state.status = 'unauthenticated'
+        state.user = null
+        state.token = null
+        state.error = null
+      })
       .addCase(login.pending, (state) => {
         state.status = 'loading'
         state.error = null
@@ -86,10 +89,6 @@ const authSlice = createSlice({
         state.user = action.payload.user
         state.token = action.payload.token
         state.error = null
-        writeLocalStorageJson(AUTH_STORAGE_KEY, {
-          token: action.payload.token,
-          user: action.payload.user,
-        })
       })
       .addCase(login.rejected, (state, action) => {
         state.status = 'unauthenticated'

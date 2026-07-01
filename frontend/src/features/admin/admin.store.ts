@@ -1,11 +1,13 @@
 import { createAsyncThunk, createSlice, nanoid, type PayloadAction } from '@reduxjs/toolkit'
 import type { RootState } from '../../app/store/store'
 import { getDefaultLiveSyncSettings } from '../../app/config/live-sync'
+import { resolveApiAssetUrl } from '../../shared/api/http'
 import { isRecord, readLocalStorageJson } from '../../shared/lib/jsonStorage'
 import { adminRepository } from './api'
 import type {
   AdminSettings,
   AdminState,
+  AdminProduct,
   AdminUser,
 } from './admin.types'
 
@@ -96,7 +98,7 @@ const loadStoredAdminState = (): AdminState | null => {
         (product as AdminState['products'][number]).productClass === 'RAW'
           ? 'RAW'
           : 'NON_RAW',
-      imageUrl: (product as AdminState['products'][number]).imageUrl ?? null,
+      imageUrl: resolveApiAssetUrl((product as AdminState['products'][number]).imageUrl) ?? null,
     })),
     settings: {
       ...parsed.settings,
@@ -193,6 +195,15 @@ const adminSlice = createSlice({
       target.imageUrl = action.payload.imageUrl ?? null
       target.isActive = action.payload.isActive
     },
+    upsertCanonicalProduct: (state, action: PayloadAction<AdminProduct>) => {
+      const targetIndex = state.products.findIndex((product) => product.id === action.payload.id)
+      if (targetIndex >= 0) {
+        state.products[targetIndex] = action.payload
+        return
+      }
+
+      state.products.unshift(action.payload)
+    },
     toggleProductActive: (state, action: PayloadAction<string>) => {
       const target = state.products.find((product) => product.id === action.payload)
       if (!target) {
@@ -252,6 +263,7 @@ export const {
   deleteCategory,
   addProduct,
   updateProduct,
+  upsertCanonicalProduct,
   toggleProductActive,
   addUser,
   updateUser,
